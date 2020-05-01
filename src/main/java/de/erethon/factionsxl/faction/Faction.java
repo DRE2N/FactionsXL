@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.faction;
 
@@ -28,12 +30,7 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.economy.EconomyMenu;
-import de.erethon.factionsxl.economy.FAccount;
-import de.erethon.factionsxl.economy.FStorage;
-import de.erethon.factionsxl.economy.Resource;
-import de.erethon.factionsxl.economy.ResourceSubcategory;
-import de.erethon.factionsxl.economy.TradeMenu;
+import de.erethon.factionsxl.economy.*;
 import de.erethon.factionsxl.entity.FEntity;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.Request;
@@ -50,26 +47,12 @@ import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.CasusBelli;
 import de.erethon.factionsxl.war.War;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
+import de.erethon.factionsxl.war.WarParty;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -78,6 +61,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static java.lang.Math.round;
 
 /**
  * Represents a faction.
@@ -97,6 +87,7 @@ public class Faction extends LegalEntity {
     String mapIcon = "redflag";
     DynmapStyle dynmapStyle;
     boolean mapVisibility = true;
+    boolean invincible = false;
     GovernmentType type;
     boolean open;
     double prestige;
@@ -248,6 +239,14 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
+     * if this faction can be attacked
+     */
+    public boolean isInvincible() {
+        return invincible;
+    }
+
+    /**
+     * @return
      * the type of the government
      */
     public GovernmentType getGovernmentType() {
@@ -314,18 +313,21 @@ public class Faction extends LegalEntity {
      * the stability value
      */
     public int getStability() {
-        int i = (int) Math.round(stability - exhaustion * exhaustion) - (regions.size() - 1 * regions.size() - 1) / 2;
+        int regionModifier = (int) Math.round(fConfig.getStabilityRegionSizeModifier());
+        int regionStability = (regions.size() * regions.size()) * regionModifier;
+        int i = (int) round(stability - exhaustion * exhaustion) - regionStability;
+
         if (!members.contains(admin)) {
             i = i - 25;
         }
-        if (getPower() > chunks.size()) {
-            i += 10;
-        } else if (getPower() < chunks.size()) {
-            i -= 10;
+        if ((getPower() * fConfig.getStabilityMemberPowerModifier()) > chunks.size()) {
+            i += 50;
+        } else if ((getPower() * fConfig.getStabilityMemberPowerModifier()) < chunks.size()) {
+            i -= 50;
         }
-        for (ResourceSubcategory category : ResourceSubcategory.values()) {
+        /*for (ResourceSubcategory category : ResourceSubcategory.values()) {
             i += isSubcategorySaturated(category).getStabilityBonus();
-        }
+        }*/
         return i;
     }
 
@@ -336,27 +338,27 @@ public class Faction extends LegalEntity {
     public BaseComponent[] getStabilityModifiers(ChatColor c) {
         String stability = FMessage.CMD_SHOW_STABILITY.getMessage() + c + getStability();
         String base = FMessage.CMD_SHOW_STABILITY_MOD_BASE.getMessage() + color(this.stability) + "\n";
-        String exhaustion = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_EXHAUSTION.getMessage() + color((int) (this.exhaustion * this.exhaustion)) + "\n";
-        String size = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_PROVINCES.getMessage() + color((regions.size() - 1 * regions.size() - 1) / 2) + "\n";
+        String exhaustion = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_EXHAUSTION.getMessage() + ChatColor.RED + "-" + Math.round((this.exhaustion * this.exhaustion) * 100.00) / 100.0 + "\n";
+        String size = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_PROVINCES.getMessage() + color((regions.size() * (regions.size() + 1)) / 2) + "\n";
         String adminNotMember = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_ABSENT_MONARCH.getMessage() + color(members.contains(admin) ? 0 : -25) + "\n";
         String power = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_POWER.getMessage();
-        if (getPower() > chunks.size()) {
-            power += ChatColor.GREEN + "+10";
-        } else if (getPower() < chunks.size()) {
-            power += ChatColor.DARK_RED + "-10";
+        if ((getPower() * fConfig.getStabilityMemberPowerModifier()) > chunks.size()) {
+            power += ChatColor.GREEN + "+50";
+        } else if ((getPower() * fConfig.getStabilityMemberPowerModifier()) < chunks.size()) {
+            power += ChatColor.DARK_RED + "-50";
         } else {
             power += ChatColor.YELLOW + "0";
         }
         power += "\n";
-        int i = 0;
+        /*int i = 0;
         for (ResourceSubcategory category : ResourceSubcategory.values()) {
             i += isSubcategorySaturated(category).getStabilityBonus();
         }
-        String wealth = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_WEALTH.getMessage() + color(i);
+        String wealth = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_WEALTH.getMessage() + color(i);*/
 
         BaseComponent[] msg = TextComponent.fromLegacyText(stability);
         for (BaseComponent component : msg) {
-            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(base + exhaustion + size + adminNotMember + power + wealth)));
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(base + exhaustion + size + adminNotMember + power)));
         }
         return msg;
     }
@@ -518,6 +520,25 @@ public class Faction extends LegalEntity {
     public Set<Region> getRegions() {
         return regions;
     }
+
+    /**
+     * @return
+     * the territory worth of this faction (currently just amount of chunks, might get expanded)
+     */
+    public int getExpansion() {
+        Set<Region> rg = regions;
+        int value = 0;
+        for (Region r : rg) {
+            if (r.getCoreFactions().containsKey(this)) {
+                value = round(value + (r.getSize() / (float) 2));       // Core Regions only count / 2
+            }
+            else {
+                value = round(value + (r.getSize()));
+            }
+        }
+        return value;
+    }
+
 
     @Override
     public void setAdmin(OfflinePlayer admin) {
@@ -790,7 +811,7 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
-     * the lord faciton
+     * the lord faction
      */
     public Faction getLord() {
         for (Entry<Faction, Relation> entry : relations.entrySet()) {
@@ -1006,7 +1027,7 @@ public class Faction extends LegalEntity {
      * true if the faction is in war
      */
     public boolean isInWar() {
-        return plugin.getWarCache().getByFaction(this) != null;
+        return !plugin.getWarCache().getByFaction(this).isEmpty();
     }
 
     @Override
@@ -1054,6 +1075,22 @@ public class Faction extends LegalEntity {
      */
     public boolean isPrivileged(FPlayer fPlayer) {
         return fPlayer.isMod(this) || admin.equals(fPlayer.getUniqueId()) || FPermission.hasPermission(fPlayer.getPlayer(), FPermission.BYPASS);
+    }
+
+    /**
+     * @return
+     * the war parties that this faction is part of
+     */
+    public Set<WarParty> getWarParties() {
+        Set<WarParty> parties = new HashSet<>();
+        for (War war : plugin.getWarCache().getByFaction(this)) {
+            if (war.getAttacker().getFactions().contains(this)) {
+                parties.add(war.getAttacker());
+            } else if (war.getDefender().getFactions().contains(this)) {
+                parties.add(war.getDefender());
+            }
+        }
+        return parties;
     }
 
     /* Actions */
@@ -1331,10 +1368,12 @@ public class Faction extends LegalEntity {
         mapLineColor = config.getString("mapLineColor");
         mapIcon = config.getString("mapIcon");
         mapVisibility = config.getBoolean("mapVisibility");
+        invincible = config.getBoolean("invincible");
         creationDate = config.getLong("creationDate");
         type = GovernmentType.valueOf(config.getString("type"));
         open = config.getBoolean("open");
         stability = config.getInt("stability");
+        exhaustion = config.getDouble("exhaustion");
         manpowerModifier = config.getDouble("manpowerModifier", fConfig.getDefaultManpowerModifier());
         setHome((Location) config.get("home"));
         capital = plugin.getBoard().getById(config.getInt("capital"));
@@ -1442,10 +1481,12 @@ public class Faction extends LegalEntity {
             config.set("mapLineColor", mapLineColor);
             config.set("mapIcon", mapIcon);
             config.set("mapVisibility", mapVisibility);
+            config.set("invincible", invincible);
             config.set("creationDate", creationDate);
             config.set("type", type.toString());
             config.set("open", open);
             config.set("stability", stability);
+            config.set("exhaustion", exhaustion);
             if (!active) {
                 try {
                     config.save(file);

@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.faction;
 
@@ -26,19 +28,18 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.io.File;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Facton instance manager.
@@ -304,6 +305,24 @@ public class FactionCache {
     }
 
     /**
+     * @param name
+     * the name to check
+     * @return
+     * the inactive faction that has this name
+     */
+    public Faction getAllByName(String name) {
+        Set<Faction> allFactions = new HashSet<>();
+        allFactions.addAll(inactiveFactions);
+        allFactions.addAll(factions);
+        for (Faction faction : allFactions) {
+            if (faction.getName().equalsIgnoreCase(name) || faction.getShortName().equalsIgnoreCase(name) || faction.getLongName().equalsIgnoreCase(name)) {
+                return faction;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param member
      * the member to check
      * @return
@@ -392,6 +411,18 @@ public class FactionCache {
      */
     public Faction getByLocation(Location location) {
         return getByChunk(location.getChunk());
+    }
+
+    /**
+     * @param banner
+     * the banner to check
+     * @return
+     * the faction that uses this banner
+     */
+    public Faction getByBanner(ItemStack banner) {
+        if (banner == null || !banner.hasItemMeta() || !banner.getItemMeta().hasDisplayName())
+            return null;
+        return getByName(ChatColor.stripColor(banner.getItemMeta().getDisplayName()));
     }
 
     /**

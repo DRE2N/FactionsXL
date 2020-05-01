@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.protection;
 
@@ -26,6 +28,8 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import static de.erethon.factionsxl.protection.EntityProtectionListener.Action.*;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.War;
+import de.erethon.factionsxl.war.WarCache;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -66,6 +70,7 @@ public class EntityProtectionListener implements Listener {
 
     FactionsXL plugin = FactionsXL.getInstance();
     FConfig config = plugin.getFConfig();
+    WarCache wc = plugin.getWarCache();
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -89,9 +94,20 @@ public class EntityProtectionListener implements Listener {
         }
         Faction aFaction = plugin.getFactionCache().getByMember(attacker);
         Faction dFaction = plugin.getFactionCache().getByMember(defender);
+        boolean truce = false;
+        if (wc.getWarTogether(aFaction, dFaction) != null) {
+            truce = wc.getWarTogether(aFaction, dFaction).getTruce();
+        }
+
         Faction rFaction = region != null ? region.getOwner() : null;
         double shield = config.getTerritoryShield();
-        if (aFaction != null && aFaction.getRelation(dFaction).isProtected()) {
+        if (region !=null && region.getOccupant() != null) {
+            Faction occupant = region.getOccupant();
+            if (occupant == aFaction) {
+                return;
+            }
+        }
+        if (aFaction != null && aFaction.getRelation(dFaction).isProtected() || truce) {
             ParsingUtil.sendActionBarMessage(attacker, FMessage.PROTECTION_CANNOT_ATTACK_PLAYER.getMessage(), dFaction);
             event.setCancelled(true);
         } else if (rFaction != null && rFaction.getRelation(dFaction).isProtected() && (aFaction == null || !aFaction.isInWar(dFaction))) {
@@ -192,8 +208,15 @@ public class EntityProtectionListener implements Listener {
             return;
         }
 
+
         Faction aFaction = plugin.getFactionCache().getByMember(attacker);
         Faction owner = region.getOwner();
+        if ( region.getOccupant() != null) {
+            Faction occupant = region.getOccupant();
+            if (occupant == aFaction) {
+                return;
+            }
+        }
         Relation rel = owner.getRelation(aFaction);
         if (!rel.canBuild()) {
             event.setCancelled(true);

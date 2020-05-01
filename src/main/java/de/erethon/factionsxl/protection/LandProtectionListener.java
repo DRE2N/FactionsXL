@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.protection;
 
@@ -26,11 +28,7 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import org.bukkit.Material;
-import static org.bukkit.Material.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -42,6 +40,12 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.bukkit.Material.*;
 
 /**
  * @author Daniel Saukel
@@ -108,7 +112,10 @@ public class LandProtectionListener implements Listener {
             GLASS,
             GLASS_PANE,
             GRASS,
+            FERN,
+            LARGE_FERN,
             GRASS_PATH,
+            GRASS_BLOCK,
             GRAVEL,
             HAY_BLOCK,
             ICE,
@@ -209,6 +216,7 @@ public class LandProtectionListener implements Listener {
             TNT,
             TORCH,
             VINE,
+            LILY_PAD,
             WHITE_BANNER,
             ORANGE_BANNER,
             MAGENTA_BANNER,
@@ -301,7 +309,6 @@ public class LandProtectionListener implements Listener {
             OAK_BUTTON
     ));
 
-    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (config.isExcludedWorld(event.getPlayer().getWorld())) {
             return;
@@ -322,6 +329,12 @@ public class LandProtectionListener implements Listener {
 
             Faction bFaction = factions.getByMember(breaker);
             Faction owner = region.getOwner();
+            if (region.getOccupant() != null) {
+                Faction occupant = region.getOccupant();
+                if (occupant == bFaction) {
+                    return;
+                }
+            }
             Relation rel = owner.getRelation(bFaction);
             if (rel == Relation.ENEMY) {
                 Material type = event.getClickedBlock().getType();
@@ -357,6 +370,12 @@ public class LandProtectionListener implements Listener {
 
         Faction bFaction = factions.getByMember(breaker);
         Faction owner = region.getOwner();
+        if (region.getOccupant() != null) {
+            Faction occupant = region.getOccupant();
+            if (occupant == bFaction) {
+                return;
+            }
+        }
         Relation rel = owner.getRelation(bFaction);
         if (rel == Relation.ENEMY) {
             Material type = destroyed.getType();

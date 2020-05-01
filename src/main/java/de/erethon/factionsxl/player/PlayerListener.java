@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.player;
 
@@ -28,6 +30,7 @@ import de.erethon.factionsxl.scoreboard.FScoreboard;
 import de.erethon.factionsxl.scoreboard.sidebar.FInfoSidebar;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
@@ -93,14 +96,31 @@ public class PlayerListener implements Listener {
         Player killerP = event.getEntity().getKiller();
         FPlayer killedF = fPlayers.getByPlayer(killedP);
         FPlayer killerF = killerP != null ? fPlayers.getByPlayer(killerP) : null;
+        Faction killedFc = killedF.getFaction();
+        Faction killerFc = killerF != null ? killerF.getFaction() : null;
         double loss = fConfig.getPowerDeathLoss();
         double newPower = killedF.getPower() - loss;
         killedF.setPower(newPower < fConfig.getMinPower() ? fConfig.getMinPower() : newPower);
+        // Gamerule: doImmediateRespawn needs to be true here!
         if (killerP != null) {
-            double newKPower = killerF.getPower() + loss;
-            killerF.setPower(newKPower > fConfig.getMaxPower() ? fConfig.getMaxPower() : newKPower);
+            if (killerFc != null) {
+                for (WarParty w : killerFc.getWarParties()) {
+                    if (w.getEnemy().getFactions().contains(killedFc)) {
+                        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+                            public void run() {
+                                killedP.teleport(killedFc.getHome());
+                            }
+                        }, 2);
+                        break;
+                    }
+                }
+            }
+            if ((killerFc != null && !killerFc.isInWar(killedFc) || (killerFc != null && killerFc.isInWar(killedFc) && fConfig.isPowerGainInWar()))) {
+                double newKPower = killerF.getPower() + loss;
+                killerF.setPower(newKPower > fConfig.getMaxPower() ? fConfig.getMaxPower() : newKPower);
+                ParsingUtil.sendMessage(killerP, FMessage.DEATH_PLAYER_KILL_KILLER.getMessage(), killedF, String.valueOf(loss), String.valueOf(killerF.getPower()));
+            }
             ParsingUtil.sendMessage(killedP, FMessage.DEATH_PLAYER_KILL_KILLED.getMessage(), killerF, String.valueOf(loss), String.valueOf(killedF.getPower()));
-            ParsingUtil.sendMessage(killerP, FMessage.DEATH_PLAYER_KILL_KILLER.getMessage(), killedF, String.valueOf(loss), String.valueOf(killerF.getPower()));
         } else {
             ParsingUtil.sendMessage(killedP, FMessage.DEATH_DEFAULT_DEATH.getMessage(), String.valueOf(loss), String.valueOf(killedF.getPower()));
         }
@@ -165,7 +185,7 @@ public class PlayerListener implements Listener {
         if (region == null || region.getType() != RegionType.WARZONE) {
             return main;
         } else {
-            String warZone = ChatColor.DARK_RED.toString() + ChatColor.BOLD.toString() + "[ " + FMessage.REGION_WAR_ZONE.getMessage().toUpperCase() + "]";
+            String warZone = ChatColor.DARK_RED.toString() + ChatColor.BOLD.toString() + "[" + FMessage.REGION_WAR_ZONE.getMessage().toUpperCase() + "]";
             return warZone + SPACE + SPACE + SPACE + SPACE + SPACE + SPACE + main + SPACE + SPACE + SPACE + SPACE + SPACE + SPACE + warZone;
         }
     }

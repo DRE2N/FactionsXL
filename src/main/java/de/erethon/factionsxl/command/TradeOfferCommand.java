@@ -1,21 +1,24 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command;
 
+import static de.erethon.commons.gui.GUIButton.*;
 import de.erethon.commons.gui.PageGUI;
 import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
@@ -24,8 +27,8 @@ import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.TradeOffer;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
+import static de.erethon.factionsxl.gui.StandardizedGUI.*;
 import de.erethon.factionsxl.player.FPermission;
-import static de.erethon.factionsxl.util.GUIButton.*;
 import de.erethon.factionsxl.util.ParsingUtil;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,6 +45,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -49,7 +53,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 /**
  * @author Daniel Saukel
  */
-public class TradeOfferCommand extends FCommand implements Listener {
+public class TradeOfferCommand extends FCommand implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
     FactionCache factions = plugin.getFactionCache();
@@ -197,7 +201,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
 
     private Inventory choosePartner(Faction creator) {
         int size = (int) (9 * Math.ceil(((double) factions.getActive().size() / 9)));
-        Inventory gui = Bukkit.createInventory(null, size, FMessage.TRADE_OFFER_CHOOSE_PARTNER.getMessage());
+        Inventory gui = Bukkit.createInventory(this, size, FMessage.TRADE_OFFER_CHOOSE_PARTNER.getMessage());
         int i = 0;
         for (Faction faction : factions.getActive()) {
             ItemStack icon = faction.getBannerStack();
@@ -230,7 +234,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
     }
 
     private Inventory chooseExport() {
-        Inventory gui = Bukkit.createInventory(null, 9, FMessage.TRADE_OFFER_CHOOSE_EXPORT.getMessage());
+        Inventory gui = Bukkit.createInventory(this, 9, FMessage.TRADE_OFFER_CHOOSE_EXPORT.getMessage());
         ItemStack exportIcon = E.clone();
         ItemMeta exMeta = exportIcon.getItemMeta();
         exMeta.setDisplayName(ChatColor.GREEN + FMessage.TRADE_EXPORT.getMessage());
@@ -245,7 +249,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
     }
 
     private Inventory choosePriceAndAmount(int amount, double price) {
-        Inventory gui = Bukkit.createInventory(null, 27, tradeOfferChoosePriceAndAmount.replace("&v1", String.valueOf(amount)).replace("&v2", String.valueOf(price)));
+        Inventory gui = Bukkit.createInventory(this, 27, tradeOfferChoosePriceAndAmount.replace("&v1", String.valueOf(amount)).replace("&v2", String.valueOf(price)));
         gui.setContents(choosePriceAndAmount);
         return gui;
     }
@@ -384,9 +388,9 @@ public class TradeOfferCommand extends FCommand implements Listener {
         amount = amount.split(" ")[0];
         return NumberUtil.parseInt(amount);
     }
-
+    // TODO: Broken
     private BigDecimal readPriceFromTitle(String title) {
-        String price = title.split(ChatColor.DARK_AQUA.toString())[2];
+        String price = title.split(ChatColor.DARK_AQUA.toString())[3];
         return new BigDecimal(price);
     }
 
@@ -400,4 +404,8 @@ public class TradeOfferCommand extends FCommand implements Listener {
         player.performCommand(COMMAND + args);
     }
 
+    @Override
+    public Inventory getInventory() {
+        return chooseExport;
+    }
 }

@@ -1,21 +1,24 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.board;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
@@ -25,22 +28,17 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.util.LazyChunk;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Represents an undividable collection of claims.
@@ -62,10 +60,16 @@ public class Region {
     private RegionType type;
     private int level;
     private int population;
+    private int influence = 100;
     private Faction owner;
+    private Faction occupant;
     private World world;
     private Set<LazyChunk> chunks = new HashSet<>();
+    private Set<Region> adjacentRegions = new HashSet<>();
     private Map<Faction, Date> cores = new HashMap<>();
+
+
+    private Map<Faction, Integer> coringProgress = new HashMap<>();
     private Map<Faction, Date> claims = new HashMap<>();
     private String mapFillColor;
     private String mapLineColor;
@@ -112,6 +116,14 @@ public class Region {
     }
 
     /* Getters and setters */
+    @Override
+    public boolean equals(Object region) {
+        if(region == null) { return false; }
+        if(!(region instanceof Region)) { return false; }
+        Region other = (Region) region;
+        return this.getId() == other.getId();
+    }
+
     /**
      * @return
      * the ID
@@ -178,7 +190,7 @@ public class Region {
 
     /**
      * @return
-     * the population for FationMobs
+     * the population for FactionMobs
      */
     public int getPopulation() {
         return population;
@@ -216,6 +228,28 @@ public class Region {
 
     /**
      * @return
+     * the faction that currently occupies this region
+     */
+    public Faction getOccupant() {
+        return occupant;
+    }
+
+    /**
+     * set the occupying faction of this region
+     */
+    public void setOccupant(Faction f) {
+        occupant = f;
+    }
+
+    /**
+     * remove the occupying faction from the region
+     */
+    public void clearOccupant() {
+        occupant = null;
+    }
+
+    /**
+     * @return
      * the chunks that belong to this region
      */
     public Set<LazyChunk> getChunks() {
@@ -237,6 +271,29 @@ public class Region {
     public Map<Faction, Date> getCoreFactions() {
         return cores;
     }
+
+    /**
+     * @return
+     * all factions that are currently trying to make this land a core
+     */
+    public Map<Faction, Integer> getCoringProgress() {
+        return coringProgress;
+    }
+
+    /**
+     * set the coring progress for a specific faction // TODO: specific faction!
+     */
+    public void setCoringProgress(Faction f, Integer progress) {
+        coringProgress.putIfAbsent(f, progress);
+    }
+
+    /**
+     * remove coring progress for faction
+     */
+    public void removeCoringProgress(Faction f) {
+        coringProgress.remove(f);
+    }
+
 
     /**
      * @return
@@ -311,9 +368,29 @@ public class Region {
      * @return
      * true if the region is neutral and not marked as unclaimable
      */
-    public boolean isAnnexable() {
+    public boolean isWildernessClaim() {
         return isNeutral() && !unclaimable;
     }
+
+    /**
+     * @param region the region to check against
+     * @return
+     * if this region is next to another region.
+     */
+    public boolean isNextTo(Region region) {
+        return this.adjacentRegions.contains(region);
+    }
+
+    public Set<Region> getNeighbours() {
+        return adjacentRegions;
+    }
+
+
+    public void addNeighbour(Region rg) {
+        adjacentRegions.add(rg);
+    }
+
+
 
     /**
      * @return
@@ -321,6 +398,24 @@ public class Region {
      */
     public World getWorld() {
         return world;
+    }
+
+    /**
+     * @return
+     * the influence of the owner on the region
+     */
+    public int getInfluence() {
+        return influence;
+    }
+
+    /**
+     * @param inf
+     * new influence value
+     */
+    public void setInfluence(int inf) {
+        if (inf <= 100) {
+            influence = inf;
+        }
     }
 
     /**
@@ -349,13 +444,25 @@ public class Region {
             owner = plugin.getFactionCache().getById(config.getInt("owner"));
         }
 
+        if (config.contains("occupant")) {
+            occupant = plugin.getFactionCache().getById(config.getInt("occupant"));
+        }
+
         for (String chunk : config.getStringList("chunks")) {
             chunks.add(new LazyChunk(chunk));
+        }
+        for (Integer rg : config.getIntegerList("neighbours")) {
+            adjacentRegions.add(plugin.getBoard().getById(rg));
         }
         for (Entry<String, Object> entry : ConfigUtil.getMap(config, "cores").entrySet()) {
             Faction faction = plugin.getFactionCache().getById(NumberUtil.parseInt(entry.getKey()));
             Date date = new Date((long) entry.getValue());
             cores.put(faction, date);
+        }
+        for (Entry<String, Object> entry : ConfigUtil.getMap(config, "coringProgress").entrySet()) {
+            Faction faction = plugin.getFactionCache().getById(NumberUtil.parseInt(entry.getKey()));
+            int progress = (int) entry.getValue();
+            coringProgress.put(faction, progress);
         }
         for (Entry<String, Object> entry : ConfigUtil.getMap(config, "claims").entrySet()) {
             Faction faction = plugin.getFactionCache().getById(NumberUtil.parseInt(entry.getKey()));
@@ -365,6 +472,7 @@ public class Region {
         mapFillColor = config.getString("mapFillColor");
         mapLineColor = config.getString("mapLineColor");
         unclaimable = config.getBoolean("unclaimable", false);
+        influence = config.getInt("influence");
 
         if (this.config == null) {
             this.config = YamlConfiguration.loadConfiguration(file);
@@ -373,6 +481,7 @@ public class Region {
     }
 
     public void save() {
+        MessageUtil.log("Saving region: " + this);
         config.set("name", name);
         config.set("type", type.toString());
         config.set("level", level);
@@ -383,6 +492,7 @@ public class Region {
         }
         config.set("world", world.getName());
         config.set("owner", owner != null ? owner.getId() : null);
+        config.set("occupant", occupant != null ? occupant.getId() : null);
 
         List<String> serializedChunks = new ArrayList<>();
         for (LazyChunk chunk : chunks) {
@@ -390,11 +500,18 @@ public class Region {
         }
         config.set("chunks", serializedChunks);
 
+
         Map<Integer, Long> serializedCores = new HashMap<>();
         for (Entry<Faction, Date> entry : cores.entrySet()) {
             serializedCores.put(entry.getKey().getId(), entry.getValue().getTime());
         }
         config.set("cores", serializedCores);
+
+        Map<Integer, Integer> serializedProgress = new HashMap<>();
+        for (Entry<Faction, Integer> entry : coringProgress.entrySet()) {
+            serializedProgress.put(entry.getKey().getId(), entry.getValue());
+        }
+        config.set("coringProgress", serializedProgress);
 
         Map<Integer, Long> serializedClaims = new HashMap<>();
         for (Entry<Faction, Date> entry : claims.entrySet()) {
@@ -402,9 +519,18 @@ public class Region {
         }
         config.set("claims", serializedClaims);
 
+        List<Integer>serializedRegions = new ArrayList<>();
+        for (Region rg : adjacentRegions) {
+            if (!(adjacentRegions.isEmpty()) && !(rg.getName() == null)) {
+                serializedRegions.add(rg.getId());
+            }
+        }
+        config.set("neighbours", serializedRegions);
+
         config.set("mapFillColor", mapFillColor);
         config.set("mapLineColor", mapLineColor);
         config.set("unclaimable", unclaimable);
+        config.set("influence", influence);
 
         try {
             config.save(file);

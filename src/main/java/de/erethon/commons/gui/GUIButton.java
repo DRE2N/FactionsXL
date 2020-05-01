@@ -14,6 +14,8 @@ package de.erethon.commons.gui;
 
 import de.erethon.headlib.HeadLib;
 import java.util.Arrays;
+
+import net.milkbowl.vault.chat.Chat;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -41,6 +43,7 @@ public class GUIButton {
     public static final ItemStack NEXT_PAGE = setDisplay(RIGHT, ChatColor.GOLD.toString() + ChatColor.BOLD + "NEXT PAGE");
     public static final ItemStack PREVIOUS_PAGE = setDisplay(LEFT, ChatColor.GOLD.toString() + ChatColor.BOLD + "PREVIOUS PAGE");
     public static final ItemStack PLACEHOLDER = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.RESET.toString());
+    public static final ItemStack GUI_WATER_BOTTLE = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.BLUE.toString() + "WATER");
 
     public static ItemStack setDisplay(ItemStack itemStack, String name, String... lore) {
         itemStack = itemStack.clone();

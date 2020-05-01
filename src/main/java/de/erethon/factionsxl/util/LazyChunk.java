@@ -1,23 +1,31 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.util;
 
 import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.HashSet;
+
+import de.erethon.commons.chat.MessageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
 
 /**
@@ -61,6 +69,34 @@ public class LazyChunk {
         return z;
     }
 
+    @Override
+    public boolean equals(Object chunk) {
+        if(chunk == null) { return false; }
+        if(!(chunk instanceof LazyChunk)) { return false; }
+        LazyChunk other = (LazyChunk) chunk;
+        if  ((this.getX() == other.getX()) && (this.getZ() == other.getZ())) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public Collection<ChunkSnapshot> getChunksAround(World world) {
+
+        int[] offset = {-1,0,1};
+        ChunkSnapshot chunk = this.asBukkitChunk(world).getChunkSnapshot();
+        int baseX = chunk.getX();
+        int baseZ = chunk.getZ();
+        Collection<ChunkSnapshot> chunksAroundPlayer = new HashSet<>();
+        for(int x : offset) {
+            for(int z : offset) {
+                ChunkSnapshot c = world.getChunkAt(baseX + x, baseZ + z).getChunkSnapshot();
+                chunksAroundPlayer.add(c);
+            }
+        } return chunksAroundPlayer;
+    }
+
     public Chunk asBukkitChunk(World world) {
         Chunk chunk = null;
         if (bukkit == null) {
@@ -70,6 +106,16 @@ public class LazyChunk {
             chunk = bukkit.get();
         }
         return chunk;
+    }
+    public ChunkSnapshot asSnapshot(World world) {
+        Chunk chunk = null;
+        if (bukkit == null) {
+            chunk = world.getChunkAt(x, z);
+            bukkit = new WeakReference<>(chunk);
+        } else {
+            chunk = bukkit.get();
+        }
+        return chunk.getChunkSnapshot();
     }
 
     @Override

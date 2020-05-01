@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
+
+import de.erethon.vignette.api.InventoryGUI;
+import de.erethon.vignette.api.VignetteAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -26,14 +29,16 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette
+ * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette. Legacy support for 1.14+ still working
  * @author Daniel Saukel
  */
 @Deprecated
-public class PageGUI {
+public class PageGUI implements InventoryHolder {
 
     private String title;
     private boolean allowStealing;
@@ -44,6 +49,8 @@ public class PageGUI {
     private Stack<List<ItemStack>> pages1;
     private Stack<List<ItemStack>> pages2;
     private Stack<List<ItemStack>> pages3;
+
+    private Inventory gui;
 
     public PageGUI(String title) {
         this(title, false);
@@ -90,7 +97,7 @@ public class PageGUI {
     }
 
     public Inventory newPage() {
-        Inventory gui = Bukkit.createInventory(null, 54, title);
+        gui = Bukkit.createInventory(null, 54, title);
         gui.setItem(45, PREVIOUS_PAGE);
         gui.setItem(46, PLACEHOLDER);
         gui.setItem(47, PLACEHOLDER);
@@ -211,14 +218,14 @@ public class PageGUI {
     }
 
     public Inventory open(HumanEntity player) {
-        Inventory gui = pages.get(0);
+        gui = pages.get(0);
         player.openInventory(gui);
         return gui;
     }
 
     public Inventory open(HumanEntity player, int page) {
         if (pages.size() - 1 >= page && page >= 0) {
-            Inventory gui = pages.get(page);
+            gui = pages.get(page);
             player.openInventory(gui);
             return gui;
         }
@@ -346,6 +353,7 @@ public class PageGUI {
     }
 
     public static String getGUITitle(Inventory inventory) {
+        String invtitle = null;
         if (Internals.isAtMost(Internals.v1_13_R2)) {
             try {
                 java.lang.reflect.Method getTitle = Inventory.class.getDeclaredMethod("getTitle");
@@ -353,7 +361,15 @@ public class PageGUI {
             } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException exception) {
             }
         }
-        throw new UnsupportedOperationException("The legacy GUI system does not support Minecraft 1.14+");
+        for (HumanEntity v : inventory.getViewers()) {
+            invtitle = v.getOpenInventory().getTitle();
+        }
+        return invtitle;
     }
-
+    /**
+     * @deprecated returns inventory for workaround for 1.14+
+     */
+    public Inventory getInventory() {
+        return gui;
+    }
 }

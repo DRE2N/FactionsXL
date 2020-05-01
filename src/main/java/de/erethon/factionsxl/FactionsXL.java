@@ -1,25 +1,28 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl;
 
+import at.pavlov.cannons.API.CannonsAPI;
+import at.pavlov.cannons.Cannons;
 import com.griefcraft.lwc.LWC;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.compatibility.Internals;
-import de.erethon.commons.config.MessageHandler;
 import de.erethon.commons.javaplugin.DREPlugin;
 import de.erethon.commons.javaplugin.DREPluginSettings;
 import de.erethon.commons.misc.FileUtil;
@@ -42,18 +45,27 @@ import de.erethon.factionsxl.player.PlayerListener;
 import de.erethon.factionsxl.protection.EntityProtectionListener;
 import de.erethon.factionsxl.protection.LWCIntegration;
 import de.erethon.factionsxl.protection.LandProtectionListener;
-import de.erethon.factionsxl.war.WarCache;
-import de.erethon.factionsxl.war.WarTNT;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import de.erethon.factionsxl.util.BalanceCache;
+import de.erethon.factionsxl.util.CoringHandler;
+import de.erethon.factionsxl.war.*;
+import de.erethon.factionsxl.war.demand.ItemDemand;
+import de.erethon.factionsxl.war.demand.MoneyDemand;
+import de.erethon.factionsxl.war.demand.RegionDemand;
+import de.erethon.factionsxl.war.demand.RelationDemand;
+import de.erethon.factionsxl.war.peaceoffer.PeaceOffer;
+import de.erethon.factionsxl.war.peaceoffer.SeparatePeaceOffer;
+import de.erethon.vignette.api.VignetteAPI;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * The main class of FactionsXL.
@@ -90,34 +102,47 @@ public class FactionsXL extends DREPlugin {
     private LandProtectionListener landProtectionListener;
     private LWCIntegration lwcIntegration;
     private WarTNT warTNT;
+    private WarHandler warHandler;
+    private WarPoints warPoints;
+    private CoringHandler core;
     private BukkitTask incomeTask;
     private BukkitTask powerTask;
+    private BalanceCache balanceCache;
     private boolean debugEnabled = true;
     private PrintWriter out;
+    private CannonsAPI cannonsAPI;
 
     public FactionsXL() {
         settings = DREPluginSettings.builder()
                 .spigot(true)
                 .economy(true)
                 .metrics(true)
-                .internals(Internals.v1_13_R2, Internals.v1_14_R1)
+                .internals(Internals.v1_13_R2, Internals.v1_14_R1, Internals.v1_15_R1)
                 .build();
     }
 
     @Override
     public void onEnable() {
         ConfigurationSerialization.registerClass(RelationRequest.class);
+        ConfigurationSerialization.registerClass(WarRequest.class);
+        ConfigurationSerialization.registerClass(PeaceOffer.class);
+        ConfigurationSerialization.registerClass(SeparatePeaceOffer.class);
+        ConfigurationSerialization.registerClass(MoneyDemand.class);
+        ConfigurationSerialization.registerClass(RegionDemand.class);
+        ConfigurationSerialization.registerClass(RelationDemand.class);
+        ConfigurationSerialization.registerClass(ItemDemand.class);
         super.onEnable();
         initFolders();
         debugToFile("Enabling...");
         if (!compat.isSpigot() || !settings.getInternals().contains(compat.getInternals())) {
-            MessageUtil.log(this, "&4This plugin requires Spigot 1.14.4 to work. It is not compatible with CraftBukkit and older versions.");
+            MessageUtil.log(this, "&4This plugin requires Spigot 1.13.2-1.15.2 to work. It is not compatible with CraftBukkit and older versions.");
             manager.disablePlugin(this);
             return;
         }
         instance = this;
 
         FPermission.register();
+        VignetteAPI.init(this);
         loadCore();
         debugToFile("Enabled!");
     }
@@ -213,12 +238,15 @@ public class FactionsXL extends DREPlugin {
         loadFData();
         loadFactions(FACTIONS, FEDERATIONS, TRADE_LEAGUES);
         loadBoard(BOARD);
-        loadWars(WARS);
         loadFPlayers();
         fPlayers.loadAll();
         board.loadAll();
         factions.loadAll();
+        loadWars(WARS);
+        loadWarHandler();
+        loadWarPoints();
         loadAtlas();
+        loadCoring();
         loadFCommands();
         loadChatListener();
         loadPlayerListener();
@@ -231,9 +259,31 @@ public class FactionsXL extends DREPlugin {
         startPowerTask();
         if (fConfig.isEconomyEnabled()) {
             startIncomeTask();
+            createBalanceCache();
+        }
+
+        if (manager.isPluginEnabled("Cannons")) {
+            loadCannonsAPI();
         }
         manager.registerEvents(new FBull(), this);
         manager.registerEvents(new FMob(), this);
+        manager.registerEvents(new WarListener(), this);
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                warHandler.updateTruce();
+                warHandler.calculateWarStatus();
+            }
+        }.runTaskTimer(this, FConfig.MINUTE * 5, FConfig.MINUTE * 5);
+        if (fConfig.isEconomyEnabled()) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    balanceCache.run();
+                }
+            }.runTaskTimer(this, FConfig.SECOND * 30, FConfig.SECOND * 30);
+        }
 
         new BukkitRunnable() {
             @Override
@@ -242,6 +292,7 @@ public class FactionsXL extends DREPlugin {
             }
         }.runTaskTimer(this, 200L, FConfig.HOUR);
     }
+
 
     public void saveData() {
         fData.save();
@@ -295,6 +346,29 @@ public class FactionsXL extends DREPlugin {
      */
     public FData getFData() {
         return fData;
+    }
+
+    /**
+     * @return
+     * the CoringHandler
+     */
+    public CoringHandler getCoring() {
+        return core;
+    }
+
+    /**
+     * @return
+     * the WarHandler
+     */
+    public WarHandler getWarHandler() {
+        return warHandler;
+    }
+
+    /**
+     * new CoringHandler
+     */
+    public void loadCoring() {
+        core = new CoringHandler();
     }
 
     /**
@@ -391,7 +465,26 @@ public class FactionsXL extends DREPlugin {
      * load / reload a new instance of WarCache
      */
     public void loadWars(File dir) {
-        wars = new WarCache(dir);
+        wars = new WarCache(this, dir);
+    }
+
+    /**
+     * load / reload a new instance of WarCache
+     */
+    public void loadWarHandler() {
+        warHandler = new WarHandler();
+    }
+
+    public void loadCannonsAPI()
+    {
+        if (manager.isPluginEnabled("Cannons")) {
+            Cannons c = Cannons.getPlugin();
+            cannonsAPI = c.getCannonsAPI();
+        }
+    }
+
+    public CannonsAPI getCannonsAPI() {
+        return cannonsAPI;
     }
 
     /**
@@ -542,6 +635,32 @@ public class FactionsXL extends DREPlugin {
      */
     public BukkitTask getIncomeTask() {
         return incomeTask;
+    }
+
+    /**
+     * @return
+     * the balance cache
+     */
+    public BalanceCache getBalanceCache() {
+        return balanceCache;
+    }
+
+    /**
+     * a cache of player balances, to prevent too many DB queries when updating the scoreboard.
+     */
+    public void createBalanceCache() {
+        balanceCache = new BalanceCache();
+    }
+
+    /**
+     * the war point calculator
+     */
+    public void loadWarPoints() {
+        warPoints = new WarPoints();
+    }
+
+    public WarPoints getWarPoints() {
+        return warPoints;
     }
 
     /**

@@ -1,21 +1,24 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
@@ -29,13 +32,16 @@ import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.util.Calendar;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.World;
+import de.erethon.factionsxl.util.RegionProcessing;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author Daniel Saukel
@@ -99,11 +105,63 @@ public class WorldCommand extends FCommand {
             region.setLevel(NumberUtil.parseInt(args[i], 1));
             ParsingUtil.sendMessage(player, FMessage.CMD_WORLD_LEVEL.getMessage(), region, args[i]);
 
-        } else if (sub.equalsIgnoreCase("addCore") || sub.equalsIgnoreCase("addClaim") || sub.equalsIgnoreCase("removeCore") || sub.equalsIgnoreCase("removeClaim")) {
-            handleFaction(player, region, factions.getByName(args[i]), args, i);
+        } else if (sub.equalsIgnoreCase("addCore")) {
+            Faction faction = factions.getAllByName(args[i]);
+            if (faction != null) {
+                region.getCoreFactions().putIfAbsent(faction, Calendar.getInstance().getTime());
+            }
+        } else if (sub.equalsIgnoreCase("addClaim")) {
+            Faction faction = factions.getAllByName(args[i]);
+            if (faction != null) {
+                region.getClaimFactions().putIfAbsent(faction, Calendar.getInstance().getTime());
+            }
+
+        } else if (sub.equalsIgnoreCase("removeCore")) {
+            Faction faction = factions.getAllByName(args[i]);
+            if (faction != null) {
+                region.getCoreFactions().remove(faction);
+            }
+        } else if (sub.equalsIgnoreCase("removeClaim")) {
+            Faction faction = factions.getAllByName(args[i]);
+            if (faction != null) {
+                region.getClaimFactions().remove(faction);
+            }
+
+        } else if (sub.equalsIgnoreCase("calcAdjacent") || sub.equalsIgnoreCase("calc") || sub.equalsIgnoreCase("ca")) {
+            calculateNeighbors(player, region);
+
+        } else if (sub.equalsIgnoreCase("addAdjacent") || sub.equalsIgnoreCase("adda") || sub.equalsIgnoreCase("aa")) {
+            addNeighbour(player, args);
+
+        } else if (sub.equalsIgnoreCase("removeAdjacent") || sub.equalsIgnoreCase("rema") || sub.equalsIgnoreCase("ra")) {
+            removeNeighbour(player, args);
+
+        } else if (sub.equalsIgnoreCase("listAdjacent") || sub.equalsIgnoreCase("lista") || sub.equalsIgnoreCase("la")) {
+            listNeighbours(player, region);
+
+        } else if (sub.equalsIgnoreCase("calcAllAdjacent") || sub.equalsIgnoreCase("calcAll")) {
+            //calcAllNeighbours();
+            //MessageUtil.sendMessage(player, "&aCalculating &a&lall&r &aneighbours started. See console for progress.");
+            MessageUtil.sendMessage(player, "&cThis feature is currently disabled.");
 
         } else {
-            sender.sendMessage("TODO: /f world help");
+            MessageUtil.sendMessage(player, "&6/f &aw&8orld &5- &7Help");
+            MessageUtil.sendMessage(player, "&6/f &aw c&8reate &7<Name> &5- &7Creates a new region.");
+            MessageUtil.sendMessage(player, "&6/f &aw d&8elete &5- &7Deletes a region.");
+            MessageUtil.sendMessage(player, "&6/f &awn a&8dd &7<Name> &5- &7Adds a chunk to a region. &7&oauto / radius <x> / line <x>");
+            MessageUtil.sendMessage(player, "&6/f &aw r&8emove &5- &7Removes the current chunk from its region.");
+            MessageUtil.sendMessage(player, "&6/f &aw &8re&an&8ame &7<Name> &5- &7Renames the region.");
+            MessageUtil.sendMessage(player, "&6/f &aw &8se&aT&8ype &5- &7Sets the region type.");
+            MessageUtil.sendMessage(player, "&6/f &aw &8se&aL&8evel &5- &7Sets the region level.");
+            MessageUtil.sendMessage(player, "&6/f &aw &aaddCore &7<Faction> &5- &7Adds a core.");
+            MessageUtil.sendMessage(player, "&6/f &aw &aaddClaim &7<Faction> &5- &7Adds a claim.");
+            MessageUtil.sendMessage(player, "&6/f &aw &aremoveCore &7<Faction> &5- &7Removes a core.");
+            MessageUtil.sendMessage(player, "&6/f &aw &aremoveClaim &7<Faction> &5- &7Removes a claim.");
+            MessageUtil.sendMessage(player, "&6/f &aw &aa&8dd&aA&8djacent &7<Region> &5- &7Adds a adjacent region.");
+            MessageUtil.sendMessage(player, "&6/f &aw &ar&8emove&aA&8djacent &7<Region> &5- &7Removes a adjacent region.");
+            MessageUtil.sendMessage(player, "&6/f &aw &ac&8alc&aA&8djacent &5- &7Tries to find adjacent regions automatically.");
+            MessageUtil.sendMessage(player, "&6/f &aw &al&8ist&aA&8djacent &5- &7Lists all adjacent regions.");
+
         }
     }
 
@@ -268,6 +326,91 @@ public class WorldCommand extends FCommand {
             region.getClaimFactions().remove(faction);
             ParsingUtil.sendMessage(player, FMessage.FACTION_LOST_CLAIM.getMessage(), faction, region);
         }
+    }
+
+    private void listNeighbours(Player p, Region rgOwn) {
+        MessageUtil.sendMessage(p, "&aAdjacent regions for &e" + rgOwn.getName() + "&a:");
+        for (Region r : rgOwn.getNeighbours()) {
+            if (!(r.getName() == null)) {
+                MessageUtil.sendMessage(p, "&8 - &6" + r.getName());
+            }
+        }
+    }
+
+    private void addNeighbour(Player p, String[] args) {
+        Region rgOwn = board.getByLocation(p.getLocation());
+        Region rgAdd = board.getByName(args[2]);
+        if (rgOwn == null || rgAdd == null) {
+            MessageUtil.sendMessage(p, "&cInvalid region.");
+            return;
+        }
+        rgOwn.addNeighbour(rgAdd);
+        MessageUtil.sendMessage(p, "&aAdded &e" + rgAdd.getName() + "&a to adjacent regions for &e" + rgOwn.getName() + "&a.");
+    }
+
+    private void removeNeighbour(Player p, String[] args) {
+        Region rgOwn = board.getByLocation(p.getLocation());
+        Region rgRem = board.getByName(args[2]);
+        if (rgOwn == null || rgRem == null) {
+            MessageUtil.sendMessage(p, "&cInvalid region.");
+            return;
+        }
+        rgOwn.getNeighbours().remove(rgRem);
+        MessageUtil.sendMessage(p, "&aRemoved &e" + rgRem.getName() + "&afrom adjacent regions for &e" + rgOwn.getName() + "&a.");
+    }
+
+    private void calculateNeighbors(Player p, Region rg) {
+        if (rg == null) {
+            MessageUtil.sendMessage(p, "&cInvalid region.");
+            return;
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+            @Override
+            public void run() {
+                World w = rg.getWorld();
+                int progress = 0;
+                Collection<LazyChunk> chunks1 = rg.getChunks();
+                Collection<ChunkSnapshot> allChunks = new CopyOnWriteArrayList<>();
+                Collection<ChunkSnapshot> chunksAround = new CopyOnWriteArrayList<>();
+                for (LazyChunk c : chunks1) {
+                    progress++;
+                    MessageUtil.sendActionBarMessage(p, "&aLoading Chunks... &6" + progress + "&8/&7" + rg.getSize());
+                    chunksAround = c.getChunksAround(w);
+                    allChunks.addAll(chunksAround);
+                }
+                progress = 0;
+                for (ChunkSnapshot c : allChunks) {
+                    int cx = c.getX()  * 16;
+                    int cz = c.getZ() * 16;
+                    Region rg2 = plugin.getBoard().getByLocation(new Location(w, cx, 100, cz));
+                    MessageUtil.sendActionBarMessage(p, "&aCalculating adjacent regions... &6" + progress + "&8/&7" + allChunks.size());
+                    if ( !(rg2 == null) && !(rg2.equals(rg)) && !(rg.getNeighbours().contains(rg2)) ) {
+                        MessageUtil.sendMessage(p, "&aRegion found & added&8: &7" + rg2.getName());
+                        rg.addNeighbour(rg2);
+                        rg.save();
+                    }
+                }
+            }
+        });
+    }
+
+
+    private void calcAllNeighbours() {
+        List<Region> allRgs = new CopyOnWriteArrayList<>();
+        allRgs = board.getRegions();
+        int size = 0;
+        for (Region rg : allRgs) {
+            size = size + rg.getSize();
+        }
+        MessageUtil.log("--- Now calculating adjacent regions for all regions. ---");
+        MessageUtil.log("--> Regions: " + allRgs.size() + " Total chunks: " + size );
+        MessageUtil.log("--> This will take approximately " + (size / 4) / 60 + " minutes or " + ((size / 4) / 60) / 60 + " hours." );
+
+        // TODO: Do max 10 regions at the same time to prevent out of memory.
+
+        Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, new RegionProcessing(allRgs), 0, 600);
+
+
     }
 
 }

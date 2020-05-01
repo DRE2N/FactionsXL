@@ -1,10 +1,10 @@
 name: FactionsXL
 main: de.erethon.factionsxl.FactionsXL
 version: ${project.version}${buildNo}
-author: Daniel Saukel
+authors: [Daniel Saukel, Malfrador]
 description: ${project.description}
 website: ${project.url}
-softdepend: [Vault, LWC, Dynmap, HolographicDisplays]
+softdepend: [Vault, LWC, Dynmap, HolographicDisplays, Cannons]
 api-version: 1.13
 commands:
   factionsxl:

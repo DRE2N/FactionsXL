@@ -2,10 +2,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.erethon</groupId>
     <artifactId>factionsxl</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>FactionsXL</name>
-    <url>https://dre2n.github.io</url>
+    <url>https://erethon.de</url>
     <description>A medieval Factions plugin.</description>
     <properties>
         <buildNo></buildNo>
@@ -132,13 +132,22 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>at.pavlov</groupId>
+            <artifactId>Cannons</artifactId>
+            <version>2.5.5</version>
+        </dependency>
+        <dependency>
             <groupId>de.erethon</groupId>
             <artifactId>headlib</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
     <repositories>
+        <repository>
+            <id>dre-repo</id>
+            <url>https://erethon.de/repo/</url>
+        </repository>
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
@@ -148,16 +157,16 @@
             <url>http://nexus.hc.to/content/repositories/pub_releases/</url>
         </repository>
         <repository>
+            <id>cannons-repo</id>
+            <url>https://github.com/DerPavlov/mvn-repo/raw/master/</url>
+        </repository>
+        <repository>
             <id>dynmap-repo</id>
             <url>http://repo.mikeprimm.com/</url>
         </repository>
         <repository>
             <id>filoghost-repo</id>
             <url>https://ci.filoghost.me/plugin/repository/everything/</url>
-        </repository>
-        <repository>
-            <id>dre-repo</id>
-            <url>http://erethon.de/repo/</url>
         </repository>
     </repositories>
 </project>

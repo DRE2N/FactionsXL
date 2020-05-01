@@ -1,23 +1,27 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.war;
 
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.LegalEntity;
+import de.erethon.factionsxl.war.demand.WarDemandCreationGUI;
 import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
@@ -31,8 +35,11 @@ public class WarCache {
     private Set<War> wars = new HashSet<>();
     private Set<War> unconfirmedWars = new HashSet<>();
 
-    public WarCache(File dir) {
+    private WarDemandCreationGUI warDemandCreationMenu;
+
+    public WarCache(FactionsXL plugin, File dir) {
         assert dir.isDirectory();
+        warDemandCreationMenu = new WarDemandCreationGUI(plugin);
         for (File file : dir.listFiles()) {
             wars.add(new War(file));
         }
@@ -40,26 +47,22 @@ public class WarCache {
 
     /* Getters and setters */
     /**
-     * @return
-     * all confirmed wars
+     * @return all confirmed wars
      */
     public Set<War> getWars() {
         return wars;
     }
 
     /**
-     * @return
-     * all wars that are not confirmed yet
+     * @return all wars that are not confirmed yet
      */
     public Set<War> getUnconfirmedWars() {
         return unconfirmedWars;
     }
 
     /**
-     * @param date
-     * the start date
-     * @return
-     * the war with the matching date ID
+     * @param date the start date
+     * @return the war with the matching date ID
      */
     public War getByDate(Date date) {
         for (War war : wars) {
@@ -71,10 +74,8 @@ public class WarCache {
     }
 
     /**
-     * @param date
-     * the start date
-     * @return
-     * the war with the matching date ID
+     * @param date the start date
+     * @return the war with the matching date ID
      */
     public War getByDate(long date) {
         for (War war : wars) {
@@ -86,10 +87,8 @@ public class WarCache {
     }
 
     /**
-     * @param faction
-     * the faction to check
-     * @return
-     * all wars in that the faction takes part
+     * @param faction the faction to check
+     * @return all wars in that the faction takes part
      */
     public Set<War> getByFaction(Faction faction) {
         Set<War> fWars = new HashSet<>();
@@ -102,10 +101,22 @@ public class WarCache {
     }
 
     /**
-     * @param party
-     * the WarParty to check
-     * @return
-     * all wars in that the faction takes part
+     * @param f1 the faction to check
+     * @param f2 the other faction
+     * @return the war the two factions are in. // TODO: Only works with the current system (one war only)
+     */
+    public War getWarTogether(Faction f1, Faction f2) {
+        for (War war : wars) {
+            if (war.getAttacker().getFactions().contains(f1) && war.getDefender().getFactions().contains(f2)) {
+                return war;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param party the WarParty to check
+     * @return all wars in that the faction takes part
      */
     public War getByParty(WarParty party) {
         for (War war : wars) {
@@ -117,12 +128,9 @@ public class WarCache {
     }
 
     /**
-     * @param attacker
-     * the attacker to check
-     * @param defender
-     * the defender to check
-     * @return
-     * all wars in that the faction takes part
+     * @param attacker the attacker to check
+     * @param defender the defender to check
+     * @return all wars in that the faction takes part
      */
     public War getByPartyLeaders(LegalEntity attacker, LegalEntity defender) {
         for (War war : wars) {
@@ -131,6 +139,18 @@ public class WarCache {
             }
         }
         return null;
+    }
+
+    /**
+     * @return the WarDemandCreationGUI
+     */
+    public WarDemandCreationGUI getWarDemandCreationMenu() {
+        return warDemandCreationMenu;
+    }
+
+    @Deprecated
+    public War getUnsafe(Faction faction) {
+        return getByFaction(faction).toArray(new War[]{})[0];
     }
 
     /* Persistence */

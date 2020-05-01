@@ -7,6 +7,7 @@ chat:
     admin: '**'
     member: ''
     mod: '*'
+  publicDisabled: '&aYou disabled the public chat. Use /f togglepublic'
 cmd:
   addCasusBelli:
     success: '&aSuccessfully added a &6&v1 &acasus belli against &v2 &afor &v3&a.'
@@ -14,7 +15,11 @@ cmd:
     success: '&v1 &agave &v2 &athe leadership of &v3&a.'
   casusBelli:
     head: '&aTarget &4| &aType &4| &aExpiration'
-    noExpiration: No expiration
+    noExpiration: 'No expiration'
+  chatSpy:
+    help: '/f spy - Toggles chat spy mode.'
+    on: '&aEnabled chat spy mode.'
+    off: '&aDisabled chat spy mode.'
   claim:
     success: '&aSuccessfully annexed the region &v1&a.'
   create:
@@ -30,6 +35,11 @@ cmd:
   invite:
     fail: '&4Could change the invitation status of &v1&4.'
     success: '&v1 &ainvited &v2 &ato join your faction.'
+  independence:
+    help: /f independence [Name] - Allows a vassal to leave a faction or to create a seccesion.
+    success:
+      vassal: '&aThe faction&e &v1 &a declared independence as a result of the low stability of&e &v2 &a!'
+      newFaction: '&aAs a result of the prolonged instability of&e &v1&a, &e&v2 &ahas split off!'
   kick:
     fail: '&4You are not allowed to kick &v1&4.'
     success: '&v1 &akicked &v2 &aout of the faction.'
@@ -53,13 +63,34 @@ cmd:
     closed: '&v1 &aclosed the faction for uninvited players.'
     opened: '&v1 &aopened the faction for uninvited players.'
   power: '&aThe player &v1 &ahas &6&v2 &apower points.'
+  peace:
+    listSent: 'Peace list sent.'
+    listReceived: 'Peace list received!'
+    create: 'Peace created.'
+    title: 'Peace offer'
+    add:
+      demand: '&6&o&lRIGHT CLICK&8: &f&lDemand'
+      offer: '&6&o&lLEFT CLICK&8: &f&lOffer'
+  peaceConfirm:
+    help: Internal command to confirm a peace request.
+    notInWar: '&cYou are not participating in this war.'
+    rejected:
+      faction: '&aThe faction &v1 declined a peace offer. Their war exhaustion has increased slightly.'
+      warParty: '&aThe war party &v1 has declined a peace offer. The war exhaustion of all factions has increased.'
+    success: '&aThe war between the two factions &v1 &aand &v2 &ahas ended.'
+    notLeader: '&cYou are not the leader of this war.'
+    empty: '&cNo peace requests or empty peace request.'
+    cantAfford: '&cYou or the other faction can not afford this.'
   region:
     claims: '&6Claims: '
     cores: '&6Cores: '
     owner: '&6Owner: '
     population: '&6Population: '
     price: '&6Price: '
+    priceCore: '&6Core cost: '
     type: '&6Type: '
+    occupier: '&6Occupier: '
+    influence: '&6Influence: '
   reload:
     done: '&aSuccessfully reloaded FactionsXL.'
   requests:
@@ -91,7 +122,7 @@ cmd:
     description: '&6Description: '
     formerLeaders: '&6Former leaders: '
     governmentType: '&6Type of government: '
-    info: '&6Power / Amount of provinces: &v1&v2 / &v3'
+    info: '&6Power / Amount of provinces / Worth: &v1&v2 / &v3 / &v4'
     invitation: '&6Invitation required: '
     leader: '&6Leader: '
     members: '&6Members: '
@@ -109,6 +140,10 @@ cmd:
     success: '&aThe faction &v1 &achanged their tag to &6&v2&a.'
   title:
     success: '&v1 &achanged the title of &v2 &ato &6&v3&a.'
+  togglePublic:
+    help: '/f togglepublic - Toggles the public chat.'
+    on: '&aYou are receiving the public chat again.'
+    off: '&aYou now no longer receive the public chat.'
   unclaim:
     fail: '&4You cannot unclaim your capital province.'
     success: '&aSuccessfully unclaimed the region &v1&a.'
@@ -125,10 +160,13 @@ cmd:
     killsAndDeaths: ' &4Kills/Deaths: &a&v1&4/&a&v2&4 => &a&v3'
     noWars: '&aThe faction &v1 &ais currently not at war.'
     points: ' &4Points: &a'
+    killpoints: ' &4Points from Kills:&a &v1 &8/&a &v2'
+  war:
+    selectCB: '&6Select Casus Belli...'
   world:
     autoclaim:
       end: '&aYou are not adding chunks to the region any longer.'
-      start: '&aYou are now autocmatically adding chunks to the region &v1&a while
+      start: '&aYou are now automatically adding chunks to the region &v1&a while
         moving.'
     chunkAdded: '&aSuccessfully added this chunk to the region &v1&a.'
     chunkRemoved: '&aSuccessfully removed this chunk from the region &v1&a.'
@@ -150,6 +188,7 @@ death:
       &6&v3&a.'
 error:
   allod: '&v1 &4is an allod.'
+  atWar: '&4You can not do this while at war!'
   cannotAttackAlliedFaction: '&4You cannot attack an allied faction.'
   cannotTradeWithItself: '&4A faction cannot trade with itself.'
   capitalMoveCooldown: '&4You must wait until &6&v1 &4to move your capital.'
@@ -164,6 +203,8 @@ error:
   langNoCore: '&4This land is not a core province of your faction.'
   land:
     notForSale: '&4This land is not for sale.'
+    notConnected: '&4This land is owned and you share no border with the owner.'
+    notOwned: '&4You do not own this land!'
     wilderness: '&4You cannot do this in the wilderness.'
   leaveFaction: '&4You have to leave your faction in order to do this.'
   maxIdeaGroupsReached: '&7You reached the maximum amount of idea groups.'
@@ -183,6 +224,7 @@ error:
   notNumeric: '&6&v1 &4is not a numeric value.'
   notVassal: '&v1 &4is not a vassal of &v2&4.'
   notWilderness: '&4You can only do this in the wilderness.'
+  notInWar: '&cYou are currently not at war!'
   ownFaction: '&4This is your own faction.'
   personalUnionWithFaction: '&4The faction &v1 &4does not have a personal union with
     &v2&4.'
@@ -193,6 +235,9 @@ error:
   regionIsCore: '&v1 &4is a core province of &v2&4.'
   selectIdeaGroup: '&7You have to select the idea group first.'
   specifyFaction: '&4You have to specify a faction.'
+  stability:
+    high: '&cThe stability of your lord is too high.'
+    low: '&cYour stability is too low.'
   vassal: '&4The faction &v1 &4is a vassal.'
   vassalIsMotherAdmin: '&4The player &v1 &4is already leader of the mother faction.'
 faction:
@@ -212,6 +257,7 @@ faction:
   personalUnionFormed: '&aThe factions &v1 &aand &v2 &adecided to unite their dynasties
     under &v3 &aand formed a personal union.'
   storage: '&aStorage'
+  select: 'Select Faction.'
 governmentType:
   monarchy: Monarchy
   republic: Republic
@@ -225,6 +271,7 @@ help:
   casusBelli: /f casusBelli ([faction] - Shows all of your casus belli (except raid).
   chat: /f chat [f(action)|p(ublic)] [faction] - Changes the chat mode.
   claim: /f claim ([faction]) - Claims a territory.
+  core: /f core - Starts the coring process for this region.
   confirmWar: /f confirmWar [date] - Technical command used to confirm wars.
   create: /f create [tag] - Creates a new faction.
   createBull: /f createBull [name] - Creates a new bull with [name] as the author.
@@ -256,6 +303,7 @@ help:
   payday: /f payday ([amount]) - Enforces paydays.
   playerHome: /home ([player]) - Teleports the sender to the player's home.
   power: /f power ([player]) - Displays a player's power value.
+  peace: /f peace
   region: /f region ([region name/ID]) - Shows information about a region.
   regions: /f regions - Shows a list of all regions.
   relation: /f relation [faction] [target] [relation] - Sends a relation request to
@@ -320,6 +368,7 @@ misc:
   cancel: '[ CANCEL ]'
   continue: '&6&lCONTINUE'
   deny: '[ DENY ]'
+  none: 'Nothing'
   loner: Loner
   openRequests: '&bYou have unanswered requests left! Use &4/f req &bto list them.'
   purchase:
@@ -527,6 +576,7 @@ trade:
     import: '&aYou successfully imported &6&v1 &afor &6&v2 &afrom &v3&a.'
   title: '&6&lTrade - &v1'
 war:
+  ended: '&aThe war between &v1 &aand &v2 &aended!'
   callToArms:
     ally:
       '1': '&dYou are allied to &v1.'
@@ -547,8 +597,25 @@ war:
         weaker: '&eYou are not strong enough to enforce their help.'
     defender: '&4&v1 will side with your enemy.'
     add: '&6&lClick to call them to arms.'
+    addedFaction: '&aAdded&6 &v1'
+    removedFaction: '&aRemoved&6 &v1'
     remove: '&6&lClick to retract the call to arms.'
     title: '&4&lCall to arms'
+  cb:
+    menu: '&6Casus Belli'
+    raid: '&cRaid'
+    raidDesc: '&7&oFree for all. No demands.'
+    border: '&eBorder Conflict'
+    borderDesc: '&7&oTwo countries share a border.'
+    conquest: '&4Conquest'
+    conquestDesc: '&7&oYour faction has claims on enemy land.'
+    liberation: '&aLiberation'
+    liberationDesc: '&7&oFight for your liberty against your lord.'
+    resubjagation: '&5Resubjagation'
+    resubjagationDesc: '&7&oA former vassal of yours.'
+    reconquest: '&3Reconquest'
+    reconquestDesc: '&7&oReconquest core regions lost in other wars.'
+    invalid: '&cInvalid CB. Please contact an Admin if you think this is an error.'
   declaration:
     allies: '&9Allies: '
     broadcast: '&v1 &4of &v2 &4declared war on &v3&4!'
@@ -558,7 +625,83 @@ war:
     startDate: '&4&oThe war will start in 24 hours.'
     title: '&4&l#=== DÉCLARATION DE GUERRE ===#'
   demand:
-    menu:
+    list: '&6List of war demands:'
+    disabled: '&cThis demand type is currently disabled. '
+    noWarscore: '&cYou do not have the Warscore required to make these demands!'
+    warscoreNeeded: '&cYour Warscore: &v1 &8- &cWarscore needed: &v2'
+    cantAfford: '&cYour faction can not afford this!'
+    requestAlreadySent: '&cRequest already sent. They first need to accept or deny.'
+    guiButton: '&f&lPeace request&8: &v1'
+    chat:
+      title: '&8&m----------&r &f&lPeace demand &8- &v1&r &8&m----------'
+      totalWarscore: '&7Total Warscore&8:&5 &v1 &8/&6 &v2'
+      sent: '&aPeace demand sent!'
+      explanation1: '&7&oAccepting this request will end the war immediately.'
+      explanation2: '&7&oBut you will need to pay the following to the demanding faction: '
+      explanation1Separate: '&7&oAccepting this request will end the war for you immediately.'
+      explanation2Separate: '&7&oBut you will need to pay the following to the demanding faction: '
+      demands: '&6&lDemands&8&l:'
+    creation:
+      title:
+        offer: '&2Create new peace offer'
+        demand: '&4Create new peace demand'
+      list: '&aList war demands'
+      send: '&aSend demand!'
+      item: '&aCreate demand'
+      money: '&4Money'
+      cleared: '&cDemands/offer cleared.'
+      clearButton: '&4Clear demands/offer'
+      regionButton: '&aRegion'
+      makeDemands: '&a&lMake your demands!'
+      makeOffer: '&c&lMake your offer!'
+    menu: #Unused
       item: '&3Add item demand'
       list: '&aList demands'
       title: Create new war demand
+    region:
+      title: '&5Selection regions...'
+      warScore: '&7Warscore&8: &5 &v1'
+      added: '&aRegion&e &v1 &aadded.'
+      removed: '&cRegion&e &v1 &cremoved.'
+      success: '&aDemand added.'
+      done: '&aDone.'
+      CBAdded: '&aYou now have a &6RECONQUEST &aCasus Belli against &v1&a!'
+      regionsChat: '&aRegions:'
+      totalWarScoreChat: '&8(&7Total&8:&5 &v1&8)'
+    money:
+      added: '&aMoney demand added!'
+      chat: '&6Money&8:&e &v1 &8(&7Warscore&8:&5 &v2&8)'
+  offer:
+    chat:
+      title: '&8&m----------&r &f&lPeace offer &8- &v1&r &8&m----------'
+      sent: '&aPeace offer sent!'
+      explanation1: '&7&oAccepting this request will end the war immediately for you.'
+      explanation2: '&7&oBut you will need to pay the following to the demanding faction: '
+      explanation1Separate: '&7&oAccepting this request will end the war for you immediately.'
+      explanation2Separate: '&7&oBut you will need to pay the following to the demanding faction: '
+  request:
+    alliance: '&cThey first need to accept the alliance.'
+    joined: '&aThe faction &v1 &ajoined the war against &v2&a!'
+    title: '&cWar Invite'
+    empty: '&cRequest empty or invalid.'
+    invite: '&aYou invited &v1 &a to join the war against &v2&a!'
+    received: '&aYou have been invited by &v1 &a to join the war against &v2&a!'
+  ally:
+    abandoned: '&aThe faction &v1 &aabandoned their ally during the war. This will certainly not be forgotten!'
+    leftWar: '&aThe faction &v1 &adecided to leave the war against &v2&a!'
+  score:
+    changed: '&7Warscore&8: &a&v1 &8:&c &v2'
+  truce:
+    ended: '&aThe truce period between &v1 &aand &v2 &aended!'
+  occupy:
+    region:
+      defended: '&aRegion defended! &8 &7Influence &a+&v1 &7(&v2&7)'
+      attacked: '&aRegion attacked! &8 &7Influence &c-&v1 &7(&v2&7)'
+    success: '&aYou occupied a new Region: &v1&a!'
+    influenceTooHigh: '&cEnemy influence is not low enough.'
+    notEnemy: '&cThis region is not owned by an enemy.'
+    alreadyOccupied: '&cYou already occupy this region.'
+    notAtWar: '&cYou and the owner of this region are not at war!'
+    help: 'Annex land for your faction.'
+    raid: '&cYou can not occupy regions during a &6RAID&a.'
+    truce: '&cYou can not occupy regions during the truce period!'

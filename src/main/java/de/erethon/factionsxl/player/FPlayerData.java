@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.player;
 
@@ -44,6 +46,8 @@ public class FPlayerData extends DREConfig {
     private boolean anthemsEnabled = true;
     private Location home;
     private List<Request> requests;
+    private boolean isPublic = true;
+    private boolean isSpying = false;
 
     public FPlayerData(File file) {
         super(file, CONFIG_VERSION);
@@ -159,6 +163,22 @@ public class FPlayerData extends DREConfig {
         home = location;
     }
 
+    public boolean getPublicChat() {
+        return isPublic;
+    }
+
+    public void setPublicChat(boolean enabled) {
+        isPublic = enabled;
+    }
+
+    public boolean getChatSpy() {
+        return isSpying;
+    }
+
+    public void setChatSpy(boolean enabled) {
+        isSpying = enabled;
+    }
+
     /**
      * @return
      * the requests this player has
@@ -167,9 +187,12 @@ public class FPlayerData extends DREConfig {
         return requests;
     }
 
+
+
     /* Serialization */
     @Override
     public void initialize() {
+        this.timeLastPlayed = System.currentTimeMillis();
         MessageUtil.log(plugin, FMessage.LOG_NEW_PLAYER_DATA.getMessage(file.getName()));
         save();
     }
@@ -187,6 +210,12 @@ public class FPlayerData extends DREConfig {
         anthemsEnabled = config.getBoolean("anthemsEnabled", anthemsEnabled);
         home = (Location) config.get("home");
         requests = (List<Request>) config.getList("requests", new ArrayList<>());
+        if (config.contains("isPublic")) {
+            isPublic = config.getBoolean("publicChat");
+        }
+        if (config.contains("chatSpy")) {
+            isSpying = config.getBoolean("chatSpy");
+        }
         FactionsXL.debug("Loaded " + this);
     }
 
@@ -199,6 +228,10 @@ public class FPlayerData extends DREConfig {
         config.set("anthemsEnabled", anthemsEnabled);
         config.set("home", home);
         config.set("requests", requests);
+
+        config.set("publicChat", isPublic);
+        config.set("chatSpy", isSpying);
+
         try {
             config.save(file);
         } catch (IOException exception) {

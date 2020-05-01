@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command.war;
 
@@ -20,6 +22,7 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.misc.SimpleDateUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.command.FCommand;
+import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
@@ -42,8 +45,9 @@ import org.bukkit.entity.Player;
 public class WarStatusCommand extends FCommand {
 
     WarCache wars = FactionsXL.getInstance().getWarCache();
+    FConfig config = FactionsXL.getInstance().getFConfig();
 
-    private String PLACEHOLDER = ChatColor.GOLD + " | " + ChatColor.DARK_BLUE;
+    private String PLACEHOLDER = ChatColor.DARK_GRAY + " | " + ChatColor.BLUE;
 
     public WarStatusCommand() {
         setCommand("warStatus");
@@ -82,7 +86,7 @@ public class WarStatusCommand extends FCommand {
             String defender = fWar.getDefender().getLeader().getName();
             String cb = fWar.getCasusBelli().getType().toString();
             String date = SimpleDateUtil.ddMMyyyyhhmm(fWar.getStartDate());
-            String line = ChatColor.GOLD + "> " + ChatColor.DARK_BLUE + attacker + PLACEHOLDER + defender + PLACEHOLDER + cb + PLACEHOLDER + date;
+            String line = ChatColor.GOLD + "> " + ChatColor.BLUE + attacker + PLACEHOLDER + defender + PLACEHOLDER + cb + PLACEHOLDER + date;
             BaseComponent[] comps = TextComponent.fromLegacyText(line);
             ClickEvent onClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/factionsxl warStatus " + fWar.getStartDate().getTime());
             for (BaseComponent comp : comps) {
@@ -98,13 +102,13 @@ public class WarStatusCommand extends FCommand {
         int attackerKills = war.getAttacker().kills;
         int attackerDeaths = war.getAttacker().deaths;
         double attackerKD = war.getAttacker().getKD();
-        int attackerPoints = 0;
+        int attackerPoints = war.getAttacker().getPoints();
         String defenderLeader = war.getDefender().getLeader().getName();
         String defenders = ParsingUtil.factionsToString(war.getDefender().getFactions(), ChatColor.DARK_RED);
         int defenderKills = war.getDefender().kills;
         int defenderDeaths = war.getDefender().deaths;
         double defenderKD = war.getDefender().getKD();
-        int defenderPoints = 0;
+        int defenderPoints = war.getDefender().getPoints();
         String cb = war.getCasusBelli().getType().toString();
         String date = SimpleDateUtil.ddMMyyyyhhmm(war.getStartDate());
         MessageUtil.sendCenteredMessage(sender, ChatColor.DARK_RED + attackerLeader + ChatColor.RED + " vs. " + ChatColor.DARK_RED + defenderLeader);
@@ -112,9 +116,11 @@ public class WarStatusCommand extends FCommand {
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_DATE.getMessage() + date);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_ATTACKERS.getMessage() + attackers);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLS_AND_DEATHS.getMessage(String.valueOf(attackerKills), String.valueOf(attackerDeaths), String.valueOf(attackerKD)));
+        MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLPOINTS.getMessage(String.valueOf(war.getDefender().getPointsFromKills()), String.valueOf(config.getMaximumKillPoints())));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_POINTS.getMessage() + String.valueOf(attackerPoints));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_DEFENDERS.getMessage() + defenders);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLS_AND_DEATHS.getMessage(String.valueOf(defenderKills), String.valueOf(defenderDeaths), String.valueOf(defenderKD)));
+        MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLPOINTS.getMessage(String.valueOf(war.getDefender().getPointsFromKills()), String.valueOf(config.getMaximumKillPoints())));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_POINTS.getMessage() + String.valueOf(defenderPoints));
         FScoreboard.get((Player) sender).setTemporarySidebar(new FWarSidebar(war));
     }
