@@ -236,7 +236,7 @@ public enum ParsingUtil {
         string = string.replace(REGION_LEVEL.getPlaceholder(), String.valueOf(region.getLevel()));
         string = string.replace(REGION_NAME.getPlaceholder(), region.getName());
         string = string.replace(REGION_OWNER.getPlaceholder(), region.getOwner() != null ? region.getOwner().getName() : FMessage.MISC_WILDERNESS.getMessage());
-        string = string.replace(REGION_POPULATION.getPlaceholder(), String.valueOf(region.getPopulation()));
+        string = string.replace(REGION_POPULATION.getPlaceholder(), String.valueOf(region.getTotalPopulation()));
         string = string.replace(REGION_SIZE.getPlaceholder(), String.valueOf(region.getSize()));
         string = string.replace(REGION_TYPE.getPlaceholder(), region.getType().getName());
         return ChatColor.translateAlternateColorCodes('&', string);

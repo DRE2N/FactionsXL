@@ -25,7 +25,9 @@ import de.erethon.factionsxl.board.RegionType;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
 import de.erethon.factionsxl.chat.ChatChannel;
 import de.erethon.factionsxl.economy.Resource;
+import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.entity.Relation;
+import de.erethon.factionsxl.population.PopulationLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
@@ -99,6 +101,23 @@ public class FConfig extends DREConfig {
     private double importModifier = 2;
     private double exportModifier = 0.5;
     private int requiredResourceUnitsPer1000Persons = 10;
+    private Map<PopulationLevel, Map<ResourceSubcategory, Integer>> populationLevelResources= new HashMap<PopulationLevel, Map<ResourceSubcategory, Integer>>() {
+        final Map<ResourceSubcategory, Integer> basicResources = new HashMap<ResourceSubcategory, Integer>() {
+            {
+                put(ResourceSubcategory.STONE, 10);
+                put(ResourceSubcategory.HEATING, 5);
+                put(ResourceSubcategory.WATER, 10);
+                put(ResourceSubcategory.ROADS, 5);
+                put(ResourceSubcategory.STAPLES, 15);
+            }
+        };
+        {
+            put(PopulationLevel.PEASANT, basicResources);
+            put(PopulationLevel.CITIZEN, basicResources);
+            put(PopulationLevel.PATRICIAN, basicResources);
+            put(PopulationLevel.NOBLEMEN, basicResources);
+        }
+    };
 
     // Chat
     private boolean publicChatHandled = false;
@@ -454,6 +473,10 @@ public class FConfig extends DREConfig {
      */
     public int getRequiredResourceUnitsPer1000Persons() {
         return requiredResourceUnitsPer1000Persons;
+    }
+
+    public Map<PopulationLevel, Map<ResourceSubcategory, Integer>> getPopulationLevelResources() {
+        return populationLevelResources;
     }
 
     /**
@@ -1118,6 +1141,16 @@ public class FConfig extends DREConfig {
             config.set("requiredResourceUnitsPer1000Persons", requiredResourceUnitsPer1000Persons);
         }
 
+        if (!config.contains("resourceNeeds")) {
+            config.createSection("resourceNeeds");
+            for (Entry<PopulationLevel, Map<ResourceSubcategory, Integer>> entry : populationLevelResources.entrySet()) {
+                config.createSection("resourceNeeds." + entry.getKey());
+                for (Entry<ResourceSubcategory, Integer> subEntry : entry.getValue().entrySet()) {
+                    config.set("resourceNeeds." + entry.getKey() + "." + subEntry.getKey(), subEntry.getValue());
+                }
+            }
+        }
+
         if (!config.contains("chatFormat.ally")) {
             config.set("chatFormat.ally", chatFormatAlly);
         }
@@ -1406,8 +1439,23 @@ public class FConfig extends DREConfig {
             exportModifier = config.getDouble("exportModifier");
         }
 
+        if (config.contains("populationLevels")) {
+            exportModifier = config.getDouble("exportModifier");
+        }
+
         if (config.contains("requiredResourceUnitsPer1000Persons")) {
             requiredResourceUnitsPer1000Persons = config.getInt("requiredResourceUnitsPer1000Persons");
+        }
+
+        if (config.contains("resourceNeeds")) {
+            for (Entry<String, Object> entry : ConfigUtil.getMap(config, "resourceNeeds").entrySet()) {
+                PopulationLevel level = PopulationLevel.valueOf(entry.getKey());
+                Map<ResourceSubcategory, Integer> resources = new HashMap<>();
+                for(Entry<String, Object> subEntry : ConfigUtil.getMap(config, "resourceNeeds." + level.toString()).entrySet()) {
+                    resources.put(ResourceSubcategory.valueOf(subEntry.getKey()), (int) subEntry.getValue());
+                }
+                populationLevelResources.put(level, resources);
+            }
         }
 
         if (config.contains("chatFormat.ally")) {

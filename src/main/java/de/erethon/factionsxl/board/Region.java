@@ -24,7 +24,9 @@ import de.erethon.factionsxl.board.dynmap.DynmapStyle;
 import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
+import de.erethon.factionsxl.economy.StatusEffect;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.Bukkit;
@@ -102,6 +104,7 @@ public class Region {
         }
         config = YamlConfiguration.loadConfiguration(file);
         id = NumberUtil.parseInt(file.getName().replace(YAML, new String()));
+
     }
 
     @Deprecated
@@ -203,19 +206,39 @@ public class Region {
 
     /**
      * @return
-     * the population for FactionMobs
+     * the population map
      */
-    public int getPopulation() {
+    public Map<PopulationLevel, Integer> getPopulation() {
         return population;
+    }
+
+    /**
+     * @return
+     * the population for a specific pop level
+     */
+    public int getPopulation(PopulationLevel level) {
+        return population.get(level);
+    }
+
+    /**
+     * @return
+     * the total population
+     */
+    public int getTotalPopulation() {
+        int pop = 0;
+        for (PopulationLevel level : population.keySet()) {
+            pop = pop + population.get(level);
+        }
+        return pop;
     }
 
     /**
      * @param population
      * the amount of soldiers for FactionMobs
      */
-    public void setPopulation(int population) {
+    /*public void setPopulation(int population) {
         this.population = population;
-    }
+    }*/
 
     /**
      * @return
@@ -511,6 +534,29 @@ public class Region {
         return base + increase;
     }
 
+    /**
+     * @param resource
+     * @return the modifier for this resource after applying all effects
+     */
+    public double getTotalModifierForResource(Resource resource) {
+        double modifier = 0;
+        for (BuildSite building : getBuildings()) {
+            for (StatusEffect effect : building.getBuilding().getEffects()) {
+                if (effect.getProductionModifier().containsKey(resource)) {
+                    modifier = modifier + effect.getProductionModifier().get(resource);
+                }
+                if (effect.getConsumptionModifier().containsKey(resource)) {
+                    modifier = modifier + effect.getConsumptionModifier().get(resource);
+                }
+            }
+        }
+        return modifier;
+    }
+
+    public Set<StatusEffect> getEffects() {
+        return effects;
+    }
+
     /* Serialization */
     public void load() {
         ConfigurationSection config = this.config != null ? this.config : load;
@@ -518,7 +564,11 @@ public class Region {
         String typeString = config.getString("type");
         type = EnumUtil.isValidEnum(RegionType.class, typeString) ? RegionType.valueOf(typeString) : RegionType.BARREN;
         level = config.getInt("level");
-        population = config.getInt("population");
+        for (Entry<String, Object> entry : ConfigUtil.getMap(config, "populationLevels").entrySet()) {
+            PopulationLevel level = PopulationLevel.valueOf(PopulationLevel.class, entry.getKey());
+            int value = (int) entry.getValue();
+            population.put(level, value);
+        }
         world = Bukkit.getWorld(config.getString("world") != null ? config.getString("world") : "Saragandes");
         if (config.contains("owner")) {
             owner = plugin.getFactionCache().getById(config.getInt("owner"));
@@ -562,6 +612,12 @@ public class Region {
         if (config.contains("lastDefendedTime")) {
             lastDefendedTime = config.getLong("lastDefendedTime");
         }
+        ConfigurationSection cbs = config.getConfigurationSection("buildings");
+        if (cbs != null) {
+            for (String b : cbs.getKeys(false)) {
+                buildings.add(new BuildSite(config.getConfigurationSection("buildings." + b)));
+            }
+        }
 
         if (this.config == null) {
             this.config = YamlConfiguration.loadConfiguration(file);
@@ -573,11 +629,14 @@ public class Region {
         config.set("name", name);
         config.set("type", type.toString());
         config.set("level", level);
-        if (owner != null) {
-            config.set("population", population);
-        } else {
-            config.set("population", 0);
+        if (config.contains("population")) {
+            config.set("population", -1);
         }
+        Map<String, Integer> serializedPop = new HashMap<>();
+        for (Entry<PopulationLevel, Integer> entry : population.entrySet()) {
+            serializedPop.put(entry.getKey().toString(), entry.getValue());
+        }
+        config.set("populationLevels", serializedPop);
         config.set("world", world.getName());
         config.set("owner", owner != null ? owner.getId() : null);
         config.set("occupant", occupant != null ? occupant.getId() : null);
@@ -622,6 +681,11 @@ public class Region {
         config.set("attackStartTime", attackStartTime);
         config.set("lastDefendedTime", lastDefendedTime);
         config.set("influence", influence);
+        int i = 0;
+        for (BuildSite e : buildings) {
+            config.set("buildings." + i, e.serialize());
+            i++;
+        }
 
         try {
             config.save(file);

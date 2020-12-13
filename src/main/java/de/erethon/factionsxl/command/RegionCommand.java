@@ -23,10 +23,12 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
+import de.erethon.factionsxl.economy.StatusEffect;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -145,7 +147,7 @@ public class RegionCommand extends FCommand {
         BaseComponent[] income = (BaseComponent[]) ArrayUtils.addAll(income1, income2);
         MessageUtil.sendMessage(sender, income);
 
-        MessageUtil.sendMessage(sender, FMessage.CMD_REGION_POPULATION.getMessage() + c + region.getPopulation() + "/" + region.getType().getMaxPopulation(region.getLevel()));
+        MessageUtil.sendMessage(sender, FMessage.CMD_REGION_POPULATION.getMessage() + c + region.getTotalPopulation() + "/" + region.getType().getMaxPopulation(region.getLevel()));
 
         if (sender instanceof Player) {
             ArrayList<BaseComponent> cores = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(FMessage.CMD_REGION_CORES.getMessage())));
@@ -185,6 +187,12 @@ public class RegionCommand extends FCommand {
                 claims.addAll(Arrays.asList(relComps));
             }
             MessageUtil.sendMessage(sender, claims.toArray(new BaseComponent[]{}));
+            for (PopulationLevel level : region.getPopulation().keySet()) {
+                MessageUtil.sendMessage(sender, "Lvl: " + level.toString() + " Val: " + region.getPopulation().get(level));
+            }
+            for (StatusEffect effect : region.getEffects()) {
+                MessageUtil.sendMessage(sender, "Effect: " + effect.getProductionModifier().get(Resource.STONE));
+            }
         }
     }
 

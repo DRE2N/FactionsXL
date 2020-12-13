@@ -19,6 +19,8 @@ package de.erethon.factionsxl.building;
 
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
+import org.bukkit.block.Block;
 
 import java.io.File;
 import java.util.List;
@@ -57,5 +59,14 @@ public class BuildingManager {
             buildings.add(new Building(file));
         }
         MessageUtil.log("Loaded " + buildings.size() + " Buildings.");
+    }
+
+    public BuildSite getBuildSite(Block check, Region region) {
+        for (BuildSite buildSite : region.getBuildings()) {
+            if (buildSite.getInteractive().equals(check)) {
+                return buildSite;
+            }
+        }
+        return null;
     }
 }

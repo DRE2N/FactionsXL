@@ -124,7 +124,7 @@ cmd:
     info: '&6Power / Amount of provinces / Worth: &v1&v2 / &v3 / &v4'
     invitation: '&6Invitation required: '
     leader: '&6Leader: '
-    members: '&6Members: '
+    members: '&6Members (&v1): '
     relations: '&6Relations: '
     stability: '&6Stability: '
     stabilityMod:

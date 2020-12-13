@@ -108,7 +108,7 @@ public class ShowCommand extends FCommand {
             String provinces = String.valueOf(faction.getRegions().size());
             int pop = 0;
             for (Region rg : faction.getRegions()) {
-                pop = pop + rg.getPopulation();
+                pop = pop + rg.getTotalPopulation();
             }
             String population = String.valueOf(pop);
             MessageUtil.sendMessage(player, FMessage.CMD_SHOW_INFO.getMessage(c.toString(), power, provinces, population));
@@ -131,7 +131,7 @@ public class ShowCommand extends FCommand {
             String leader = faction.getAdmin() != null ? faction.getAdmin().getName() : "&oInterregnum";
             MessageUtil.sendMessage(player, FMessage.CMD_SHOW_LEADER.getMessage() + c + leader);
 
-            ArrayList<BaseComponent> memList = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(FMessage.CMD_SHOW_MEMBERS.getMessage())));
+            ArrayList<BaseComponent> memList = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(FMessage.CMD_SHOW_MEMBERS.getMessage(String.valueOf(faction.getMembers().size())))));
             boolean memFirst = true;
             for (OfflinePlayer member : faction.getMembers().getOfflinePlayers()) {
                 Double memPower = plugin.getFData().power.get(member.getUniqueId());

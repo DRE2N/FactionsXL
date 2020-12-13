@@ -85,7 +85,7 @@ public class FStorage {
                 if (entry.getKey() == Resource.TAXES) {
                     faction.getAccount().deposit(entry.getValue());
                 } else if (entry.getKey() == Resource.MANPOWER) {
-                    int newPop = (int) Math.round(region.getPopulation() + entry.getValue() * ((double) faction.getStability() / 100));
+                    int newPop = (int) Math.round(region.getTotalPopulation() + entry.getValue() * ((double) faction.getStability() / 100));
                     int maxPop = region.getType().getMaxPopulation(region.getLevel());
                     if (newPop > maxPop) {
                         newPop = maxPop;
@@ -93,7 +93,7 @@ public class FStorage {
                     if (newPop < 0) {
                         newPop = 0;
                     }
-                    region.setPopulation(newPop);
+                    //region.setPopulation(newPop);
                 } else {
                     MessageUtil.log("Income: " + entry.getValue() + ": " + entry.getKey());
                     goods.put(entry.getKey(), goods.get(entry.getKey()) + entry.getValue());

@@ -427,7 +427,7 @@ public class Faction extends LegalEntity {
     public int getPopulation() {
         int manpower = 0;
         for (Region region : regions) {
-            manpower += region.getPopulation();
+            manpower += region.getTotalPopulation();
         }
         return manpower;
     }
@@ -439,7 +439,7 @@ public class Faction extends LegalEntity {
     public int getManpower() {
         int manpower = 0;
         for (Region region : regions) {
-            manpower += region.getPopulation() * (manpowerModifier / 100);
+            manpower += region.getTotalPopulation() * (manpowerModifier / 100);
         }
         return manpower;
     }

@@ -35,7 +35,9 @@ import de.erethon.factionsxl.command.FCommandCompleter;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FData;
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.config.FTranslation;
 import de.erethon.factionsxl.economy.IncomeTask;
+import de.erethon.factionsxl.economy.StatusEffect;
 import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.FBull;
 import de.erethon.factionsxl.faction.FMob;
@@ -94,6 +96,7 @@ public class FactionsXL extends DREPlugin {
 
     private FConfig fConfig;
     private FData fData;
+    private FTranslation fTranslation;
     private FCommandCache fCommands;
     private FPlayerCache fPlayers;
     private FactionCache factions;
@@ -139,6 +142,7 @@ public class FactionsXL extends DREPlugin {
         ConfigurationSerialization.registerClass(RelationDemand.class);
         ConfigurationSerialization.registerClass(ItemDemand.class);
         ConfigurationSerialization.registerClass(BuildSite.class);
+        ConfigurationSerialization.registerClass(StatusEffect.class);
         super.onEnable();
         initFolders();
         debugToFile("Enabling...");
@@ -251,6 +255,7 @@ public class FactionsXL extends DREPlugin {
         }
         loadFData();
         loadFactions(FACTIONS, FEDERATIONS, TRADE_LEAGUES);
+        loadBuildings();
         loadBoard(BOARD);
         loadFPlayers();
         fPlayers.loadAll();
@@ -262,13 +267,13 @@ public class FactionsXL extends DREPlugin {
         loadCBManager();
         loadAtlas();
         loadOccupationManager();
-        loadBuildings();
         loadCoring();
         loadFCommands();
         loadChatListener();
         loadPlayerListener();
         loadEntityProtectionListener();
         loadLandProtectionListener();
+        loadFTranslation();
 
         new BuildingListener();
 
@@ -741,6 +746,14 @@ public class FactionsXL extends DREPlugin {
      */
     public void loadWarPoints() {
         warPoints = new WarPoints();
+    }
+
+    public void loadFTranslation() {
+        fTranslation = new FTranslation();
+    }
+
+    public FTranslation getFTranslation() {
+        return fTranslation;
     }
 
     public WarPoints getWarPoints() {

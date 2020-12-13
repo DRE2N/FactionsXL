@@ -161,6 +161,7 @@ public enum FMessage implements Message {
     ERROR_BUILDING_REQUIRED_FACTION("error.building.required.faction"),
     ERROR_BUILDING_REQUIRED_REGION("error.building.required.region"),
     ERROR_BUILDING_TOO_CLOSE_BORDER("error.building.tooCloseToBorder"),
+    ERROR_BUILDING_POPULATION_TOO_LOW("error.building.population"),
     ERROR_CANNOT_ATTACK_ALLIED_FACTION("error.cannotAttackAlliedFaction"),
     ERROR_CANNOT_PASS_CAPITAL("cmd.cannotPass.capital"),
     ERROR_CANNOT_PASS_LAND("cmd.cannotPass.land"),

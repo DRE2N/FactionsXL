@@ -24,9 +24,11 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.FStorage;
 import de.erethon.factionsxl.economy.Resource;
+import de.erethon.factionsxl.economy.StatusEffect;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.player.FPlayerCache;
+import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.*;
@@ -49,9 +51,6 @@ import java.util.*;
 public class Building {
 
     FactionsXL plugin = FactionsXL.getInstance();
-    FPlayerCache playerCache = plugin.getFPlayerCache();
-    BuildingManager buildingManager = plugin.getBuildingManager();
-    Board board = plugin.getBoard();
 
     public static final String YAML = ".yml";
 
@@ -67,7 +66,9 @@ public class Building {
     private int size;
     private Map<Resource, Integer> unlockCost = new HashMap<>();
     private Map<Material, Integer> requiredBlocks = new HashMap<>();
-    private Set<String> requiredBuildings = new HashSet<>(); // String with ids because the other buildings might not be loaded yet.
+    private Map<PopulationLevel, Integer> requiredPopulation = new HashMap<>();
+    private List<String> requiredBuildings = new ArrayList<>(); // String with ids because the other buildings might not be loaded yet.
+    private Set<StatusEffect> effects = new HashSet<>();
 
 
     public Building(File file) {
@@ -86,11 +87,13 @@ public class Building {
 
     public void build(Player p, Faction faction, Region rg, Location center) {
         pay(faction);
-        new BuildSite(this, rg, getCorner1(center), getCorner2(center), center.getBlock());
+        new BuildSite(this, rg, getCorner1(center), getCorner2(center), center);
         MessageUtil.sendMessage(p, FMessage.BUILDING_SITE_CREATED.getMessage());
     }
 
     public boolean checkRequirements(Player p, Faction faction, Location loc) {
+        FPlayerCache playerCache = plugin.getFPlayerCache();
+        Board board = plugin.getBoard();
         FPlayer fPlayer = playerCache.getByPlayer(p);
         if (faction == null) {
             MessageUtil.sendMessage(p, FMessage.ERROR_JOIN_FACTION.getMessage());
@@ -136,6 +139,14 @@ public class Building {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_REQUIRED_REGION.getMessage());
             return false;
         }
+        if (!isFactionBuilding() && !hasRequiredPopulation(rg)) {
+            MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_POPULATION_TOO_LOW.getMessage());
+            return false;
+        }
+        if (faction.isInWar()) {
+            MessageUtil.sendMessage(p, FMessage.ERROR_IN_WAR.getMessage());
+            return false;
+        }
         if (!canPay(faction)) {
             MessageUtil.sendMessage(p, FMessage.ERROR_NOT_ENOUGH_RESOURCES.getMessage());
             return false;
@@ -163,6 +174,7 @@ public class Building {
     }
 
     public boolean hasRequiredBuilding(Faction f) {
+        BuildingManager buildingManager = plugin.getBuildingManager();
         Set<Building> buildings = new HashSet<>();
         if (getRequiredBuildings() == null || getRequiredBuildings().isEmpty()) {
             return true;
@@ -184,6 +196,7 @@ public class Building {
     }
 
     public boolean hasRequiredBuilding(Region rg) {
+        BuildingManager buildingManager = plugin.getBuildingManager();
         Set<Building> buildings = new HashSet<>();
         if (getRequiredBuildings() == null || getRequiredBuildings().isEmpty()) {
             return true;
@@ -202,6 +215,23 @@ public class Building {
             required.add(buildingManager.getByID(s));
         }
         return buildings.containsAll(required);
+    }
+
+    public boolean hasRequiredPopulation(Region rg) {
+        Set<PopulationLevel> pop = new HashSet<>();
+        if (getRequiredPopulation() == null || getRequiredPopulation().isEmpty()) {
+            return true;
+        }
+        if (rg.getPopulation() == null || rg.getPopulation().isEmpty()) {
+            return false;
+        }
+        boolean requirements = true;
+        for (PopulationLevel level : getRequiredPopulation().keySet()) {
+            if (rg.getPopulation().get(level) < getRequiredPopulation().get(level)) {
+                requirements = false;
+            }
+        }
+        return requirements;
     }
 
     /**
@@ -326,13 +356,18 @@ public class Building {
         return requiredBlocks;
     }
 
+    public Map<PopulationLevel, Integer> getRequiredPopulation() {
+        return requiredPopulation;
+    }
+
     public void setRequiredBlocks(Map<Material, Integer> requiredBlocks) {
         this.requiredBlocks = requiredBlocks;
     }
 
-    public Set<String> getRequiredBuildings() {
+    public List<String> getRequiredBuildings() {
         return requiredBuildings;
     }
+
 
     public String getId() {
         return id;
@@ -346,15 +381,97 @@ public class Building {
         return name;
     }
 
+    public Set<StatusEffect> getEffects() {
+        return effects;
+    }
+
+    public StatusEffect loadEffect(ConfigurationSection section) {
+        StatusEffect effect = null;
+        MessageUtil.log("Loading effect... " + section.getKeys(false).toString());
+        boolean isRegional = section.getBoolean("regionEffect", true);
+        long expiration = section.getLong("expiration", 0);
+        effect = new StatusEffect(isRegional, expiration);
+        effect.setMemberModifier(section.getDouble("member", 0.0));
+        effect.setPrestige(section.getInt("prestige", 0));
+        effect.setRegionModifier(section.getDouble("regions", 0.0));
+        effect.setManpowerModifier(section.getDouble("manpower", 0.0));
+        effect.setDisplayName(section.getString("displayName"));
+        if (section.contains("production")) {
+            Set<String> cfgList = section.getConfigurationSection("production").getKeys(false);
+            for (String s : cfgList) {
+                Resource resource = Resource.getByName(s);
+                double mod = section.getDouble("production." + s);
+                effect.getProductionModifier().put(resource, mod);
+            }
+        }
+        if (section.contains("consumption")) {
+            Set<String> cfgList = section.getConfigurationSection("consumption").getKeys(false);
+            for (String s : cfgList) {
+                Resource resource = Resource.getByName(s);
+                double mod = section.getDouble("consumption." + s);
+                effect.getConsumptionModifier().put(resource, mod);
+            }
+        }
+        if (section.contains("productionBuff")) {
+            Set<String> cfgList = section.getConfigurationSection("productionBuff").getKeys(false);
+            for (String s : cfgList) {
+                Resource resource = Resource.getByName(s);
+                int mod = section.getInt("productionBuff." + s);
+                effect.getProductionBuff().put(resource, mod);
+            }
+        }
+        return effect;
+    }
+
     public void load() {
         ConfigurationSection config = this.config;
         name = config.getString("name");
+        MessageUtil.log("Loading building " + name + "...");
         isCoreRequired = config.getBoolean("coreRequired");
         isCapitalRequired = config.getBoolean("capitalRequired");
         isFactionBuilding = config.getBoolean("isFactionBuilding");
         size = config.getInt("size");
         description = (List<String>) config.getList("description");
+        requiredBuildings = (List<String>) config.getList("requiredBuildings");
+        if (config.contains("requiredBlocks")) {
+            Set<String> cfgList = config.getConfigurationSection("requiredBlocks").getKeys(false);
+            for (String s : cfgList) {
+                Material material = Material.getMaterial(s);
+                int amount = config.getInt("requiredBlocks." + s);
+                requiredBlocks.put(material, amount);
+            }
+        } else {
+            MessageUtil.log("Building " + name + "has a invalid config.");
+        }
+        if (config.contains("unlockCost")) {
+            Set<String> cfgList = config.getConfigurationSection("unlockCost").getKeys(false);
+            for (String s : cfgList) {
+                Resource resource = Resource.getByName(s);
+                int mod = config.getInt("unlockCost." + s);
+                unlockCost.put(resource, mod);
+            }
+        }
+        if (config.contains("requiredPopulation")) {
+            Set<String> cfgList = config.getConfigurationSection("requiredPopulation").getKeys(false);
+            for (String s : cfgList) {
+                PopulationLevel level = PopulationLevel.valueOf(s);
+                int mod = config.getInt("requiredPopulation." + s);
+                requiredPopulation.put(level, mod);
+            }
+        }
+        if (config.contains("effects")) {
+            for (String key : config.getConfigurationSection("effects").getKeys(false)) {
+                try {
+                    effects.add(loadEffect(config.getConfigurationSection("effects." + key)));
+                } catch (NullPointerException ex) {
+                    MessageUtil.log("There was an error loading effect " + key + " (Building: " + name + ")");
+                    MessageUtil.log(ex.toString());
+                }
+            }
+        }
         MessageUtil.log("Loaded building with size " + size);
+        MessageUtil.log("Blocks: " + requiredBlocks.toString());
+        MessageUtil.log("Effects: " + effects.toString());
 
     }
 

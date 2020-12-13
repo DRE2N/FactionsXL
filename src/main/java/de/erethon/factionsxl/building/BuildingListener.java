@@ -44,17 +44,20 @@ public class BuildingListener implements Listener {
 
     @EventHandler
     public void interactEvent(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        if (event.getItem() == null || event.getItem().getType() != Material.CHEST) {
+        if (event.getItem() == null) {
             return;
         }
+        if (!event.getItem().getType().equals(Material.CHEST)) {
+            return;
+        }
+        Player player = event.getPlayer();
+        FPlayer fPlayer = playerCache.getByPlayer(player);
+        Faction faction = fPlayer.getFaction();
         String name = event.getItem().getItemMeta().getDisplayName();
         Building building = buildingManager.getByID(name);
         if (building == null) {
             return;
         }
-        FPlayer fPlayer = playerCache.getByPlayer(player);
-        Faction faction = fPlayer.getFaction();
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
             Block block = player.getTargetBlock(25);
             if (block == null) {
@@ -68,9 +71,6 @@ public class BuildingListener implements Listener {
             if (block == null) {
                 return;
             }
-            if (block.getType() == Material.CHEST) {
-                building.displayFrame(player, block.getLocation(), true);
-            }
             Block buildingCenter = block.getRelative(0, 1, 0);
             if (building.checkRequirements(player, faction, buildingCenter.getLocation())) {
                 Region rg = fPlayer.getLastRegion();
@@ -80,6 +80,7 @@ public class BuildingListener implements Listener {
             }
         }
     }
+
 
 
 
