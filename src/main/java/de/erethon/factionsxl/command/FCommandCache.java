@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command;
 
@@ -93,6 +91,7 @@ public class FCommandCache extends DRECommandCache {
     public SetPowerCommand setPower = new SetPowerCommand();
     public ShortTagCommand shortTag = new ShortTagCommand();
     public ShowCommand show = new ShowCommand();
+    public StatsCommand stats = new StatsCommand();
     public StorageCommand storage = new StorageCommand();
     public TagCommand tag = new TagCommand();
     public TitleCommand title = new TitleCommand();
@@ -104,6 +103,12 @@ public class FCommandCache extends DRECommandCache {
     public WarStatusCommand warStatus = new WarStatusCommand();
     public OccupyCommand warAnnex = new OccupyCommand();
     public WorldCommand world = new WorldCommand();
+
+    public WarInviteCommand warInviteCommand = new WarInviteCommand();
+    public WarAdminCommand editWar = new WarAdminCommand();
+
+    public BuildingCommand buildingCommand = new BuildingCommand();
+    public MenuCommand menuCommand = new MenuCommand();
 
     public FCommandCache(DREPlugin plugin) {
         super(LABEL, plugin);
@@ -169,12 +174,19 @@ public class FCommandCache extends DRECommandCache {
         addCommand(tradeOffer);
         addCommand(addCasusBelli);
         addCommand(chatSpy);
-        addCommand(idea);
+        //addCommand(idea);
         addCommand(confirmPeace);
         addCommand(confirmWarRequest);
         addCommand(peaceCommand);
         addCommand(warAnnex);
         addCommand(independence);
+        addCommand(stats);
+
+        addCommand(menuCommand);
+
+        // debug/Workaround
+        addCommand(warInviteCommand);
+        addCommand(editWar);
 
         FConfig config = FactionsXL.getInstance().getFConfig();
         if (config.isEconomyEnabled()) {
@@ -183,6 +195,7 @@ public class FCommandCache extends DRECommandCache {
             addCommand(payday);
             addCommand(storage);
             addCommand(tradeOffer);
+            addCommand(buildingCommand);
         }
         if (config.arePlayerHomesEnabled()) {
             addCommand(playerHome);
@@ -195,5 +208,7 @@ public class FCommandCache extends DRECommandCache {
         plugin.getCommand("home").setExecutor(alias);
         plugin.getCommand("setHome").setExecutor(alias);
     }
+
+
 
 }

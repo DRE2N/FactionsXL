@@ -1,24 +1,21 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.player;
 
-import com.google.common.collect.ObjectArrays;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.player.PlayerCollection;
 import de.erethon.commons.player.PlayerUtil;
@@ -32,19 +29,18 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.Request;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.WarParty;
 import de.erethon.factionsxl.war.demand.WarDemand;
 import de.erethon.factionsxl.war.peaceoffer.PeaceOffer;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ClickEvent.Action;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents a player.
@@ -62,6 +58,8 @@ public class FPlayer implements FEntity, PlayerWrapper {
     private Region autoclaiming;
     private Region lastRegion;
     private PeaceOffer peaceOffer;
+    private double lastPlayed;
+    private List<Player> lastDamagers = new CopyOnWriteArrayList<>();
 
     private FPlayerData data;
 
@@ -96,6 +94,7 @@ public class FPlayer implements FEntity, PlayerWrapper {
     public Player getPlayer() {
         return player;
     }
+
 
     /**
      * @return
@@ -311,6 +310,10 @@ public class FPlayer implements FEntity, PlayerWrapper {
         return own != null ? own.isInWar(object) : false;
     }
 
+    public boolean isInWarParty(WarParty party) {
+        return getFaction().getWarParties().contains(party);
+    }
+
     public Location getHome() {
         return data.getHome();
     }
@@ -330,6 +333,9 @@ public class FPlayer implements FEntity, PlayerWrapper {
         Region region = plugin.getBoard().getByLocation(home);
         if (region == null || region.getOwner() == null) {
             return true;
+        }
+        if (region.getOwner().getRelation(this) == Relation.ENEMY) {
+            return false;
         }
         if (!region.getOwner().getRelation(this).canBuild()) {
             return false;
@@ -429,6 +435,10 @@ public class FPlayer implements FEntity, PlayerWrapper {
         for (WarDemand demand : demands) {
             MessageUtil.sendMessage(player, "&8 - " + demand.toString());
         }
+    }
+
+    public List<Player> getLastDamagers() {
+        return lastDamagers;
     }
 
     @Override

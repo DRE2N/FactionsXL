@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.faction;
 
@@ -23,6 +21,7 @@ import de.erethon.commons.player.PlayerCollection;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.player.FPlayer;
@@ -49,6 +48,7 @@ import java.util.Map.Entry;
 public class FactionCache {
 
     FactionsXL plugin = FactionsXL.getInstance();
+    FConfig config = plugin.getFConfig();
 
     private Set<LegalEntity> entities = new HashSet<>();
     private Set<Faction> factions = new HashSet<>();
@@ -105,7 +105,7 @@ public class FactionCache {
         faction.name = name;
         faction.setAdmin(player);
         faction.type = GovernmentType.MONARCHY;
-        faction.stability = 10;
+        faction.stabilityBase = 10;
         faction.setHome(home);
         faction.capital = board.getByLocation(faction.home);
         faction.capital.setOwner(faction);
@@ -171,7 +171,7 @@ public class FactionCache {
         union.type = faction1.type;
         union.open = faction1.open;
         union.prestige = faction1.prestige + faction2.prestige;
-        union.stability = (byte) ((faction1.stability + faction2.stability) / 2);
+        union.stabilityBase = (byte) ((faction1.stabilityBase + faction2.stabilityBase) / 2);
         union.exhaustion = faction1.exhaustion + faction2.exhaustion;
         union.manpowerModifier = faction1.manpowerModifier + faction2.manpowerModifier; // Double ideas?
         union.capital = faction1.capital;
@@ -236,7 +236,7 @@ public class FactionCache {
                     coreDate = entry.getValue();
                 }
             }
-            if (coreDate != null) {
+            if (coreDate != null && (System.currentTimeMillis() > coreDate.getTime() + FConfig.MONTH)) {
                 region.getCoreFactions().put(integrating, coreDate);
             }
             region.setOwner(integrating);

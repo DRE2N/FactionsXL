@@ -1,27 +1,23 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.gui;
 
-import de.erethon.commons.gui.GUIButton;
-import static de.erethon.commons.gui.GUIButton.*;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.legacygui.GUIButton;
 import de.erethon.headlib.HeadLib;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -34,6 +30,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+
+import static de.erethon.factionsxl.legacygui.GUIButton.*;
 
 /**
  * @author Daniel Saukel
@@ -58,7 +56,7 @@ public interface StandardizedGUI {
     public static final ItemStack MAILBOX =  HeadLib.setSkullOwner(PLAYER_HEAD, "244678f1-df93-49b4-916f-47bddd112e80", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWIyODE1Yjk5YzEzYmZjNTViNGM1YzI5NTlkMTU3YTYyMzNhYjA2MTg2NDU5MjMzYmMxZTRkNGY3ODc5MmM2OSJ9fX0=");
 
     /* StandardizedGUI buttons */
-    public static final ItemStack CONTINUE = GUIButton.setDisplay(GUIButton.RIGHT, FMessage.MISC_CONTINUE.getMessage());
+    public static final ItemStack CONTINUE = GUIButton.setDisplay(new ItemStack(Material.BARRIER), FMessage.MISC_CONTINUE.getMessage());
     public static final ItemStack DISABLED = GUIButton.setDisplay(new ItemStack(Material.BARRIER), FMessage.ERROR_ECON_DISABLED.getMessage());
 
     /* Blank items that show meta stuff by default */

@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package de.erethon.factionsxl.command;
@@ -24,12 +22,14 @@ import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.CasusBelli;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -105,6 +105,10 @@ public class IndependenceCommand extends FCommand {
             Location location = player.getLocation();
             Region region = board.getByLocation(location);
             faction.getMembers().remove(player);
+
+            FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(player), faction);
+            Bukkit.getPluginManager().callEvent(event);
+
             factions.create(player, args[1]);
             region.getClaimFactions().put(faction, Calendar.getInstance().getTime());
             Faction newFaction = factions.getByMember(player);

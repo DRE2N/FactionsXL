@@ -1,28 +1,27 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.economy;
 
-import de.erethon.commons.gui.PageGUI;
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.ChatColor;
@@ -80,7 +79,9 @@ public class FStorage {
     public void payday() {
         // Region income
         for (Region region : faction.getRegions()) {
+            MessageUtil.log(region.getName());
             for (Entry<Resource, Integer> entry : region.getResources().entrySet()) {
+                MessageUtil.log(entry.toString());
                 if (entry.getKey() == Resource.TAXES) {
                     faction.getAccount().deposit(entry.getValue());
                 } else if (entry.getKey() == Resource.MANPOWER) {
@@ -94,17 +95,18 @@ public class FStorage {
                     }
                     region.setPopulation(newPop);
                 } else {
+                    MessageUtil.log("Income: " + entry.getValue() + ": " + entry.getKey());
                     goods.put(entry.getKey(), goods.get(entry.getKey()) + entry.getValue());
                 }
             }
             double inf = FactionsXL.getInstance().getFConfig().getInfluencePerDay();
-            if (faction.getStability() >= 10) {
+            if (faction.getStability() >= 30 && !faction.isInWar()) {
                 // Increase influence up to 100 if core
                 if (region.getCoreFactions().containsKey(faction) && region.getInfluence() + inf <= 100) {
                     region.setInfluence(region.getInfluence() + (int) inf);
                 }
                 // Increase influence up to 50 if not core
-                else if (!(region.getCoreFactions().containsKey(faction)) && region.getInfluence() + inf <= 50) {
+                else if (!(region.getCoreFactions().containsKey(faction)) && (region.getInfluence() + inf <= 50) && !faction.isInWar()) {
                     region.setInfluence(region.getInfluence() + (int) inf);
                 }
             }
@@ -173,6 +175,10 @@ public class FStorage {
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         faction.sendMessage(FMessage.STORAGE_PAYDAY.getMessage());
+    }
+
+    public boolean canAfford(Resource resource, int amount) {
+        return getGoods().get(resource) >= amount;
     }
 
     public Map<String, Integer> serialize() {

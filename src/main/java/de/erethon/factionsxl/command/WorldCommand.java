@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command;
 
@@ -345,7 +343,8 @@ public class WorldCommand extends FCommand {
             return;
         }
         rgOwn.addNeighbour(rgAdd);
-        MessageUtil.sendMessage(p, "&aAdded &e" + rgAdd.getName() + "&a to adjacent regions for &e" + rgOwn.getName() + "&a.");
+        rgAdd.addNeighbour(rgOwn);
+        MessageUtil.sendMessage(p, "&e" + rgAdd.getName() + "&a and &e" + rgOwn.getName() + "&a are now adjacent to each other.");
     }
 
     private void removeNeighbour(Player p, String[] args) {
@@ -355,8 +354,9 @@ public class WorldCommand extends FCommand {
             MessageUtil.sendMessage(p, "&cInvalid region.");
             return;
         }
+        rgRem.getNeighbours().remove(rgOwn);
         rgOwn.getNeighbours().remove(rgRem);
-        MessageUtil.sendMessage(p, "&aRemoved &e" + rgRem.getName() + "&afrom adjacent regions for &e" + rgOwn.getName() + "&a.");
+        MessageUtil.sendMessage(p, "&e" + rgRem.getName() + "&a and &e" + rgOwn.getName() + "&a are no longer adjacent.");
     }
 
     private void calculateNeighbors(Player p, Region rg) {

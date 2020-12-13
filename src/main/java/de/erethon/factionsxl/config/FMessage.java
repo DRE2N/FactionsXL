@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.config;
 
@@ -32,6 +30,8 @@ public enum FMessage implements Message {
 
     BULL_ID("bull.id"),
     BULL_RIGHT_KLICK("bull.rightClick"),
+    BUILDING_SITE_CREATED("building.site.created"),
+    BUILDING_SITE_HINT("building.site.hint"),
     CHAT_CHANNEL_SWITCHED("chat.channelSwitched"),
     CHAT_PREFIX_ADMIN("chat.prefix.admin"),
     CHAT_PREFIX_MEMBER("chat.prefix.member"),
@@ -158,6 +158,9 @@ public enum FMessage implements Message {
     DEATH_PLAYER_KILL_KILLER("death.playerKill.killer"),
     ERROR_ALLOD("error.allod"),
     ERROR_AT_WAR("error.atWar"),
+    ERROR_BUILDING_REQUIRED_FACTION("error.building.required.faction"),
+    ERROR_BUILDING_REQUIRED_REGION("error.building.required.region"),
+    ERROR_BUILDING_TOO_CLOSE_BORDER("error.building.tooCloseToBorder"),
     ERROR_CANNOT_ATTACK_ALLIED_FACTION("error.cannotAttackAlliedFaction"),
     ERROR_CANNOT_PASS_CAPITAL("cmd.cannotPass.capital"),
     ERROR_CANNOT_PASS_LAND("cmd.cannotPass.land"),
@@ -171,6 +174,7 @@ public enum FMessage implements Message {
     ERROR_IN_WAR("error.inWar"),
     ERROR_JOIN_FACTION("error.joinFaction"),
     ERROR_LAND_NO_CORE("error.langNoCore"),
+    ERROR_LAND_NO_CAPITAL("error.landNotCapital"),
     ERROR_LAND_NOT_FOR_SALE("error.land.notForSale"),
     ERROR_LAND_WILDERNESS("error.land.wilderness"),
     ERROR_LAND_NOT_CONNECTED("error.land.notConnected"),
@@ -189,6 +193,7 @@ public enum FMessage implements Message {
     ERROR_NO_SUCH_RELATION("error.noSuch.relation"),
     ERROR_NOT_ENOUGH_MONEY("error.notEnoughMoney"),
     ERROR_NOT_ENOUGH_MONEY_FACTION("error.notEnoughMoneyFaction"),
+    ERROR_NOT_ENOUGH_RESOURCES("error.notEnoughResources"),
     ERROR_NOT_NUMERIC("error.notNumeric"),
     ERROR_NOT_VASSAL("error.notVassal"),
     ERROR_NOT_WILDERNESS("error.notWilderness"),
@@ -295,11 +300,13 @@ public enum FMessage implements Message {
     IDEA_GROUP_SETTLER("idea.group.settler"),
     IDEA_GROUP_TRADE("idea.group.trade"),
     IDEA_DESC_SETTLER_COLONIZATION("idea.desc.settler.colonization"),
+    IDEA_DESC_TRADE("idea.desc.trade"),
     IDEA_MENU_GROUPS_TITLE("idea.menu.groups.title"),
     IDEA_MENU_GROUPS_DESELECTED("idea.menu.groups.deselected"),
     IDEA_MENU_GROUPS_SELECTED("idea.menu.groups.selected"),
     IDEA_MENU_IDEAS_TITLE("idea.menu.ideas.title"),
     IDEA_NAME_SETTLER_COLONIZATION("idea.name.settler.colonization"),
+    IDEA_NAME_TRADE("idea.name.trade"),
     LOG_DYNMAP_NOT_ENABLED("log.dynmapNotEnabled"),
     LOG_NEW_FACTION_DATA("log.newFactionData"),
     LOG_NEW_PLAYER_DATA("log.newPlayerData"),
@@ -601,6 +608,21 @@ public enum FMessage implements Message {
 
     FMessage(String path) {
         this.path = path;
+    }
+
+    @Override
+    public String getMessage() {
+        if (this.getMessageHandler().getMessage(this) == null) {
+            return "Invalid Message at " + getPath();
+        }
+        return this.getMessageHandler().getMessage(this);
+    }
+    @Override
+    public String getMessage(String... args) {
+        if (this.getMessageHandler().getMessage(this, args) == null) {
+            return "Invalid Message at " + getPath();
+        }
+        return this.getMessageHandler().getMessage(this, args);
     }
 
     @Override

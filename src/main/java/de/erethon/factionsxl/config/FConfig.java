@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.config;
 
@@ -51,6 +49,7 @@ public class FConfig extends DREConfig {
 
     public static final int CONFIG_VERSION = 15;
 
+    // Time in TICKS
     public static final long SECOND = 20;
     public static final long MINUTE = SECOND * 60;
     public static final long HOUR = MINUTE * 60;
@@ -69,6 +68,7 @@ public class FConfig extends DREConfig {
     private int maxIdeaGroups = 2;
     private int moveCapitalCooldown = 30;
     private List<String> excludedWorlds = new ArrayList<>();
+    private List<String> forbiddenNames = new ArrayList<>();
 
     // Consume
     private double defaultManpowerModifier = 1;
@@ -118,7 +118,8 @@ public class FConfig extends DREConfig {
     private boolean territoryProtectionEnabled = true;
     private double territoryShield = 0.66;
     private boolean capitalProtectionEnabled = false;
-    private double warExplosionRestorationTime = 7.5;
+    private double warExplosionTNTRestorationTime = 1.0;
+    private double warExplosionSiegeRestorationTime = 7.5;
     private double influenceNeeded = 10;
     private long cbLiberationExp = 60;
     private long truceTime = 24;
@@ -145,8 +146,9 @@ public class FConfig extends DREConfig {
     public double claimTimeout = 7;
     public int stabilityIndependence = -20;
     public int stabilityIndependenceVassal = 0;
-    public double stabilityRegionSizeModifier = 0.5;
+    public int stabilityRegionSizeExempt = 10;
     public double stabilityMemberPowerModifier = 2.0;
+    public double powerPerRegion = 100.00;
 
     // Holograms
     private boolean hologramsEnabled = true;
@@ -348,7 +350,7 @@ public class FConfig extends DREConfig {
      * the time in days until a claim runs out
      */
     public long getClaimTimeout() {
-        return (long) (claimTimeout * 86400000);
+        return (long) (claimTimeout * 86400000 );
     }
 
     /**
@@ -536,6 +538,29 @@ public class FConfig extends DREConfig {
 
     /**
      * @return
+     * a List of regex faction names that are not allowed in tags and long tags.
+     */
+    public List<String> getForbiddenNames() {
+        return forbiddenNames;
+    }
+
+    /**
+     * @param s
+     * the name to check
+     * @return
+     * if this string matches a string in the list of forbidden faction names
+     */
+    public boolean isNameForbidden(String s) {
+        for (String regex : forbiddenNames) {
+            if (s.matches(regex)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return
      * if players shall be protected in their territory
      */
     public boolean isTerritoryProtectionEnabled() {
@@ -562,8 +587,16 @@ public class FConfig extends DREConfig {
      * @return
      * the time until one block gets restored after being destroyed by TNT in war
      */
-    public long getWarExplosionRestorationTime() {
-        return (long) (warExplosionRestorationTime * SECOND);
+    public long getWarExplosionTNTRestorationTime() {
+        return (long) (warExplosionTNTRestorationTime * SECOND);
+    }
+
+    /**
+     * @return
+     * the time until one block gets restored after being destroyed by Siege in war
+     */
+    public long getWarExplosionSiegeRestorationTime() {
+        return (long) (warExplosionSiegeRestorationTime * SECOND);
     }
 
     /**
@@ -576,10 +609,10 @@ public class FConfig extends DREConfig {
 
     /**
      * @return
-     * the time in days until truce stops
+     * the time in hours until truce stops
      */
     public long getTruceTime() {
-        return truceTime * HOUR;
+        return truceTime * 3600000;
     }
 
     /**
@@ -656,10 +689,10 @@ public class FConfig extends DREConfig {
 
     /**
      * @return
-     * stability calculation modifier for region size
+     * stability calculation exemption for region size
      */
-    public double getStabilityRegionSizeModifier() {
-        return stabilityRegionSizeModifier;
+    public int getStabilityRegionExempt() {
+        return stabilityRegionSizeExempt;
     }
 
     /**
@@ -668,6 +701,14 @@ public class FConfig extends DREConfig {
      */
     public double getStabilityMemberPowerModifier() {
         return stabilityMemberPowerModifier;
+    }
+
+    /**
+     * @return
+     * power need per region
+     */
+    public double getPowerPerRegion() {
+        return powerPerRegion;
     }
 
     /**
@@ -950,6 +991,10 @@ public class FConfig extends DREConfig {
             config.set("excludedWorlds", excludedWorlds);
         }
 
+        if (!config.contains("forbiddenNames")) {
+            config.set("forbiddenNames", forbiddenNames);
+        }
+
         if (!config.contains("defaultManpowerModifier")) {
             config.set("defaultManpowerModifier", defaultManpowerModifier);
         }
@@ -1117,8 +1162,12 @@ public class FConfig extends DREConfig {
             config.set("capitalProtectionEnabled", capitalProtectionEnabled);
         }
 
-        if (!config.contains("war.warExplosionRestorationTime")) {
-            config.set("war.warExplosionRestorationTime", warExplosionRestorationTime);
+        if (!config.contains("war.warExplosionTNTRestorationTime")) {
+            config.set("war.warExplosionTNTRestorationTime", warExplosionTNTRestorationTime);
+        }
+
+        if (!config.contains("war.warExplosionSiegeRestorationTime")) {
+            config.set("war.warExplosionSiegeRestorationTime", warExplosionSiegeRestorationTime);
         }
 
         if (!config.contains("war.casusBelli.liberation")) {
@@ -1130,11 +1179,15 @@ public class FConfig extends DREConfig {
         }
 
         if (!config.contains("stabilityRegionSizeModifier")) {
-            config.set("stabilityRegionSizeModifier", stabilityRegionSizeModifier);
+            config.set("stabilityRegionSizeModifier", getStabilityRegionExempt());
         }
 
         if (!config.contains("stabilityMemberPowerModifier")) {
             config.set("stabilityMemberPowerModifier", stabilityMemberPowerModifier);
+        }
+
+        if (!config.contains("powerNeededPerRegion")) {
+            config.set("powerNeededPerRegion", powerPerRegion);
         }
 
         if (!config.contains("maxPower")) {
@@ -1291,6 +1344,10 @@ public class FConfig extends DREConfig {
             excludedWorlds = config.getStringList("excludedWorlds");
         }
 
+        if (config.contains("forbiddenNames")) {
+            forbiddenNames = config.getStringList("forbiddenNames");
+        }
+
         if (config.contains("defaultManpowerModifier")) {
             defaultManpowerModifier = config.getDouble("defaultManpowerModifier");
         }
@@ -1397,8 +1454,12 @@ public class FConfig extends DREConfig {
             capitalProtectionEnabled = config.getBoolean("capitalProtectionEnabled");
         }
 
-        if (config.contains("war.warExplosionRestorationTime")) {
-            warExplosionRestorationTime = config.getDouble("war.warExplosionRestorationTime");
+        if (config.contains("war.warExplosionTNTRestorationTime")) {
+            warExplosionTNTRestorationTime = config.getDouble("war.warExplosionTNTRestorationTime");
+        }
+
+        if (config.contains("war.warExplosionSiegeRestorationTime")) {
+            warExplosionSiegeRestorationTime = config.getDouble("war.warExplosionSiegeRestorationTime");
         }
 
         if (config.contains("war.casusBelli.liberation")) {
@@ -1450,11 +1511,15 @@ public class FConfig extends DREConfig {
         }
 
         if (config.contains("stabilityRegionSizeModifier")) {
-            stabilityRegionSizeModifier = config.getDouble("stabilityRegionSizeModifier");
+            stabilityRegionSizeExempt = config.getInt("stabilityRegionSizeModifier");
         }
 
         if (config.contains("stabilityMemberPowerModifier")) {
             stabilityMemberPowerModifier = config.getDouble("stabilityMemberPowerModifier");
+        }
+
+        if (config.contains("powerNeededPerRegion")) {
+            powerPerRegion = config.getDouble("powerNeededPerRegion");
         }
 
         if (config.contains("maxPower")) {

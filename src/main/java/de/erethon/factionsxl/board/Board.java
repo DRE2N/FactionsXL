@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.board;
 
@@ -22,17 +20,17 @@ import de.erethon.commons.config.ConfigUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.util.LazyChunk;
-import java.io.File;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Stores all regions and claim ownerships.
@@ -83,9 +81,15 @@ public class Board {
      * the region that contains the chunk
      */
     public Region getByName(String name) {
-        for (Region region : regions) {
-            if (region.getName().equals(name)) {
-                return region;
+        for (Region rg : regions) {
+            if (rg.getName() == null) {
+                continue;
+            }
+            if (rg.getName().equals(name)) {
+                return rg;
+            }
+            if (rg.getName(true).equals(name)) {
+                return rg;
             }
         }
         return null;
@@ -118,6 +122,38 @@ public class Board {
             }
         }
         return null;
+    }
+
+    /**
+     * Tries adjacent regions first, then falls back to getByChunk(Chunk).
+     * Should be a lot faster in most cases.
+     * @param chunk
+     * the chunk to check
+     * @param region
+     * A known region
+     * @return
+     * the region that contains the chunk
+     */
+    public Region getByChunk(Chunk chunk, Region region) {
+        Region rg = null;
+        // Check chunks of the region first.
+        if (region != null) {
+            for (LazyChunk ownChunk : region.getChunks()) {
+                if (ownChunk.getX() == chunk.getX() && ownChunk.getZ() == chunk.getZ()) {
+                    return region;
+                }
+            }
+        // If no results found, check chunks of adjacent regions.
+            for (Region rNeighbour : region.getNeighbours()) {
+                for (LazyChunk rChunk : rNeighbour.getChunks()) {
+                    if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
+                        return rNeighbour;
+                    }
+                }
+            }
+        }
+        // If still no region found, check the entire board.
+        return getByChunk(chunk);
     }
 
     /**

@@ -1,33 +1,32 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.board;
 
-import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
+import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.util.LazyChunk;
+import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -67,6 +66,9 @@ public class Region {
     private Set<LazyChunk> chunks = new HashSet<>();
     private Set<Region> adjacentRegions = new HashSet<>();
     private Map<Faction, Date> cores = new HashMap<>();
+    private boolean isAttacked = false;
+    private long attackStartTime = 0;
+    private long lastDefendedTime = 0;
 
 
     private Map<Faction, Integer> coringProgress = new HashMap<>();
@@ -137,6 +139,17 @@ public class Region {
      * the name of the region
      */
     public String getName() {
+        if (name.contains("_")) {
+            return name.replace("_", " ");
+        }
+        return name;
+    }
+
+    /**
+     * @return
+     * the name of the region, but without fancy replacements
+     */
+    public String getName(boolean noReplacement) {
         return name;
     }
 
@@ -350,6 +363,22 @@ public class Region {
 
     /**
      * @return
+     * true if the region has no owner
+     */
+    public boolean isAttacked() {
+        return isAttacked;
+    }
+
+    /**
+     * @return
+     * true if the region has no owner
+     */
+    public void setAttacked(boolean attacked) {
+        isAttacked = attacked;
+    }
+
+    /**
+     * @return
      * if the region is unclaimable
      */
     public boolean isUnclaimable() {
@@ -390,7 +419,26 @@ public class Region {
         adjacentRegions.add(rg);
     }
 
+    /**
+     * @param warParty that wants to attack
+     * @return
+     * if the warParty can attack in this region
+     */
+    public boolean isAttackable(WarParty warParty) {
+        for (Region rg : this.getNeighbours()) {
+            if (warParty.getFactions().contains(rg.getOwner())) {
+                return true;
+            }
+            if (rg.getOccupant() != null && warParty.getFactions().contains(rg.getOccupant())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public Set<BuildSite> getBuildings() {
+        return buildings;
+    }
 
     /**
      * @return
@@ -406,6 +454,38 @@ public class Region {
      */
     public int getInfluence() {
         return influence;
+    }
+
+    /**
+     * @param time
+     * time when the attack started
+     */
+    public void setAttackStartTime(long time) {
+        attackStartTime = time;
+    }
+
+    /**
+     * @return
+     * when the attack on the region started
+     */
+    public long getAttackStartTime() {
+        return attackStartTime;
+    }
+
+    /**
+     * @param time
+     * time when the last attack ended
+     */
+    public void setLastDefendedTime(long time) {
+        lastDefendedTime = time;
+    }
+
+    /**
+     * @return
+     * the influence of the owner on the region
+     */
+    public long getLastDefendedTime() {
+        return lastDefendedTime;
     }
 
     /**
@@ -473,6 +553,15 @@ public class Region {
         mapLineColor = config.getString("mapLineColor");
         unclaimable = config.getBoolean("unclaimable", false);
         influence = config.getInt("influence");
+        if (config.contains("isAttacked")) {
+            isAttacked = config.getBoolean("isAttacked");
+        }
+        if (config.contains("attackStartTime")) {
+            attackStartTime = config.getLong("attackStartTime");
+        }
+        if (config.contains("lastDefendedTime")) {
+            lastDefendedTime = config.getLong("lastDefendedTime");
+        }
 
         if (this.config == null) {
             this.config = YamlConfiguration.loadConfiguration(file);
@@ -481,7 +570,6 @@ public class Region {
     }
 
     public void save() {
-        MessageUtil.log("Saving region: " + this);
         config.set("name", name);
         config.set("type", type.toString());
         config.set("level", level);
@@ -530,6 +618,9 @@ public class Region {
         config.set("mapFillColor", mapFillColor);
         config.set("mapLineColor", mapLineColor);
         config.set("unclaimable", unclaimable);
+        config.set("isAttacked", isAttacked);
+        config.set("attackStartTime", attackStartTime);
+        config.set("lastDefendedTime", lastDefendedTime);
         config.set("influence", influence);
 
         try {

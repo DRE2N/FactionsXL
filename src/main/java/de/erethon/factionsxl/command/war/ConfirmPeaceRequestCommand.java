@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command.war;
 
@@ -22,8 +20,6 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.command.FCommand;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.entity.Relation;
-import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
@@ -33,15 +29,12 @@ import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarCache;
 import de.erethon.factionsxl.war.WarParty;
 import de.erethon.factionsxl.war.peaceoffer.FinalPeaceOffer;
-import de.erethon.factionsxl.war.peaceoffer.PeaceOffer;
 import de.erethon.factionsxl.war.peaceoffer.SeparatePeaceOffer;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.server.BroadcastMessageEvent;
 
-import java.security.SecurityPermission;
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Malfrador
@@ -104,6 +97,11 @@ public class ConfirmPeaceRequestCommand extends FCommand {
                     break;
                 }
             }
+            if (matching != null && faction.getStability() < matching.getCost() ) {
+                matching.confirm();
+                ParsingUtil.broadcastMessage(FMessage.CMD_PEACE_CONFIRM_SUCCESS.getMessage(), objectFaction, subjectFaction);
+                return;
+            }
             if (args[2].equals("-denySingle") && matching != null) {
                 ParsingUtil.broadcastMessage(FMessage.CMD_PEACE_CONFIRM_REJECTED_FACTION.getMessage(), objectFaction);
                 matching.purge();
@@ -147,6 +145,18 @@ public class ConfirmPeaceRequestCommand extends FCommand {
                     peace = p;
                     break;
                 }
+            }
+            if (peace == null) {
+                return;
+            }
+            if (wp.getEnemy().getPoints() >= 50) { // Auto confirm if enemy has over 50 score
+                if (!peace.canPay()) {
+                    MessageUtil.sendMessage(player, FMessage.CMD_PEACE_CONFIRM_CANTAFFORD.getMessage());
+                    return;
+                }
+                peace.confirm();
+                FScoreboard.updateAllProviders();
+                return;
             }
             if (args[2].equals("-denyFinal")) {
                 ParsingUtil.broadcastMessage(FMessage.CMD_PEACE_CONFIRM_REJECTED_WARPARTY.getMessage(), wp.getName());

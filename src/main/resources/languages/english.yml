@@ -102,8 +102,7 @@ cmd:
   setCapital:
     success: '&v1 &aset their capital to &v2&a.'
   setColor:
-    success: '&v1 &aset the livemap color of your faction to &6&v2 &a/ &6&v3&a. The
-      icon is &6&v3&a.'
+    success: '&v1 &aset the livemap color of your faction to &6&v2 &a/ &6&v3&a.'
   setGovernment:
     success: '&v1 &aset their government type to &6&v2&a.'
   setHome:

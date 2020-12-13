@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.war;
 
@@ -158,11 +156,37 @@ public class WarParty implements FEntity {
     }
 
     public void addParticipant(LegalEntity participant) {
+        if (participants.contains(participant)) {
+            return;
+        }
         participants.add(participant);
+        if (participant instanceof Faction) {
+            // Add vassals if any
+            Faction participantFaction = (Faction) participant;
+            for (Faction possibleVassal : participantFaction.getRelations().keySet()) {
+                if (participantFaction.getRelation(possibleVassal).equals(Relation.VASSAL) || participantFaction.getRelation(possibleVassal).equals(Relation.LORD)) {
+                    participants.add(possibleVassal);
+                    addParticipant(possibleVassal); // Do it again in case of vassals of vassals/lords of lords etc.
+                }
+            }
+        }
     }
 
     public void removeParticipant(LegalEntity participant) {
+        if (!participants.contains(participant)) {
+            return;
+        }
         participants.remove(participant);
+        if (participant instanceof Faction) {
+            // Remove vassals if any
+            Faction participantFaction = (Faction) participant;
+            for (Faction possibleVassal : participantFaction.getRelations().keySet()) {
+                if (participantFaction.getRelation(possibleVassal).equals(Relation.VASSAL) || participantFaction.getRelation(possibleVassal).equals(Relation.LORD)) {
+                    participants.remove(possibleVassal);
+                    removeParticipant(possibleVassal); // Do it again in case of vassals of vassals/lords of lords etc.
+                }
+            }
+        }
     }
 
     public void joinWar(LegalEntity faction) {
@@ -175,7 +199,6 @@ public class WarParty implements FEntity {
 
     public void leaveWar(LegalEntity faction) {
         Set<Faction> factionEnemy =  this.getEnemy().getFactions();
-        Set<Faction> factions = this.getFactions();
         // Set all relations with the participant to peace
         for (Faction f : factionEnemy) {
             new RelationRequest(Bukkit.getConsoleSender(), f, (Faction) faction, Relation.PEACE).confirm();

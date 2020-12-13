@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.util;
 
@@ -29,13 +27,6 @@ import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarParty;
-
-import java.util.*;
-
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -44,6 +35,10 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Partially adapted from FactionsOne by Sataniel.
@@ -177,8 +172,12 @@ public enum ParsingUtil {
             }
         } catch (NoClassDefFoundError error) {
         }
-
-        return ChatColor.translateAlternateColorCodes('&', string);
+        if (sender.getPlayer().hasPermission("fxl.chat.color")) {
+            return ChatColor.translateAlternateColorCodes('&', string);
+        }
+        else {
+            return string;
+        }
     }
 
     /**

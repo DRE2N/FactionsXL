@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.player;
 
@@ -27,19 +25,16 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.scoreboard.FScoreboard;
-import de.erethon.factionsxl.scoreboard.sidebar.FInfoSidebar;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
-import de.erethon.factionsxl.war.WarParty;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 
 /**
  * @author Daniel Saukel
@@ -84,7 +79,36 @@ public class PlayerListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         FPlayer fPlayer = fPlayers.getByPlayer(event.getPlayer());
         FScoreboard.remove(fPlayer);
+        fPlayer.getData().setTimeLastLogout(System.currentTimeMillis());
         fPlayers.removePlayer(fPlayer);
+    }
+
+    @EventHandler
+    public void onTeleport(PlayerTeleportEvent event) {
+        if (event.getTo() == null) {
+            return;
+        }
+        if (!Bukkit.getOnlinePlayers().contains(event.getPlayer())) {
+            return;
+        }
+        Player player = event.getPlayer();
+        FPlayer fPlayer = fPlayers.getByPlayer(player);
+        Region rg = board.getByChunk(event.getTo().getChunk());
+        if (rg == null) {
+            return;
+        }
+        fPlayer.setLastRegion(rg);
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        FPlayer fPlayer = fPlayers.getByPlayer(player);
+        Region rg = board.getByChunk(event.getRespawnLocation().getChunk());
+        if (rg == null) {
+            return;
+        }
+        fPlayer.setLastRegion(rg);
     }
 
     @EventHandler
@@ -101,20 +125,7 @@ public class PlayerListener implements Listener {
         double loss = fConfig.getPowerDeathLoss();
         double newPower = killedF.getPower() - loss;
         killedF.setPower(newPower < fConfig.getMinPower() ? fConfig.getMinPower() : newPower);
-        // Gamerule: doImmediateRespawn needs to be true here!
         if (killerP != null) {
-            if (killerFc != null) {
-                for (WarParty w : killerFc.getWarParties()) {
-                    if (w.getEnemy().getFactions().contains(killedFc)) {
-                        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-                            public void run() {
-                                killedP.teleport(killedFc.getHome());
-                            }
-                        }, 2);
-                        break;
-                    }
-                }
-            }
             if ((killerFc != null && !killerFc.isInWar(killedFc) || (killerFc != null && killerFc.isInWar(killedFc) && fConfig.isPowerGainInWar()))) {
                 double newKPower = killerF.getPower() + loss;
                 killerF.setPower(newKPower > fConfig.getMaxPower() ? fConfig.getMaxPower() : newKPower);
@@ -140,8 +151,10 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         FPlayer fPlayer = fPlayers.getByPlayer(player);
 
+
         Region fromRegion = fPlayer.getLastRegion();
-        Region toRegion = board.getByChunk(toChunk);
+        Region toRegion;
+        toRegion = board.getByChunk(toChunk, fromRegion);
         fPlayer.setLastRegion(toRegion);
 
         if (fPlayer.isAutoclaiming() && toRegion == null) {
@@ -154,7 +167,16 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        MessageUtil.sendActionBarMessage(event.getPlayer(), getRegionName(player, toRegion));
+        String regionName;
+        String main = ParsingUtil.getRegionName(player, toRegion);
+        if (toRegion == null || toRegion.getType() != RegionType.WARZONE) {
+            regionName = main;
+        } else {
+            String warZone = ChatColor.DARK_RED.toString() + ChatColor.BOLD.toString() + "[" + FMessage.REGION_WAR_ZONE.getMessage().toUpperCase() + "]";
+            regionName = warZone + SPACE + SPACE + SPACE + SPACE + SPACE + SPACE + main + SPACE + SPACE + SPACE + SPACE + SPACE + SPACE + warZone;
+        }
+
+        MessageUtil.sendActionBarMessage(event.getPlayer(), regionName);
         if (toRegion != null) {
             Faction fromFaction = fromRegion != null ? fromRegion.getOwner() : null;
             Faction toFaction = toRegion != null ? toRegion.getOwner() : null;
@@ -165,9 +187,6 @@ public class PlayerListener implements Listener {
                     MessageUtil.sendCenteredMessage(player, toFaction.getDescription());
                     stopSound(player, toFaction);
                     player.playSound(player.getLocation(), toFaction.getAnthem(), 1, 1);
-                    if (fPlayer.isScoreboardEnabled()) {
-                        FScoreboard.get(player).setTemporarySidebar(new FInfoSidebar(toFaction));
-                    }
                 }
             }
         }

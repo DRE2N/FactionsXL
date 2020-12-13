@@ -1,29 +1,26 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.war.peaceoffer;
 
 import de.erethon.commons.chat.MessageUtil;
-import de.erethon.commons.gui.GUIButton;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.legacygui.GUIButton;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarParty;
@@ -31,7 +28,6 @@ import de.erethon.factionsxl.war.WarPartyRole;
 import de.erethon.factionsxl.war.demand.WarDemand;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -121,7 +117,7 @@ public class FinalPeaceOffer extends PeaceOffer {
         MessageUtil.broadcastMessage(" ");
             // TODO: Might break after government update
             // TODO: Add time modifier
-        purge();
+        //purge();
     }
 
     @Override

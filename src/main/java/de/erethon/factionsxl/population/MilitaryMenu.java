@@ -1,41 +1,40 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.population;
 
-import de.erethon.commons.gui.GUIButton;
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * @author Daniel Saukel
  */
-public class MilitaryMenu implements Listener {
+public class MilitaryMenu implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
 
@@ -51,7 +50,7 @@ public class MilitaryMenu implements Listener {
     }
 
     private void setupGUI() {
-        gui = Bukkit.createInventory(null, 27, FMessage.POPULATION_MILITARY_TITLE.getMessage(faction.getName()));
+        gui = Bukkit.createInventory(this, 27, FMessage.POPULATION_MILITARY_TITLE.getMessage(faction.getName()));
         StandardizedGUI.addHeader(gui);
         gui.setItem(9, SOLDIERS);
         update();
@@ -80,4 +79,8 @@ public class MilitaryMenu implements Listener {
         }
     }
 
+    @Override
+    public Inventory getInventory() {
+        return gui;
+    }
 }

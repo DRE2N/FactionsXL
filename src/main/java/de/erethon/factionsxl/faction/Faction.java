@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.faction;
 
@@ -28,6 +26,7 @@ import de.erethon.commons.player.PlayerCollection;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
+import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.*;
@@ -91,13 +90,15 @@ public class Faction extends LegalEntity {
     GovernmentType type;
     boolean open;
     double prestige;
-    int stability;
+    int stabilityBase;
     double exhaustion;
     double manpowerModifier;
     Location home;
     Hologram homeHolo;
     Region capital;
     long timeLastCapitalMove;
+    long timeLastPeace;
+    int scoreLastPeace;
     Set<LazyChunk> chunks = new HashSet<>();
     Set<Region> regions = new HashSet<>();
     PlayerCollection formerAdmins = new PlayerCollection();
@@ -112,10 +113,12 @@ public class Faction extends LegalEntity {
     Map<Resource, Integer> consumableResources = new HashMap<>();
     Map<Resource, Integer> saturatedResources = new HashMap<>();
     Map<ResourceSubcategory, Integer> saturatedSubcategories = new HashMap<>();
+    Set<StatusEffect> effects = new HashSet<>();
     PopulationMenu populationMenu;
     IdeaMenu ideaMenu;
     Set<IdeaGroup> ideaGroups = new HashSet<>();
     Set<Idea> ideas = new HashSet<>();
+    Set<BuildSite> buildings = new HashSet<>();
     Set<CasusBelli> casusBelli = new HashSet<>();
     Set<War> callsToArms = new HashSet<>();
     boolean allod = true;
@@ -245,6 +248,22 @@ public class Faction extends LegalEntity {
         return invincible;
     }
 
+    public long getTimeLastPeace() {
+        return timeLastPeace;
+    }
+
+    public void setTimeLastPeace(long timeLastPeace) {
+        this.timeLastPeace = timeLastPeace;
+    }
+
+    public int getScoreLastPeace() {
+        return scoreLastPeace;
+    }
+
+    public void setScoreLastPeace(int scoreLastPeace) {
+        this.scoreLastPeace = scoreLastPeace;
+    }
+
     /**
      * @return
      * the type of the government
@@ -298,14 +317,14 @@ public class Faction extends LegalEntity {
      * the power of all players
      */
     public int getPower() {
-        Double power = 0D;
+        double power = 0D;
         for (UUID member : members.getUniqueIds()) {
             Double d = plugin.getFData().power.get(member);
             if (d != null) {
                 power += d;
             }
         }
-        return power.intValue();
+        return (int) power;
     }
 
     /**
@@ -313,17 +332,19 @@ public class Faction extends LegalEntity {
      * the stability value
      */
     public int getStability() {
-        int regionModifier = (int) Math.round(fConfig.getStabilityRegionSizeModifier());
-        int regionStability = (regions.size() * regions.size()) * regionModifier;
-        int i = (int) round(stability - exhaustion * exhaustion) - regionStability;
+        int base = 50;
+        int exhaustionExponent = 1;
+        int sizeExponent = 1;
+        int sizeExemptAmount = fConfig.getStabilityRegionExempt();
+        double powerPerRegion = fConfig.getPowerPerRegion();
+        double powerRegionRatio = getPower() / (regions.size() * powerPerRegion);
+        double warExhaustion = Math.pow((-1 * exhaustion) * exhaustion, exhaustionExponent);
+        double factionSize = Math.pow((-1 * (regions.size() - sizeExemptAmount)), sizeExponent);
+        double power = getPower() / (regions.size() * powerPerRegion) * powerRegionRatio;
+        int i = base + (int) round(warExhaustion + factionSize + power);
 
         if (!members.contains(admin)) {
             i = i - 25;
-        }
-        if ((getPower() * fConfig.getStabilityMemberPowerModifier()) > chunks.size()) {
-            i += 50;
-        } else if ((getPower() * fConfig.getStabilityMemberPowerModifier()) < chunks.size()) {
-            i -= 50;
         }
         /*for (ResourceSubcategory category : ResourceSubcategory.values()) {
             i += isSubcategorySaturated(category).getStabilityBonus();
@@ -336,29 +357,31 @@ public class Faction extends LegalEntity {
      * the stability value with all modifiers as hover texts
      */
     public BaseComponent[] getStabilityModifiers(ChatColor c) {
+        int base = 50;
+        int exhaustionExponent = 1;
+        int sizeExponent = 1;
+        int sizeExemptAmount = fConfig.getStabilityRegionExempt();
+        double powerPerRegion = fConfig.getPowerPerRegion();
+        double powerRegionRatio = getPower() / (regions.size() * powerPerRegion);
+        double warExhaustion = Math.pow((-1 * exhaustion) * exhaustion, exhaustionExponent);
+        double factionSize = Math.pow((-1 * (regions.size() - sizeExemptAmount)), sizeExponent);
+        double pow = getPower() / (regions.size() * powerPerRegion) * powerRegionRatio;
         String stability = FMessage.CMD_SHOW_STABILITY.getMessage() + c + getStability();
-        String base = FMessage.CMD_SHOW_STABILITY_MOD_BASE.getMessage() + color(this.stability) + "\n";
-        String exhaustion = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_EXHAUSTION.getMessage() + ChatColor.RED + "-" + Math.round((this.exhaustion * this.exhaustion) * 100.00) / 100.0 + "\n";
-        String size = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_PROVINCES.getMessage() + color((regions.size() * (regions.size() + 1)) / 2) + "\n";
+        String b = FMessage.CMD_SHOW_STABILITY_MOD_BASE.getMessage() + color(base) + "\n";
+        String exhaustion = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_EXHAUSTION.getMessage() + color((int) Math.round(warExhaustion)) + "\n";
+        String size = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_PROVINCES.getMessage() + color((int) Math.round(factionSize)) + "\n";
         String adminNotMember = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_ABSENT_MONARCH.getMessage() + color(members.contains(admin) ? 0 : -25) + "\n";
         String power = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_POWER.getMessage();
-        if ((getPower() * fConfig.getStabilityMemberPowerModifier()) > chunks.size()) {
-            power += ChatColor.GREEN + "+50";
-        } else if ((getPower() * fConfig.getStabilityMemberPowerModifier()) < chunks.size()) {
-            power += ChatColor.DARK_RED + "-50";
-        } else {
-            power += ChatColor.YELLOW + "0";
-        }
-        power += "\n";
-        /*int i = 0;
-        for (ResourceSubcategory category : ResourceSubcategory.values()) {
+        power += color((int) Math.round(pow)) + "" + ChatColor.DARK_GRAY + " (" + ChatColor.GRAY + Math.round(powerRegionRatio * 100) + "%" + ChatColor.DARK_GRAY + ")" + "\n";
+        int i = 0;
+        /*for (ResourceSubcategory category : ResourceSubcategory.values()) {
             i += isSubcategorySaturated(category).getStabilityBonus();
         }
         String wealth = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_WEALTH.getMessage() + color(i);*/
 
         BaseComponent[] msg = TextComponent.fromLegacyText(stability);
         for (BaseComponent component : msg) {
-            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(base + exhaustion + size + adminNotMember + power)));
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(b + exhaustion + size + adminNotMember + power)));
         }
         return msg;
     }
@@ -377,8 +400,8 @@ public class Faction extends LegalEntity {
      * @param stability
      * the stability value to set
      */
-    public void setStability(int stability) {
-        this.stability = stability;
+    public void setStabilityBase(int stability) {
+        this.stabilityBase = stability;
     }
 
     /**
@@ -576,7 +599,7 @@ public class Faction extends LegalEntity {
             if (faction.admin.equals(admin)) {
                 relations.put(faction, Relation.PERSONAL_UNION);
                 faction.relations.put(this, Relation.PERSONAL_UNION);
-                ParsingUtil.broadcastMessage(FMessage.FACTION_PERSONAL_UNION_FORMED.getMessage(), this, faction, admin);
+                ParsingUtil.broadcastMessage(FMessage.FACTION_PERSONAL_UNION_FORMED.getMessage(), this, faction, plugin.getFPlayerCache().getByUniqueId(admin).getName());
             } else if (faction.getRelation(this) == Relation.PERSONAL_UNION) {
                 faction.relations.remove(this);
             }
@@ -968,6 +991,32 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
+     * a set of StatusEffects that affect this faction
+     */
+    public Set<StatusEffect> getEffects() {
+        return effects;
+    }
+
+    /**
+     * @param resource
+     * @return the modifier for this resource after applying all effects
+     */
+    public double getTotalModifierForResource(Resource resource) {
+        double modifier = 0;
+        for (StatusEffect effect : getEffects()) {
+            if (effect.getProductionModifier().containsKey(resource)) {
+                modifier = modifier + effect.getProductionModifier().get(resource);
+            }
+            if (effect.getConsumptionModifier().containsKey(resource)) {
+                modifier = modifier + effect.getConsumptionModifier().get(resource);
+            }
+        }
+        return modifier;
+    }
+
+
+    /**
+     * @return
      * the population menu
      */
     public PopulationMenu getPopulationMenu() {
@@ -996,6 +1045,14 @@ public class Faction extends LegalEntity {
      */
     public Set<Idea> getIdeas() {
         return ideas;
+    }
+
+    /**
+     * @return
+     * the the faction-wide buildings this faction has completed.
+     */
+    public Set<BuildSite> getFactionBuildings() {
+        return buildings;
     }
 
     /**
@@ -1372,12 +1429,18 @@ public class Faction extends LegalEntity {
         creationDate = config.getLong("creationDate");
         type = GovernmentType.valueOf(config.getString("type"));
         open = config.getBoolean("open");
-        stability = config.getInt("stability");
+        stabilityBase = config.getInt("stability");
         exhaustion = config.getDouble("exhaustion");
         manpowerModifier = config.getDouble("manpowerModifier", fConfig.getDefaultManpowerModifier());
         setHome((Location) config.get("home"));
         capital = plugin.getBoard().getById(config.getInt("capital"));
         timeLastCapitalMove = config.getLong("timeLastCapitalMove", 0);
+        if (config.contains("timeLastPeace")) {
+            timeLastPeace = config.getLong("timeLastPeace", timeLastPeace);
+        }
+        if (config.contains("scoreLastPeace")) {
+            scoreLastPeace = config.getInt("scoreLastPeace", scoreLastPeace);
+        }
 
         admin = UUID.fromString(config.getString("admin"));
         mods.add(config.getStringList("mods"));
@@ -1450,6 +1513,12 @@ public class Faction extends LegalEntity {
             }
         }
         ideaMenu = new IdeaMenu(this);
+        ConfigurationSection bs = config.getConfigurationSection("buildSites");
+        if (bs != null) {
+            for (String b : bs.getKeys(false)) {
+                buildings.add(new BuildSite(config.getConfigurationSection("buildSites." + b)));
+            }
+        }
         ConfigurationSection cbs = config.getConfigurationSection("casusBelli");
         if (cbs != null) {
             for (String cb : cbs.getKeys(false)) {
@@ -1485,7 +1554,7 @@ public class Faction extends LegalEntity {
             config.set("creationDate", creationDate);
             config.set("type", type.toString());
             config.set("open", open);
-            config.set("stability", stability);
+            config.set("stability", stabilityBase);
             config.set("exhaustion", exhaustion);
             if (!active) {
                 try {
@@ -1501,6 +1570,8 @@ public class Faction extends LegalEntity {
             }
             config.set("capital", capital.getId());
             config.set("timeLastCapitalMove", timeLastCapitalMove);
+            config.set("timeLastPeace", timeLastPeace);
+            config.set("scoreLastPeace", scoreLastPeace);
             config.set("admin", admin.toString());
             config.set("formerAdmins", formerAdmins.serialize());
 
@@ -1550,9 +1621,14 @@ public class Faction extends LegalEntity {
             }
             config.set("ideas", ideaIds);
             int i = 0;
-            for (CasusBelli cb : casusBelli) {
-                config.set("casusBelli." + i, cb.serialize());
+            for (BuildSite b : buildings) {
+                config.set("buildSites." + i, b.serialize());
                 i++;
+            }
+            int i2 = 0;
+            for (CasusBelli cb : casusBelli) {
+                config.set("casusBelli." + i2, cb.serialize());
+                i2++;
             }
             config.set("isAllod", allod);
             config.set("requests", requests);

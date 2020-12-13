@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.war;
 
@@ -24,30 +22,34 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
-import de.erethon.factionsxl.entity.RelationRequest;
+import de.erethon.factionsxl.event.WarDeclarationEvent;
+import de.erethon.factionsxl.event.WarEndEvent;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.faction.LegalEntity;
 import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.scoreboard.FScoreboard;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
-
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @author Daniel Saukel
  */
 public class War {
+
+    FactionsXL plugin = FactionsXL.getInstance();
+    FPlayerCache fPlayers = plugin.getFPlayerCache();
 
     private File file;
     private FileConfiguration config;
@@ -56,6 +58,7 @@ public class War {
     private boolean truce;
     private CasusBelli cb;
     private Date startDate;
+    Map<OfflinePlayer, Double> participatingPlayers = new HashMap<>();; // Participation
 
     public War(WarParty attacker, WarParty defender, CasusBelli cb) {
         this.attacker = attacker;
@@ -63,6 +66,7 @@ public class War {
         this.cb = cb;
         this.truce = false;
         startDate = Calendar.getInstance().getTime();
+        this.participatingPlayers = new HashMap<>();
         this.file = new File(FactionsXL.WARS, System.currentTimeMillis() + ".yml");
     }
 
@@ -74,6 +78,10 @@ public class War {
         truce = config.getBoolean("truce");
         cb = new CasusBelli(config.getConfigurationSection("casusBelli"));
         startDate = new Date(config.getLong("startDate"));
+        for (String rawData : config.getStringList("participatingPlayers")) {
+            String[] raw = rawData.split(":");
+            participatingPlayers.put(Bukkit.getOfflinePlayer(UUID.fromString(raw[0])), Double.parseDouble(raw[1]));
+        }
     }
 
     /* Getters */
@@ -114,6 +122,43 @@ public class War {
         return startDate;
     }
 
+    public double getPlayerParticipation(OfflinePlayer player) {
+        if (participatingPlayers == null || !participatingPlayers.containsKey(player)) {
+            return 0;
+        }
+        return participatingPlayers.get(player);
+    }
+
+    public void addPlayerParticipation(OfflinePlayer player, double value) {
+        double current;
+        if (participatingPlayers.containsKey(player)) {
+            current = participatingPlayers.get(player);
+        } else {
+            current = 0;
+        }
+        participatingPlayers.put(player, current + value);
+    }
+
+    public void addPlayerParticipation(OfflinePlayer player, WarPlayerAction action) {
+        switch (action) {
+            case KILL:
+                addPlayerParticipation(player, 1);
+                break;
+            case PLACED_SIEGE:
+                addPlayerParticipation(player, 0.4);
+                break;
+            case PLACED_TNT:
+                addPlayerParticipation(player, 0.3);
+                break;
+            case DESTROYED_IMPORTANT_BLOCK:
+                addPlayerParticipation(player, 0.2);
+                break;
+            case GRIEF:
+                addPlayerParticipation(player, 0.0);
+                break;
+        }
+    }
+
     /* Actions */
     /**
      * Requires Spigot API!
@@ -144,6 +189,12 @@ public class War {
      * When a player confirms the war.
      */
     public void confirm() {
+        WarDeclarationEvent event = new WarDeclarationEvent(attacker, defender, cb);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
         try {
             file.createNewFile();
         } catch (IOException exception) {
@@ -153,26 +204,57 @@ public class War {
         wars.getUnconfirmedWars().remove(this);
         wars.getWars().add(this);
         this.truce = true;
-        Set<Faction> factionSet =  this.getAttacker().getFactions();
+        Set<Faction> factionSetA =  this.getAttacker().getFactions();
         Set<Faction> factionSetD = this.getDefender().getFactions();
+        if (getCasusBelli().getType() == CasusBelli.Type.INDEPENDENCE) {
+            Faction faction = (Faction) attacker.getLeader();
+            faction.getRelations().remove((Faction) getCasusBelli().getTarget());
+            ((Faction) getCasusBelli().getTarget()).getRelations().remove(faction);
+            // Vasalls that declare independence should leave wars that they participate in because of their lord
+            for (WarParty warParty : faction.getWarParties()) {
+                if (warParty.getLeader().equals(getCasusBelli().getTarget())) {
+                    warParty.leaveWar(faction);
+                }
+            }
+        }
         // Set all relations to enemy
-        for (Faction f : factionSet) {
-            for (Faction f2 : factionSetD) {
-                new RelationRequest(Bukkit.getConsoleSender(), f, f2, Relation.ENEMY).confirm();
+        for (Faction attacker : factionSetA) {
+            for (Faction defender : factionSetD) {
+                if (attacker != defender) { // To prevent self-declaration, for example for vassals
+                    attacker.getRelations().put(defender, Relation.ENEMY);
+                }
             }
         }
         FScoreboard.updateAllProviders();
         System.out.println("War" + this + "confirmed!");
     }
     public void end() {
+        WarEndEvent event = new WarEndEvent(attacker, defender, cb);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
         config = YamlConfiguration.loadConfiguration(file);
         WarCache wars = FactionsXL.getInstance().getWarCache();
+
+        MessageUtil.broadcastMessage(" ");
+        MessageUtil.broadcastCenteredMessage(FMessage.WAR_ENDED.getMessage(getAttacker().getName(), getDefender().getName()));
+        MessageUtil.broadcastMessage(" ");
+
+        cleanup();
+        wars.getWars().remove(this);
+        file.delete();
+        System.out.println("War" + this + "ended!");
+    }
+
+    public void cleanup() {
         Set<Faction> factionSet =  this.getAttacker().getFactions();
         Set<Faction> factionSetD = this.getDefender().getFactions();
         // Set all relations to peace
         for (Faction f : factionSet) {
             for (Faction f2 : factionSetD) {
-                new RelationRequest(Bukkit.getConsoleSender(), f, f2, Relation.PEACE).confirm();
+                f.getRelations().remove(f2);
+                f2.getRelations().remove(f);
             }
         }
         // Remove Occupants from the Attacker
@@ -191,9 +273,6 @@ public class War {
                 }
             }
         }
-        wars.getWars().remove(this);
-        file.delete();
-        System.out.println("War" + this + "ended!");
     }
 
     /* Serialization */
@@ -203,6 +282,12 @@ public class War {
         config.set("truce", truce);
         config.set("casusBelli", cb.serialize());
         config.set("startDate", startDate.getTime());
+        List<String> playerData = new ArrayList<>();
+        for (OfflinePlayer p : participatingPlayers.keySet()) {
+            String data = p.getUniqueId().toString() + ":" + participatingPlayers.get(p);
+            playerData.add(data);
+        }
+        config.set("participatingPlayers", playerData);
         try {
             config.save(file);
         } catch (IOException exception) {

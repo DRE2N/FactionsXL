@@ -1,32 +1,27 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.economy;
 
-import de.erethon.commons.gui.GUIButton;
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.gui.StandardizedGUI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -38,6 +33,10 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Daniel Saukel
@@ -108,7 +107,7 @@ public class ResourceMenu implements Listener, InventoryHolder {
     public void onClick(InventoryClickEvent event) {
         HumanEntity player = event.getWhoClicked();
         Inventory inventory = event.getClickedInventory();
-        if (inventory == null || !PageGUI.getGUITitle(gui).equals(event.getView().getTitle())) {
+        if (inventory.getHolder() != this) {
             return;
         }
         event.setCancelled(true);

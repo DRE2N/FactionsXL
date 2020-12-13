@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command.relation;
 
@@ -86,6 +84,11 @@ public class RelationNeutralCommand extends FCommand {
             case PERSONAL_UNION:
                 ParsingUtil.sendMessage(sender, FMessage.ERROR_PERSONAL_UNION_WITH_FACTION.getMessage(), subject, object);
                 return;
+            case ENEMY:
+                if (subject.isInWar()) {
+                    ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage(), subject, object);
+                    return;
+                }
             default:
                 subject.getRelations().remove(object);
                 object.getRelations().remove(subject);
@@ -95,15 +98,10 @@ public class RelationNeutralCommand extends FCommand {
                         return;
                     }
                 }
-                if (subject.isInWar() || object.isInWar()) {
+                if (subject.isInWar()) {
                     for (WarParty sWP : subject.getWarParties()) {
-                        if (sWP.getFactions().contains(subject)) {
+                        if (sWP.getFactions().contains(subject) && sWP.getLeader() == object) {
                             sWP.leaveWar(subject);
-                        }
-                    }
-                    for (WarParty oWP : object.getWarParties()) {
-                        if (oWP.getFactions().contains(object)) {
-                            oWP.leaveWar(object);
                         }
                     }
                     MessageUtil.log("Removed " + subject.getName() + " from WarParty of " + object.getName() + " because alliance ended.");

@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command;
 
@@ -25,12 +23,11 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
-import de.erethon.factionsxl.war.CasusBelli;
+import de.erethon.factionsxl.war.War;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Set;
 
 /**
@@ -96,13 +93,19 @@ public class ClaimCommand extends FCommand {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_NOT_FOR_SALE.getMessage(), region, faction);
             return;
         }
-        if (faction.isInWar() && !(region.isNeutral())) {
-            ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage());
-            return;
+        War war = plugin.getWarCache().getWarTogether(region.getOwner(), faction );
+        if (region.getOwner() != null && war != null) {
+            if (war.getAttacker().getFactions().contains(faction)) {
+                ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage());
+                return;
+            }
         }
 
         if (plugin.getFConfig().isEconomyEnabled()) {
             double price = region.getClaimPrice(faction);
+            if (region.getCoreFactions().containsKey(region.getOwner())) {
+                price = price * 2;
+            }
             if (faction.getAccount().getBalance() < price) {
                 ParsingUtil.sendMessage(player, FMessage.ERROR_NOT_ENOUGH_MONEY_FACTION.getMessage(), faction, String.valueOf(price));
                 return;
@@ -112,13 +115,13 @@ public class ClaimCommand extends FCommand {
             }
         }
 
-        region.setInfluence(50);
         if (region.isNeutral()) {
+            region.setInfluence(50);
             region.setOwner(faction);
         }
         else {
             region.getClaimFactions().put(faction, Calendar.getInstance().getTime());
-            faction.getCasusBelli().add(new CasusBelli( CasusBelli.Type.CONQUEST, region.getOwner(), new Date(System.currentTimeMillis() + FConfig.MONTH  )));
+            plugin.getCBManager().addConquestOrSubjagation(faction, region.getOwner());
         }
         ParsingUtil.sendMessage(sender, FMessage.CMD_CLAIM_SUCCESS.getMessage(), region);
     }

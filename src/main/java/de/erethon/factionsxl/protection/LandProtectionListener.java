@@ -1,23 +1,22 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.protection;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
@@ -27,7 +26,12 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.War;
+import de.erethon.factionsxl.war.WarCache;
+import de.erethon.factionsxl.war.WarPlayerAction;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -54,7 +58,9 @@ public class LandProtectionListener implements Listener {
 
     FactionsXL plugin = FactionsXL.getInstance();
     FactionCache factions = plugin.getFactionCache();
+    FPlayerCache fPlayers = plugin.getFPlayerCache();
     Board board = plugin.getBoard();
+    WarCache wars = plugin.getWarCache();
     FConfig config = plugin.getFConfig();
     boolean wildernessProtected = config.isWildernessProtected();
 
@@ -84,172 +90,269 @@ public class LandProtectionListener implements Listener {
     }
 
     private static final Set<Material> WAR_BREAKABLE = new HashSet<>(Arrays.asList(
+            ACACIA_LEAVES,
+            ALLIUM,
+            AZURE_BLUET,
+            BAMBOO,
             BEETROOTS,
+            BIRCH_LEAVES,
+            BLACK_BANNER,
+            BLACK_CARPET,
+            BLACK_STAINED_GLASS_PANE,
+            BLACK_WALL_BANNER,
+            BLUE_BANNER,
+            BLUE_CARPET,
+            BLUE_ORCHID,
+            BLUE_STAINED_GLASS_PANE,
+            BLUE_WALL_BANNER,
+            BRAIN_CORAL,
+            BRAIN_CORAL_FAN,
+            BROWN_BANNER,
+            BROWN_CARPET,
+            BROWN_STAINED_GLASS_PANE,
+            BROWN_WALL_BANNER,
+            BUBBLE_CORAL,
+            BUBBLE_CORAL_FAN,
             CAKE,
             CARROTS,
             CHORUS_PLANT,
             COARSE_DIRT,
             COBWEB,
-            DEAD_BUSH,
+            CORNFLOWER,
+            CRIMSON_FUNGUS,
+            CRIMSON_NYLIUM,
+            CRIMSON_ROOTS,
+            CYAN_BANNER,
+            CYAN_CARPET,
+            CYAN_STAINED_GLASS_PANE,
+            CYAN_WALL_BANNER,
             DANDELION,
-            POPPY,
-            BLUE_ORCHID,
-            ALLIUM,
-            AZURE_BLUET,
-            RED_TULIP,
-            ORANGE_TULIP,
-            WHITE_TULIP,
-            PINK_TULIP,
-            OXEYE_DAISY,
-            SUNFLOWER,
-            LILAC,
-            ROSE_BUSH,
-            PEONY,
+            DARK_OAK_LEAVES,
+            DEAD_BRAIN_CORAL,
+            DEAD_BRAIN_CORAL_FAN,
+            DEAD_BUBBLE_CORAL,
+            DEAD_BUBBLE_CORAL_FAN,
+            DEAD_BUSH,
+            DEAD_FIRE_CORAL,
+            DEAD_FIRE_CORAL_FAN,
+            DEAD_HORN_CORAL,
+            DEAD_HORN_CORAL_FAN,
+            DEAD_TUBE_CORAL,
+            DEAD_TUBE_CORAL_FAN,
             DIRT,
             END_ROD,
+            FERN,
+            FIRE_CORAL,
+            FIRE_CORAL_FAN,
             FLOWER_POT,
             FROSTED_ICE,
             GLASS,
             GLASS_PANE,
             GRASS,
-            FERN,
-            LARGE_FERN,
-            GRASS_PATH,
             GRASS_BLOCK,
+            GRASS_PATH,
             GRAVEL,
+            GRAY_BANNER,
+            GRAY_CARPET,
+            GRAY_STAINED_GLASS_PANE,
+            GRAY_WALL_BANNER,
+            GREEN_BANNER,
+            GREEN_CARPET,
+            GREEN_STAINED_GLASS_PANE,
+            GREEN_WALL_BANNER,
             HAY_BLOCK,
+            HORN_CORAL,
+            HORN_CORAL_FAN,
             ICE,
             JACK_O_LANTERN,
-            LADDER,
-            OAK_LEAVES,
-            BIRCH_LEAVES,
-            SPRUCE_LEAVES,
             JUNGLE_LEAVES,
-            ACACIA_LEAVES,
-            DARK_OAK_LEAVES,
+            KELP_PLANT,
+            LADDER,
+            LARGE_FERN,
+            LIGHT_BLUE_BANNER,
+            LIGHT_BLUE_CARPET,
+            LIGHT_BLUE_STAINED_GLASS_PANE,
+            LIGHT_BLUE_WALL_BANNER,
+            LIGHT_GRAY_BANNER,
+            LIGHT_GRAY_CARPET,
+            LIGHT_GRAY_STAINED_GLASS_PANE,
+            LIGHT_GRAY_WALL_BANNER,
+            LILAC,
+            LILY_OF_THE_VALLEY,
             LILY_PAD,
+            LIME_BANNER,
+            LIME_CARPET,
+            LIME_STAINED_GLASS_PANE,
+            LIME_WALL_BANNER,
+            MAGENTA_BANNER,
+            MAGENTA_CARPET,
+            MAGENTA_STAINED_GLASS_PANE,
+            MAGENTA_WALL_BANNER,
             MELON,
             MELON_STEM,
+            NETHER_SPROUTS,
             NETHER_WART_BLOCK,
-            PACKED_ICE,
+            OAK_LEAVES,
+            ORANGE_BANNER,
+            ORANGE_CARPET,
+            ORANGE_STAINED_GLASS_PANE,
+            ORANGE_TULIP,
+            ORANGE_WALL_BANNER,
+            OXEYE_DAISY,
+            PEONY,
+            PINK_BANNER,
+            PINK_CARPET,
+            PINK_STAINED_GLASS_PANE,
+            PINK_TULIP,
+            PINK_WALL_BANNER,
             PODZOL,
+            POPPY,
             POTATOES,
             PUMPKIN,
             PUMPKIN_STEM,
+            PURPLE_BANNER,
+            PURPLE_CARPET,
+            PURPLE_STAINED_GLASS_PANE,
+            PURPLE_WALL_BANNER,
+            RED_BANNER,
+            RED_CARPET,
+            RED_STAINED_GLASS_PANE,
+            RED_TULIP,
+            RED_WALL_BANNER,
+            ROSE_BUSH,
             SAND,
+            SEAGRASS,
             SOUL_SAND,
+            SOUL_TORCH,
+            SPRUCE_LEAVES,
             SUGAR_CANE,
+            SUNFLOWER,
+            STRING,
+            SWEET_BERRY_BUSH,
             TALL_GRASS,
+            TALL_SEAGRASS,
             TNT,
             TORCH,
+            TUBE_CORAL,
+            TUBE_CORAL_FAN,
+            TWISTING_VINES,
             VINE,
+            WARPED_FUNGUS,
+            WARPED_NYLIUM,
+            WARPED_ROOTS,
+            WARPED_WART_BLOCK,
+            WEEPING_VINES,
             WHEAT,
             WHITE_BANNER,
-            ORANGE_BANNER,
-            MAGENTA_BANNER,
-            LIGHT_BLUE_BANNER,
-            YELLOW_BANNER,
-            LIME_BANNER,
-            PINK_BANNER,
-            GRAY_BANNER,
-            LIGHT_GRAY_BANNER,
-            CYAN_BANNER,
-            PURPLE_BANNER,
-            BLUE_BANNER,
-            BROWN_BANNER,
-            GREEN_BANNER,
-            RED_BANNER,
-            BLACK_BANNER,
-            WHITE_WALL_BANNER,
-            ORANGE_WALL_BANNER,
-            MAGENTA_WALL_BANNER,
-            LIGHT_BLUE_WALL_BANNER,
-            YELLOW_WALL_BANNER,
-            LIME_WALL_BANNER,
-            PINK_WALL_BANNER,
-            GRAY_WALL_BANNER,
-            LIGHT_GRAY_WALL_BANNER,
-            CYAN_WALL_BANNER,
-            PURPLE_WALL_BANNER,
-            BLUE_WALL_BANNER,
-            BROWN_WALL_BANNER,
-            GREEN_WALL_BANNER,
-            RED_WALL_BANNER,
-            BLACK_WALL_BANNER,
             WHITE_CARPET,
-            ORANGE_CARPET,
-            MAGENTA_CARPET,
-            LIGHT_BLUE_CARPET,
-            YELLOW_CARPET,
-            LIME_CARPET,
-            PINK_CARPET,
-            GRAY_CARPET,
-            LIGHT_GRAY_CARPET,
-            CYAN_CARPET,
-            PURPLE_CARPET,
-            BLUE_CARPET,
-            BROWN_CARPET,
-            GREEN_CARPET,
-            RED_CARPET,
-            BLACK_CARPET,
             WHITE_STAINED_GLASS_PANE,
-            ORANGE_STAINED_GLASS_PANE,
-            MAGENTA_STAINED_GLASS_PANE,
-            LIGHT_BLUE_STAINED_GLASS_PANE,
+            WHITE_TULIP,
+            WHITE_WALL_BANNER,
+            WITHER_ROSE,
+            YELLOW_BANNER,
+            YELLOW_CARPET,
             YELLOW_STAINED_GLASS_PANE,
-            LIME_STAINED_GLASS_PANE,
-            PINK_STAINED_GLASS_PANE,
-            GRAY_STAINED_GLASS_PANE,
-            LIGHT_GRAY_STAINED_GLASS_PANE,
-            CYAN_STAINED_GLASS_PANE,
-            PURPLE_STAINED_GLASS_PANE,
-            BLUE_STAINED_GLASS_PANE,
-            BROWN_STAINED_GLASS_PANE,
-            GREEN_STAINED_GLASS_PANE,
-            RED_STAINED_GLASS_PANE,
-            BLACK_STAINED_GLASS_PANE
+            YELLOW_WALL_BANNER
+
     ));
 
     private static final Set<Material> WAR_PLACABLE = new HashSet<>(Arrays.asList(
+            BLACK_BANNER,
+            BLACK_WALL_BANNER,
+            BLUE_BANNER,
+            BLUE_WALL_BANNER,
+            BROWN_BANNER,
+            BROWN_WALL_BANNER,
+            COBWEB,
+            CYAN_BANNER,
+            CYAN_WALL_BANNER,
             FIRE,
+            GRAY_BANNER,
+            GRAY_WALL_BANNER,
+            GREEN_BANNER,
+            GREEN_WALL_BANNER,
             LADDER,
+            LIGHT_BLUE_BANNER,
+            LIGHT_BLUE_WALL_BANNER,
+            LIGHT_GRAY_BANNER,
+            LIGHT_GRAY_WALL_BANNER,
+            LILY_PAD,
+            LIME_BANNER,
+            LIME_WALL_BANNER,
+            MAGENTA_BANNER,
+            MAGENTA_WALL_BANNER,
+            ORANGE_BANNER,
+            ORANGE_WALL_BANNER,
+            PINK_BANNER,
+            PINK_WALL_BANNER,
+            PURPLE_BANNER,
+            PURPLE_WALL_BANNER,
+            RED_BANNER,
+            RED_WALL_BANNER,
             TNT,
             TORCH,
             VINE,
-            LILY_PAD,
             WHITE_BANNER,
-            ORANGE_BANNER,
-            MAGENTA_BANNER,
-            LIGHT_BLUE_BANNER,
-            YELLOW_BANNER,
-            LIME_BANNER,
-            PINK_BANNER,
-            GRAY_BANNER,
-            LIGHT_GRAY_BANNER,
-            CYAN_BANNER,
-            PURPLE_BANNER,
-            BLUE_BANNER,
-            BROWN_BANNER,
-            GREEN_BANNER,
-            RED_BANNER,
-            BLACK_BANNER,
             WHITE_WALL_BANNER,
-            ORANGE_WALL_BANNER,
-            MAGENTA_WALL_BANNER,
-            LIGHT_BLUE_WALL_BANNER,
-            YELLOW_WALL_BANNER,
-            LIME_WALL_BANNER,
-            PINK_WALL_BANNER,
-            GRAY_WALL_BANNER,
-            LIGHT_GRAY_WALL_BANNER,
-            CYAN_WALL_BANNER,
-            PURPLE_WALL_BANNER,
-            BLUE_WALL_BANNER,
-            BROWN_WALL_BANNER,
-            GREEN_WALL_BANNER,
-            RED_WALL_BANNER,
-            BLACK_WALL_BANNER,
-            COBWEB
+            YELLOW_BANNER,
+            YELLOW_WALL_BANNER
+    ));
+
+    private static final Set<Material> WAR_IMPORTANT = new HashSet<>(Arrays.asList(
+            ACACIA_BUTTON,
+            ACACIA_DOOR,
+            ANVIL,
+            BEACON,
+            BIRCH_BUTTON,
+            BIRCH_DOOR,
+            BLACK_SHULKER_BOX,
+            BLUE_SHULKER_BOX,
+            BREWING_STAND,
+            BROWN_SHULKER_BOX,
+            CAKE,
+            CAULDRON,
+            CHEST,
+            CHIPPED_ANVIL,
+            COMPARATOR,
+            CYAN_SHULKER_BOX,
+            DAMAGED_ANVIL,
+            DARK_OAK_BUTTON,
+            DARK_OAK_DOOR,
+            DISPENSER,
+            DRAGON_EGG,
+            DROPPER,
+            ENCHANTING_TABLE,
+            ENDER_CHEST,
+            END_PORTAL_FRAME,
+            FIRE,
+            FURNACE,
+            GRASS,
+            GRAY_SHULKER_BOX,
+            GREEN_SHULKER_BOX,
+            HEAVY_WEIGHTED_PRESSURE_PLATE,
+            HOPPER,
+            JUNGLE_BUTTON,
+            JUNGLE_DOOR,
+            LEVER,
+            LIGHT_BLUE_SHULKER_BOX,
+            LIGHT_GRAY_SHULKER_BOX,
+            LIGHT_WEIGHTED_PRESSURE_PLATE,
+            LIME_SHULKER_BOX,
+            MAGENTA_SHULKER_BOX,
+            NOTE_BLOCK,
+            OAK_BUTTON,
+            OAK_DOOR,
+            ORANGE_SHULKER_BOX,
+            PINK_SHULKER_BOX,
+            PURPLE_SHULKER_BOX,
+            RED_SHULKER_BOX,
+            REPEATER,
+            SPRUCE_BUTTON,
+            SPRUCE_DOOR,
+            STONE_BUTTON,
+            WHITE_SHULKER_BOX,
+            YELLOW_SHULKER_BOX
+
     ));
 
     private static final Set<Material> NO_INTERACT = new HashSet<>(Arrays.asList(
@@ -262,8 +365,10 @@ public class LandProtectionListener implements Listener {
             CAKE,
             CAULDRON,
             CHEST,
+            CHIPPED_ANVIL,
             COMPARATOR,
             CYAN_SHULKER_BOX,
+            DAMAGED_ANVIL,
             DISPENSER,
             DRAGON_EGG,
             DROPPER,
@@ -293,20 +398,20 @@ public class LandProtectionListener implements Listener {
     ));
 
     private static final Set<Material> INTERACTABLE = new HashSet<>(Arrays.asList(
-            LEVER,
-            ACACIA_DOOR,
-            BIRCH_DOOR,
-            DARK_OAK_DOOR,
-            JUNGLE_DOOR,
-            SPRUCE_DOOR,
-            OAK_DOOR,
-            STONE_BUTTON,
             ACACIA_BUTTON,
+            ACACIA_DOOR,
             BIRCH_BUTTON,
+            BIRCH_DOOR,
             DARK_OAK_BUTTON,
+            DARK_OAK_DOOR,
             JUNGLE_BUTTON,
+            JUNGLE_DOOR,
+            LEVER,
+            OAK_BUTTON,
+            OAK_DOOR,
             SPRUCE_BUTTON,
-            OAK_BUTTON
+            SPRUCE_DOOR,
+            STONE_BUTTON
     ));
 
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -370,6 +475,7 @@ public class LandProtectionListener implements Listener {
 
         Faction bFaction = factions.getByMember(breaker);
         Faction owner = region.getOwner();
+        FPlayer fPlayer = fPlayers.getByPlayer(breaker);
         if (region.getOccupant() != null) {
             Faction occupant = region.getOccupant();
             if (occupant == bFaction) {
@@ -379,14 +485,50 @@ public class LandProtectionListener implements Listener {
         Relation rel = owner.getRelation(bFaction);
         if (rel == Relation.ENEMY) {
             Material type = destroyed.getType();
+            War war = null;
+            for (War w : wars.getByFaction(owner)) {
+                for (Faction f : w.getAttacker().getFactions()) {
+                    if (f.equals(bFaction)) {
+                        war = w;
+                        break;
+                    }
+                }
+                for (Faction f : w.getDefender().getFactions()) {
+                    if (f.equals(bFaction)) {
+                        war = w;
+                        break;
+                    }
+                }
+            }
+            if (!region.isAttacked() && region.getOccupant() == null) {
+                event.setCancelled(true);
+                MessageUtil.sendMessage(breaker, "&cDiese Region wird aktuell nicht angegriffen. Greife sie erst mit /f occupy an.");
+                return;
+            }
             if (event instanceof BlockBreakEvent) {
                 if (!WAR_BREAKABLE.contains(type) && !NO_INTERACT.contains(type) && !INTERACTABLE.contains(type)) {
                     event.setCancelled(true);
+                    return;
+                }
+                if (WAR_IMPORTANT.contains(type) && war != null) {
+                    war.addPlayerParticipation(breaker, WarPlayerAction.DESTROYED_IMPORTANT_BLOCK);
+                } else if (war != null){
+                    war.addPlayerParticipation(breaker, WarPlayerAction.GRIEF);
                 }
             } else if (event instanceof BlockPlaceEvent) {
                 if (!WAR_PLACABLE.contains(type) && !NO_INTERACT.contains(type) && !INTERACTABLE.contains(type)) {
                     event.setCancelled(true);
                 }
+                if (type.equals(TNT) && war != null) {
+                    war.addPlayerParticipation(breaker, WarPlayerAction.PLACED_TNT);
+                }
+                if (type.equals(CHEST) && breaker.getInventory().getItemInMainHand().getItemMeta() != null &&
+                        breaker.getInventory().getItemInMainHand().getItemMeta().getDisplayName().contains("Blaupause")
+                        && war != null) {
+                    war.addPlayerParticipation(breaker, WarPlayerAction.PLACED_SIEGE);
+                }
+            } else if (event instanceof PlayerBucketEmptyEvent) {
+                event.setCancelled(true);
             }
         } else if (!rel.canBuild()) {
             event.setCancelled(true);

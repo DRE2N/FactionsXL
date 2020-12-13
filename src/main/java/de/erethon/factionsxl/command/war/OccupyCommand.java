@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.command.war;
 
@@ -24,18 +22,22 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.command.FCommand;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.event.WarRegionAttackEvent;
+import de.erethon.factionsxl.event.WarRegionOccupiedEvent;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Set;
 
-import static de.erethon.factionsxl.war.CasusBelli.Type.RAID;
+import static de.erethon.factionsxl.war.CasusBelli.Type.*;
 
 /**
  * @author Malfrador
@@ -49,7 +51,7 @@ public class OccupyCommand extends FCommand {
 
     public OccupyCommand() {
         setCommand("occupy");
-        setAliases("a", "annex", "o");
+        setAliases("a", "annex", "o", "attack");
         setMinArgs(0);
         setMaxArgs(1);
         setHelp(FMessage.WAR_OCCUPY_HELP.getMessage());
@@ -83,6 +85,14 @@ public class OccupyCommand extends FCommand {
         if ( !(faction.isInWar() && annexFrom.isInWar()) ) {
             MessageUtil.sendMessage(player, FMessage.WAR_OCCUPY_NOT_AT_WAR.getMessage());
             return;
+        }
+        if (region.getOccupant() != null) {
+            for (WarParty warParty : faction.getWarParties()) {
+                if (warParty.getFactions().contains(region.getOccupant())) {
+                    ParsingUtil.sendMessage(sender, FMessage.WAR_OCCUPY_ALREADY_OCCUPIED.getMessage());
+                    return;
+                }
+            }
         }
 
 
@@ -121,6 +131,46 @@ public class OccupyCommand extends FCommand {
 
         double price;
         if (!(war.getTruce())) {
+            Faction enemyLeader = (Faction) factionWP.getEnemy().getLeader();
+            long now = System.currentTimeMillis();
+            if (region.getAttackStartTime() == 0) {
+                if (region.isAttackable(factionWP)) {
+                if (enemyLeader.getCapital().equals(region) && getOccupiedRegionsOfLeader(factionWP.getEnemy()) < (enemyLeader.getRegions().size() * 0.75)) {
+                    MessageUtil.sendMessage(sender, "&cDu kannst die feindliche Hauptstadt erst angreifen, wenn du 75% der Regionen des Feindes besetzt hast.");
+                    return;
+                }
+                if (region.isAttacked()) {
+                    MessageUtil.sendMessage(sender, "&cDiese Region wird bereits angegriffen.");
+                    return;
+                }
+                if (region.getLastDefendedTime() != 0 && (now < (region.getLastDefendedTime() + 172800000))) { // 48 Stunden
+                    MessageUtil.sendMessage(sender, "&cDiese Region ist noch geschützt.");
+                    return;
+                }
+                if (plugin.getOccupationManager().isAlreadyAttacked(annexFrom)) {
+                    MessageUtil.sendMessage(sender, "&cEine Region dieser Fraktion wird bereits angegriffen.");
+                    return;
+                }
+                if (plugin.getOccupationManager().canStartOccupation(factionWP, factionWP.getEnemy())) {
+                    MessageUtil.sendMessage(sender, "&cDu kannst aktuell keinen Angriff starten. Der Beteiligungs-Unterschied ist zu groß.");
+                    MessageUtil.sendMessage(sender, "&7&oEventuell ist die Besitzer-Kriegspartei nicht aktiv oder eure eigenen Kriegsbeteiligung ist zu hoch.");
+                    return;
+                }
+                region.setAttackStartTime(System.currentTimeMillis());
+                MessageUtil.sendMessage(sender, "&aAngriff gestartet! Der Feind erhält 20 Minuten Vorbereitungszeit. Der Angriff dauert insgesamt 120 Minuten.");
+                for (Faction f : factionWP.getEnemy().getFactions()) {
+                    f.sendMessage("&aEure Region &6" + region.getName() + " &awird angegriffen!");
+                }
+
+                WarRegionAttackEvent event = new WarRegionAttackEvent(factionWP, factionWP.getEnemy(), region);
+                Bukkit.getPluginManager().callEvent(event);
+
+                } else {
+                    MessageUtil.sendMessage(sender, "&cDu kannst Regionen nur angreifen wenn sie an eigene oder besetzte Regionen angrenzen.");
+                }
+                return;
+            }
+
             if (region.getInfluence() <= config.getInfluenceNeeded() || ((region.getCoreFactions().containsKey(faction)) && (config.getInfluenceNeeded() * 2 >= region.getInfluence()))) {
                 price = region.getClaimPrice(faction) * (region.getInfluence() + 1); // Multiply base price by influence. You can annex earlier, but its more expensive
                 // Price for region with cores of owner is price * 2
@@ -157,29 +207,32 @@ public class OccupyCommand extends FCommand {
                         }
                     }
                 }
-                int occupiedRegions = 0;
-                Faction enemyLeader = (Faction) factionWP.getEnemy().getLeader();
-                for (Region r : enemyLeader.getRegions()) {
-                    if (r.getOccupant() != null) {
-                        occupiedRegions++;
-                    }
-                }
-                if (occupiedRegions >= enemyLeader.getRegions().size()) {
+                if (getOccupiedRegionsOfLeader(factionWP.getEnemy()) >= enemyLeader.getRegions().size()) {
                     handler.forceWarGoal(factionWP);
                 }
                 region.setOccupant(faction);
+                region.setAttacked(false);
+                region.setAttackStartTime(0);
                 if (region.getOwner() == region.getOccupant()) {
                     region.clearOccupant();
                     region.setOwner(faction);
-                    faction.setExhaustion(faction.getExhaustion() - 5);
                 }
 
                 region.getClaimFactions().putIfAbsent(annexFrom, Calendar.getInstance().getTime());
                 region.setInfluence((int) (config.getInfluenceNeeded() + 10));
-                annexFrom.setExhaustion(annexFrom.getExhaustion() + 3);
 
                 faction.sendMessage(FMessage.WAR_OCCUPY_SUCCESS.getMessage(), region);
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 1);
+
+                WarRegionOccupiedEvent event = new WarRegionOccupiedEvent(factionWP, factionWP.getEnemy(), region, faction);
+                Bukkit.getPluginManager().callEvent(event);
+
+                if (war.getCasusBelli().getType() == CONQUEST || war.getCasusBelli().getType() == RECONQUEST) {
+                    if (hasOccupiedAllClaims(faction, (Faction) war.getDefender().getLeader())) {
+                        plugin.getWarHandler().forceWarGoal(factionWP);
+                    }
+                }
+
 
 
             } else {
@@ -189,5 +242,30 @@ public class OccupyCommand extends FCommand {
         else {
             MessageUtil.sendMessage(player, FMessage.WAR_OCCUPY_TRUCE.getMessage());
         }
+    }
+
+    public int getOccupiedRegionsOfLeader(WarParty wp) {
+        int occupiedRegions = 0;
+        Faction leader = (Faction) wp.getLeader();
+        for (Region r : leader.getRegions()) {
+            if (r.getOccupant() != null) {
+                occupiedRegions++;
+            }
+        }
+        return occupiedRegions;
+    }
+
+    public boolean hasOccupiedAllClaims(Faction occupant, Faction target) {
+        Set<Region> claimedRegions = new HashSet<>();
+        Set<Region> occupiedRegions = new HashSet<>();
+        for (Region r : target.getRegions()) {
+            if (r.getClaimFactions().containsKey(occupant)) {
+                claimedRegions.add(r);
+            }
+            if (r.getOccupant() != null && r.getOccupant().equals(occupant)) {
+                occupiedRegions.add(r);
+            }
+        }
+        return claimedRegions.equals(occupiedRegions);
     }
 }

@@ -1,25 +1,21 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.population;
 
-import de.erethon.commons.gui.GUIButton;
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.commons.misc.ProgressBar;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
@@ -27,9 +23,8 @@ import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.gui.StandardizedGUI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -41,6 +36,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Daniel Saukel
@@ -99,7 +98,7 @@ public class PopulationMenu implements Listener {
             ItemMeta meta = icon.getItemMeta();
             int max = subcategory.getResources().length;
             List<String> lore = new ArrayList<>();
-            lore.add(ProgressBar.getBar((double) percentage));
+            lore.add(ProgressBar.BAR);
             SaturationLevel level = SaturationLevel.getByPercentage(percentage, subcategory.isBasic());
             lore.add(level.getColor().toString() + percentage + "%");
             for (SaturationLevel sLevel : SaturationLevel.values()) {

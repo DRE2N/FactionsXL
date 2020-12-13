@@ -1,28 +1,28 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.idea;
 
-import de.erethon.commons.gui.GUIButton;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
-import java.util.ArrayList;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
 
 /**
  * @author Daniel Saukel
@@ -34,8 +34,8 @@ public enum IdeaGroup {
     ECONOMY(new ItemStack(Material.IRON_INGOT), FMessage.IDEA_GROUP_ECONOMY, EconomyIdea.class, true),
     MERCENARY(GUIButton.GUI_SWORD, FMessage.IDEA_GROUP_MERCENARY, MercenaryIdea.class, true),
     RELIGION(new ItemStack(Material.TOTEM), FMessage.IDEA_GROUP_RELIGION, ReligionIdea.class, true),*/
-    SETTLER(GUIButton.PLAYER_HEAD, FMessage.IDEA_GROUP_SETTLER, SettlerIdea.class, true),/*
-    TRADE(new ItemStack(Material.STORAGE_MINECART), FMessage.IDEA_GROUP_TRADE, TradeIdea.class, false)*/;
+    SETTLER(GUIButton.PLAYER_HEAD, FMessage.IDEA_GROUP_SETTLER, SettlerIdea.class, true),
+    TRADE(new ItemStack(Material.CHEST_MINECART), FMessage.IDEA_GROUP_TRADE, TradeIdea.class, false);
 
     private ItemStack icon;
     private FMessage name;

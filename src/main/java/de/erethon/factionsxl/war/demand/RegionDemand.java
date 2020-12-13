@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package de.erethon.factionsxl.war.demand;
@@ -76,14 +74,17 @@ public class RegionDemand implements WarDemand, Listener, InventoryHolder {
 
     public double getRegionWarscore(Region r, Faction f) {
         double c = 20;
-        if (r.getOccupant() == f) {
-            c = c - 6;                        // Besetzt: 12 WP
+        if (r.getOccupant() == f) {                                         // Basis-WP: 20
+            c = c - 10;                                                     // Besetzt: 10 WP
         }
-        if (r.getClaimFactions().containsKey(f)) {  // Claim: 10 WP - Claim & Besetzt: 6 WP
+        if (r.getClaimFactions().containsKey(f)) {                          // Claim: 10 WP - Claim & Besetzt: 5 WP
             c = c / 2;
         }
-        if (r.getCoreFactions().containsKey(f)) {   // Core: 10 WP - Core & Claim: 5 - Core & Besetzt: 6 - Core, Claim & Besetzt: 3 WP
+        if (r.getCoreFactions().containsKey(f)) {                           // Core: 10 WP - Core & Claim: 5 - Core & Besetzt: 5 - Core, Claim & Besetzt: 2,5 WP
             c = c / 2;
+        }
+        if (r.getCoreFactions().containsKey(r.getOwner())) {                // Core: * 2
+            c = c * 2;
         }
         return c;
     }
@@ -92,13 +93,16 @@ public class RegionDemand implements WarDemand, Listener, InventoryHolder {
         double cost = 20;
         for (Region r : demandRegions) {
             if (r.getOccupant() == f) {
-                cost = cost - 6;                        // Besetzt: 12 WP
+                cost = cost - 10;                        // Besetzt: 12 WP
             }
-            if (r.getClaimFactions().containsKey(f)) {  // Claim: 10 WP - Claim & Besetzt: 6 WP
+            if (r.getClaimFactions().containsKey(f)) {  // Claim: 10 WP - Claim & Besetzt: 5 WP
                 cost = cost / 2;
             }
-            if (r.getCoreFactions().containsKey(f)) {   // Core: 10 WP - Core & Claim: 5 - Core & Besetzt: 6 - Core, Claim & Besetzt: 3 WP
+            if (r.getCoreFactions().containsKey(f)) {   // Core: 10 WP - Core & Claim: 5 - Core & Besetzt: 5 - Core, Claim & Besetzt: 2,5 WP
                 cost = cost / 2;
+            }
+            if (r.getCoreFactions().containsKey(r.getOwner())) { // Core of enemy: * 2
+                cost = cost * 2;
             }
         }
         return cost;

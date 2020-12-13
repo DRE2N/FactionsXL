@@ -10,7 +10,7 @@ The visual appearance of FXL and the command syntax are designed to be similar t
 
 ## Compatibility
 ### Server
-FactionsXL requires Spigot 1.13.2-1.15.2 to work. 
+FactionsXL requires **Paper 1.14.4-1.16.3** to work. 
 ### Building information and dependencies
 Building FactionsXL from source requires [Apache Maven](https://maven.apache.org/).
 Maven automatically fetches all dependencies and builds FactionsXL; just run _build.bat_ or enter the command _mvn clean install_.

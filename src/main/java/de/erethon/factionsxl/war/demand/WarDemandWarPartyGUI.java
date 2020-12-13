@@ -1,20 +1,18 @@
 /*
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
- *  * Copyright (C) 2017-2020 Daniel Saukel, Malfrador
- *  *
- *  * This program is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * This program is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package de.erethon.factionsxl.war.demand;
 
@@ -40,10 +38,10 @@ import java.util.Collection;
  */
 public class WarDemandWarPartyGUI extends WarPartyGUI {
 
-    private FPlayerCache fPlayers;
-    private WarCache wars;
+    private final FPlayerCache fPlayers;
+    private final WarCache wars;
 
-    private Collection<Faction> ownFactions;
+    private final Collection<Faction> ownFactions;
 
     public WarDemandWarPartyGUI(FactionsXL plugin, Collection<Faction> ownFactions, WarParty... parties) {
         super(plugin, FMessage.FACTION_SELECT.getMessage(), parties);
@@ -74,11 +72,20 @@ public class WarDemandWarPartyGUI extends WarPartyGUI {
                 wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, true);
             }
         } else {
-            War war = wars.getUnsafe(buttonFaction);
+            War war = null;
+            for (Faction f : ownFactions) {
+                if (wars.getWarTogether(f, buttonFaction) != null) {
+                    war = wars.getWarTogether(f, buttonFaction);
+                }
+            }
+            if (war == null) {
+                MessageUtil.sendMessage(whoClicked, FMessage.ERROR_NOT_IN_WAR.getMessage());
+                return;
+            }
             if (right) {
                 fPlayers.getByPlayer(whoClicked).setPeaceOffer(new SeparatePeaceOffer(war, fPlayers.getByPlayer(whoClicked).getFaction() , buttonFaction, false));
-                MessageUtil.sendMessage(whoClicked, FMessage.WAR_DEMAND_CREATION_MENU_MAKE_OFFER.getMessage());
-                wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, true);
+                MessageUtil.sendMessage(whoClicked, FMessage.WAR_DEMAND_CREATION_MENU_MAKE_DEMANDS.getMessage());
+                wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, false);
             }
             if (left) {
                 fPlayers.getByPlayer(whoClicked).setPeaceOffer(new SeparatePeaceOffer(war, fPlayers.getByPlayer(whoClicked).getFaction(), buttonFaction, true));
