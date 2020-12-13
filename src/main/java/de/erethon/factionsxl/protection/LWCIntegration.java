@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.ParsingUtil;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -78,7 +79,15 @@ public class LWCIntegration extends JavaModule {
             return false;
         }
         Faction faction = region.getOwner();
-        return faction.isInWar(plugin.getFactionCache().getByMember(player)) || faction.isAdmin(player);
+        if (faction.isInWar(plugin.getFactionCache().getByMember(player)) && block.getType() == Material.FURNACE && region.getInfluence() <= 30) {
+            return true;
+        }
+        Faction playerFaction = plugin.getFPlayerCache().getByPlayer(player).getFaction();
+        if (region.getOccupant() != null && playerFaction != null && playerFaction.equals(region.getOccupant())) {
+            return true;
+        }
+        return faction.isAdmin(player);
     }
+
 
 }

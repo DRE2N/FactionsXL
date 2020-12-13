@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.FAccount;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.util.ParsingUtil;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.command.CommandSender;
@@ -33,6 +34,7 @@ public class MoneyCommand extends FCommand {
 
     FactionsXL plugin = FactionsXL.getInstance();
     Economy econ = plugin.getEconomyProvider();
+    FPlayerCache fPlayerCache = plugin.getFPlayerCache();
 
     public MoneyCommand() {
         setCommand("money");
@@ -93,6 +95,7 @@ public class MoneyCommand extends FCommand {
                 acc.deposit(amount);
                 faction.sendMessage(FMessage.CMD_MONEY_DEPOSIT_SUCCESS.getMessage(), player, econ.format(amount), faction);
                 faction.sendMessage(FMessage.CMD_MONEY_BALANCE.getMessage(), faction, acc.getFormatted());
+                fPlayerCache.getByPlayer(player).getData().addMoney(amount); // Stats
             } else {
                 ParsingUtil.sendMessage(sender, FMessage.CMD_MONEY_DEPOSIT_FAIL.getMessage(), econ.format(amount));
             }
@@ -104,6 +107,10 @@ public class MoneyCommand extends FCommand {
     }
 
     public void withdraw(CommandSender sender, Faction faction, double amount) {
+        if (faction.isInWar()) {
+            ParsingUtil.sendMessage(sender, "&cIm Krieg kann kein Geld abgehoben werden.");
+            return;
+        }
         if (!faction.isPrivileged(sender)) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
             return;

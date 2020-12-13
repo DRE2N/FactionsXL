@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,27 +16,23 @@
  */
 package de.erethon.factionsxl.economy;
 
-import de.erethon.commons.gui.PageGUI;
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Daniel Saukel
@@ -83,7 +79,9 @@ public class FStorage {
     public void payday() {
         // Region income
         for (Region region : faction.getRegions()) {
+            MessageUtil.log(region.getName());
             for (Entry<Resource, Integer> entry : region.getResources().entrySet()) {
+                MessageUtil.log(entry.toString());
                 if (entry.getKey() == Resource.TAXES) {
                     faction.getAccount().deposit(entry.getValue());
                 } else if (entry.getKey() == Resource.MANPOWER) {
@@ -97,7 +95,19 @@ public class FStorage {
                     }
                     region.setPopulation(newPop);
                 } else {
+                    MessageUtil.log("Income: " + entry.getValue() + ": " + entry.getKey());
                     goods.put(entry.getKey(), goods.get(entry.getKey()) + entry.getValue());
+                }
+            }
+            double inf = FactionsXL.getInstance().getFConfig().getInfluencePerDay();
+            if (faction.getStability() >= 30 && !faction.isInWar()) {
+                // Increase influence up to 100 if core
+                if (region.getCoreFactions().containsKey(faction) && region.getInfluence() + inf <= 100) {
+                    region.setInfluence(region.getInfluence() + (int) inf);
+                }
+                // Increase influence up to 50 if not core
+                else if (!(region.getCoreFactions().containsKey(faction)) && (region.getInfluence() + inf <= 50) && !faction.isInWar()) {
+                    region.setInfluence(region.getInfluence() + (int) inf);
                 }
             }
         }
@@ -165,6 +175,10 @@ public class FStorage {
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         faction.sendMessage(FMessage.STORAGE_PAYDAY.getMessage());
+    }
+
+    public boolean canAfford(Resource resource, int amount) {
+        return getGoods().get(resource) >= amount;
     }
 
     public Map<String, Integer> serialize() {

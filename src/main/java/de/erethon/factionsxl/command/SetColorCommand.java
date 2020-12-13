@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ public class SetColorCommand extends FCommand {
             icon = args[i + 2];
         }
         faction.setMapStyle(fill, line, icon);
-        faction.sendMessage(FMessage.CMD_SET_COLOR_SUCCESS.getMessage(), sender, fill, line, faction.getMapIcon());
+        faction.sendMessage(FMessage.CMD_SET_COLOR_SUCCESS.getMessage(), sender, fill, line);
     }
 
 }

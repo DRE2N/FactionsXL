@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@ package de.erethon.factionsxl.util;
 
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.misc.ProgressBar;
-import de.erethon.commons.player.PlayerUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 /**
  * @author Daniel Saukel
@@ -65,12 +65,11 @@ public class CooldownTeleportationTask extends ProgressBar {
                     econ.withdrawPlayer(player, config.getPriceHomeWarp());
                 }
             }
-            PlayerUtil.secureTeleport(player, targetLocation);
         }
-
-        if (secondsLeft == 0) {
-            teleport = true;
-        }
+    }
+    @Override
+    public void onFinish() {
+        player.teleportAsync(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
     }
 
 }

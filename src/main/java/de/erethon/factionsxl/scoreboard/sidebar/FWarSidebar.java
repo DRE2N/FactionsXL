@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,10 @@ import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.scoreboard.FSidebarProvider;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.War;
+import org.bukkit.ChatColor;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.ChatColor;
 
 /**
  * @author Daniel Saukel

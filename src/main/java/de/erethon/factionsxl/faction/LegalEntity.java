@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,6 @@ import de.erethon.factionsxl.economy.FAccount;
 import de.erethon.factionsxl.entity.FEntity;
 import de.erethon.factionsxl.entity.Request;
 import de.erethon.factionsxl.player.FPermission;
-import java.util.List;
-import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -30,6 +28,9 @@ import org.bukkit.Tag;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Daniel Saukel

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,17 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.util.CoringHandler;
+import de.erethon.factionsxl.war.WarHandler;
 import org.bukkit.command.CommandSender;
 
 /**
  * @author Daniel Saukel
  */
 public class PaydayCommand extends FCommand {
+
+    CoringHandler core =  FactionsXL.getInstance().getCoring();
+    WarHandler wh = FactionsXL.getInstance().getWarHandler();
 
     public PaydayCommand() {
         setCommand("payday");
@@ -40,6 +45,10 @@ public class PaydayCommand extends FCommand {
 
     @Override
     public void onExecute(String[] args, CommandSender sender) {
+        core.calculateCoringProgress();
+        core.calculateClaimTime();
+        wh.calculateWarStatus();
+        wh.updateTruce();
         int i = args.length > 1 ? NumberUtil.parseInt(args[1], 1) : 1;
         do {
             for (Faction faction : FactionsXL.getInstance().getFactionCache().getActive()) {

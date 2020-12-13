@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@
  */
 package de.erethon.factionsxl.idea;
 
-import de.erethon.commons.gui.GUIButton;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import org.bukkit.inventory.ItemStack;
+
 import java.util.HashMap;
 import java.util.Map;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * @author Daniel Saukel

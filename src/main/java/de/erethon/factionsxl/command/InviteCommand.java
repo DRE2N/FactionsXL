@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ public class InviteCommand extends FCommand {
         }
 
         Player player = Bukkit.getPlayer(args[i]);
-        if (!player.isOnline()) {
+        if (player == null || !player.isOnline()) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_PLAYER_NOT_ONLINE.getMessage(), args[i]);
             return;
         }

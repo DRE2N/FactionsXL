@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,6 @@ import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarParty;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -38,6 +35,10 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Partially adapted from FactionsOne by Sataniel.
@@ -137,7 +138,7 @@ public enum ParsingUtil {
      *
      * @param string
      * the String that contains the placeholders
-     * @param faction
+     * @param receiver
      * the faction the replacements are taken from
      */
     public static String replaceChatPlaceholders(String string, FPlayer sender, FPlayer receiver) {
@@ -171,8 +172,12 @@ public enum ParsingUtil {
             }
         } catch (NoClassDefFoundError error) {
         }
-
-        return ChatColor.translateAlternateColorCodes('&', string);
+        if (sender.getPlayer().hasPermission("fxl.chat.color")) {
+            return ChatColor.translateAlternateColorCodes('&', string);
+        }
+        else {
+            return string;
+        }
     }
 
     /**
@@ -267,7 +272,7 @@ public enum ParsingUtil {
         Economy econ = plugin.getEconomyProvider();
 
         if (string.contains(PLAYER_BALANCE.getPlaceholder()) && plugin.getFConfig().isEconomyEnabled()) {
-            string = string.replace(PLAYER_BALANCE.getPlaceholder(), econ.format(econ.getBalance(fPlayer.getPlayer())));
+            string = string.replace(PLAYER_BALANCE.getPlaceholder(), econ.format(plugin.getBalanceCache().getCachedBalance(fPlayer.getPlayer())));
         }
         string = string.replace(PLAYER_DYNASTY.getPlaceholder(), fPlayer.getDynasty() != null ? fPlayer.getDynasty().getName() : "None");
         string = string.replace(PLAYER_NAME.getPlaceholder(), fPlayer.getName());

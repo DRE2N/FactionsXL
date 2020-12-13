@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,14 @@ import de.erethon.factionsxl.config.FMessage;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * @author Daniel Saukel
  */
-public abstract class Request {
+public abstract class Request implements ConfigurationSerializable {
 
     protected FEntity subject;
     protected FEntity object;
@@ -116,8 +117,6 @@ public abstract class Request {
     public abstract ItemStack getButton(Player player);
 
     /**
-     * @return
-     * the command to accept the request
      */
     public abstract String getAcceptCommand();
 

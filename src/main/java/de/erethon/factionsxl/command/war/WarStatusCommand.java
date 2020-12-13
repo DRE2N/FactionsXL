@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.misc.SimpleDateUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.command.FCommand;
+import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
@@ -28,7 +29,6 @@ import de.erethon.factionsxl.scoreboard.sidebar.FWarSidebar;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarCache;
-import java.util.Set;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -36,14 +36,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Set;
+
 /**
  * @author Daniel Saukel
  */
 public class WarStatusCommand extends FCommand {
 
     WarCache wars = FactionsXL.getInstance().getWarCache();
+    FConfig config = FactionsXL.getInstance().getFConfig();
 
-    private String PLACEHOLDER = ChatColor.GOLD + " | " + ChatColor.DARK_BLUE;
+    private String PLACEHOLDER = ChatColor.DARK_GRAY + " | " + ChatColor.BLUE;
 
     public WarStatusCommand() {
         setCommand("warStatus");
@@ -82,7 +85,7 @@ public class WarStatusCommand extends FCommand {
             String defender = fWar.getDefender().getLeader().getName();
             String cb = fWar.getCasusBelli().getType().toString();
             String date = SimpleDateUtil.ddMMyyyyhhmm(fWar.getStartDate());
-            String line = ChatColor.GOLD + "> " + ChatColor.DARK_BLUE + attacker + PLACEHOLDER + defender + PLACEHOLDER + cb + PLACEHOLDER + date;
+            String line = ChatColor.GOLD + "> " + ChatColor.BLUE + attacker + PLACEHOLDER + defender + PLACEHOLDER + cb + PLACEHOLDER + date;
             BaseComponent[] comps = TextComponent.fromLegacyText(line);
             ClickEvent onClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/factionsxl warStatus " + fWar.getStartDate().getTime());
             for (BaseComponent comp : comps) {
@@ -94,22 +97,23 @@ public class WarStatusCommand extends FCommand {
 
     public void showWarInfo(CommandSender sender, War war) {
         String attackerLeader = war.getAttacker().getLeader().getName();
-        String attackers = ParsingUtil.factionsToString(war.getAttacker().getFactions(), ChatColor.DARK_RED);
+        String attackers = ParsingUtil.factionsToString(war.getAttacker().getFactions(), ChatColor.GRAY);
         int attackerKills = war.getAttacker().kills;
         int attackerDeaths = war.getAttacker().deaths;
         double attackerKD = war.getAttacker().getKD();
-        int attackerPoints = 0;
+        int attackerPoints = war.getAttacker().getPoints();
         String defenderLeader = war.getDefender().getLeader().getName();
-        String defenders = ParsingUtil.factionsToString(war.getDefender().getFactions(), ChatColor.DARK_RED);
+        String defenders = ParsingUtil.factionsToString(war.getDefender().getFactions(), ChatColor.GRAY);
         int defenderKills = war.getDefender().kills;
         int defenderDeaths = war.getDefender().deaths;
         double defenderKD = war.getDefender().getKD();
-        int defenderPoints = 0;
+        int defenderPoints = war.getDefender().getPoints();
         String cb = war.getCasusBelli().getType().toString();
         String date = SimpleDateUtil.ddMMyyyyhhmm(war.getStartDate());
         MessageUtil.sendCenteredMessage(sender, ChatColor.DARK_RED + attackerLeader + ChatColor.RED + " vs. " + ChatColor.DARK_RED + defenderLeader);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_CASUS_BELLI.getMessage() + cb);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_DATE.getMessage() + date);
+        MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLPOINTS.getMessage(String.valueOf(war.getDefender().getPointsFromKills()), String.valueOf(config.getMaximumKillPoints())));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_ATTACKERS.getMessage() + attackers);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLS_AND_DEATHS.getMessage(String.valueOf(attackerKills), String.valueOf(attackerDeaths), String.valueOf(attackerKD)));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_POINTS.getMessage() + String.valueOf(attackerPoints));

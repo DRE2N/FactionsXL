@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.entity.Relation;
@@ -27,18 +28,21 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.apache.commons.lang.ArrayUtils;
+import org.bukkit.ChatColor;
+import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.apache.commons.lang.ArrayUtils;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 /**
  * @author Daniel Saukel
@@ -47,11 +51,12 @@ public class RegionCommand extends FCommand {
 
     FactionsXL plugin = FactionsXL.getInstance();
     FactionCache factions = plugin.getFactionCache();
+    FConfig config = plugin.getFConfig();
     Board board = plugin.getBoard();
 
     public RegionCommand() {
         setCommand("region");
-        setAliases("province");
+        setAliases("province", "rg");
         setMinArgs(0);
         setMaxArgs(1);
         setHelp(FMessage.HELP_REGION.getMessage());
@@ -66,8 +71,9 @@ public class RegionCommand extends FCommand {
             displayHelp(sender);
             return;
         }
-
+        Player player = (Player) sender;
         Region region = null;
+        World world = player.getWorld();
         if (args.length >= 2) {
             region = board.getByName(args[1]);
             if (region == null) {
@@ -87,18 +93,42 @@ public class RegionCommand extends FCommand {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_WILDERNESS.getMessage());
             return;
         }
-
         Faction faction = region.getOwner();
         ChatColor c = faction != null && sender instanceof Player ? faction.getRelation(factions.getByMember((Player) sender)).getColor() : Relation.PEACE.getColor();
 
-        MessageUtil.sendCenteredMessage(sender, c + "&l=== " + region.getName() + " ===");
+        BaseComponent[] id = MessageUtil.parse(c + "&l=== " + region.getName() + " ===");
+        HoverEvent tagHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Region-ID: " + region.getId()).create());
+        for (BaseComponent component : id) {
+            component.setHoverEvent(tagHover);
+        }
+        MessageUtil.sendCenteredMessage(sender, id);
         MessageUtil.sendCenteredMessage(sender, "&6____________________________________________________");
         MessageUtil.sendMessage(sender, FMessage.CMD_REGION_OWNER.getMessage() + c + (faction != null ? faction.getLongName() : "None"));
         if (region.isNeutral()) {
             Faction senderFaction = sender instanceof Player ? factions.getByMember((Player) sender) : null;
             MessageUtil.sendMessage(sender, FMessage.CMD_REGION_PRICE.getMessage() + c + region.getClaimPrice(senderFaction));
         }
-
+        if (!(region.getCoreFactions().containsKey(region.getOwner())) && !region.isNeutral()) {
+            double amount = region.getClaimPrice(faction) * config.getPriceCoreMultiplier();
+            MessageUtil.sendMessage(sender, FMessage.CMD_REGION_PRICE_CORE.getMessage() + c + String.valueOf(amount));
+        }
+        MessageUtil.sendMessage(sender,FMessage.CMD_REGION_INFLUENCE.getMessage() + c + region.getInfluence() + "%");
+        if (region.isAttacked()) {
+            MessageUtil.sendMessage(sender, "&aEinfluss für Besetzung: &7" + config.getInfluenceNeeded() + "%");
+        }
+        if (region.getOccupant() != null) {
+            MessageUtil.sendMessage(sender, FMessage.CMD_REGION_OCCUPIER.getMessage() + c + region.getOccupant().getName());
+        }
+        ArrayList<BaseComponent> adjacentList = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText("§6Angrenzend: ")));
+        boolean adjacentFirst = true;
+        for (Region rg : region.getNeighbours()) {
+            if (!adjacentFirst) {
+                adjacentList.addAll(Arrays.asList(TextComponent.fromLegacyText(ChatColor.GOLD + ", ")));
+            }
+            adjacentFirst = false;
+            adjacentList.addAll(Arrays.asList(TextComponent.fromLegacyText(rg.getName())));
+        }
+        MessageUtil.sendMessage(player, adjacentList.toArray(new BaseComponent[]{}));
         BaseComponent[] income1 = TextComponent.fromLegacyText(FMessage.CMD_REGION_TYPE.getMessage());
         BaseComponent[] income2 = TextComponent.fromLegacyText(c + region.getType().getName() + " (" + region.getLevel() + ")");
         BaseComponent[] incomeHover = new BaseComponent[]{};

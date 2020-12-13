@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +16,13 @@
  */
 package de.erethon.factionsxl.command;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.GovernmentType;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.util.Arrays;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -33,16 +31,21 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Arrays;
+import java.util.Set;
+
 /**
  * @author Daniel Saukel
  */
-public class ListCommand extends FCommand implements Listener {
+public class ListCommand extends FCommand implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
+    Inventory gui;
 
     public ListCommand() {
         setCommand("list");
@@ -71,7 +74,7 @@ public class ListCommand extends FCommand implements Listener {
         }
 
         int size = (int) (9 * Math.ceil(((double) factions.size() / 9)));
-        Inventory gui = Bukkit.createInventory(null, size, FMessage.CMD_LIST_TITLE.getMessage());
+        gui = Bukkit.createInventory(this, size, FMessage.CMD_LIST_TITLE.getMessage());
         for (Faction faction : factions) {
             int members = faction.getMembers().contains(faction.getAdmin()) ? faction.getMembers().size() : faction.getMembers().size() + 1;
             ItemStack banner = new ItemStack(faction.getBannerType(), members);
@@ -86,9 +89,10 @@ public class ListCommand extends FCommand implements Listener {
             }
             String power = String.valueOf(faction.getPower());
             String provinces = String.valueOf(faction.getRegions().size());
+            String expansion = String.valueOf(faction.getExpansion());
             meta.setLore(Arrays.asList(FMessage.CMD_SHOW_GOVERNMENT_TYPE.getMessage() + c + govType,
                     FMessage.CMD_SHOW_LEADER.getMessage() + c + leader,
-                    FMessage.CMD_SHOW_INFO.getMessage(c.toString(), power, provinces)
+                    FMessage.CMD_SHOW_INFO.getMessage(c.toString(), power, provinces, expansion)
             ));
             meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
             banner.setItemMeta(meta);
@@ -99,10 +103,11 @@ public class ListCommand extends FCommand implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals(FMessage.CMD_LIST_TITLE.getMessage())) {
+        if (event.getInventory().getHolder() != this) {
             return;
         }
         event.setCancelled(true);
+
         PageGUI.playSound(event);
         ItemStack button = event.getCurrentItem();
         if (button != null && button.hasItemMeta() && button.getItemMeta().hasDisplayName()) {
@@ -116,4 +121,8 @@ public class ListCommand extends FCommand implements Listener {
         }
     }
 
+    @Override
+    public Inventory getInventory() {
+        return gui;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,15 @@
  */
 package de.erethon.factionsxl.command;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.scoreboard.FTeamWrapper;
 import de.erethon.factionsxl.util.ParsingUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -57,6 +60,11 @@ public class LeaveCommand extends FCommand {
         faction.getMembers().remove(player);
         faction.getOnlineMembers().remove(player);
         FTeamWrapper.updatePrefixes(faction);
+
+        FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(player), faction);
+        Bukkit.getPluginManager().callEvent(event);
+        MessageUtil.log("event");
+
     }
 
 }

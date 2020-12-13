@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,31 +16,38 @@
  */
 package de.erethon.factionsxl.command.war;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.command.FCommand;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
-import de.erethon.factionsxl.war.CallToArmsMenu;
-import de.erethon.factionsxl.war.CasusBelli;
+import de.erethon.factionsxl.war.CasusBelliMenu;
+import de.erethon.factionsxl.war.WarHandler;
 import de.erethon.factionsxl.war.WarParty;
-import java.util.Set;
+import de.erethon.factionsxl.war.WarPartyRole;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Set;
 
 /**
  * @author Daniel Saukel
  */
+
 public class WarCommand extends FCommand {
 
     FactionsXL plugin = FactionsXL.getInstance();
+    FactionCache cache = plugin.getFactionCache();
+    WarHandler warHandler = plugin.getWarHandler();
 
     public WarCommand() {
         setCommand("war");
         setMinArgs(1);
-        setMaxArgs(1);
+        setMaxArgs(2);
         setHelp(FMessage.HELP_WAR.getMessage());
         setPermission(FPermission.WAR.getNode());
         setPlayerCommand(true);
@@ -55,10 +62,28 @@ public class WarCommand extends FCommand {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_SUCH_FACTION.getMessage(), args[1]);
             return;
         }
+
+        if (object.isInvincible()) {
+            ParsingUtil.sendMessage(sender, "&cDu kannst diese Fraktion nicht angreifen!");
+            return;
+        }
+        if (warHandler.isInPeace(object)) {
+            ParsingUtil.sendMessage(sender, "&cDiese Fraktion befindet sich in der Friedenszeit.");
+            return;
+        }
         WarParty subject = null;
         Set<Faction> factions = plugin.getFactionCache().getByLeader(player);
-        if (factions.isEmpty()) {
+        Faction f = cache.getByMember(player);
+        if (!f.isAdmin(player)) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
+            return;
+        }
+        if (f.isVassal() && !(f.getLord() == object)) {
+            MessageUtil.sendMessage(player, "&cVasallen können nur ihrem Lord den Krieg erklären.");
+            return;
+        }
+        if (f.getStability() <= 20)  {
+            MessageUtil.sendMessage(player, "&cNicht genug Stabilität, um einen Krieg zu erklären.");
             return;
         }
         for (Faction faction : factions) {
@@ -75,10 +100,10 @@ public class WarCommand extends FCommand {
                     ParsingUtil.sendMessage(sender, FMessage.ERROR_OWN_FACTION.getMessage());
                     return;
                 case ENEMY:
-                    ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage(), object);
+                    player.performCommand("/fxl warstatus ");
             }
             if (faction.getMembers().contains(player)) {
-                subject = new WarParty(faction);
+                subject = new WarParty(faction, WarPartyRole.ATTACKER);
                 break;
             }
         }
@@ -89,7 +114,8 @@ public class WarCommand extends FCommand {
         for (Faction faction : factions) {
             subject.addParticipant(faction);
         }
-        new CallToArmsMenu(subject, object, new CasusBelli(CasusBelli.Type.RAID, object, null)).open(player);
+        new CasusBelliMenu().open(player, object);
+        ParsingUtil.sendMessage(sender, FMessage.CMD_WAR_SELECTCB.getMessage());
     }
 
 }

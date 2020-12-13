@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,17 @@
 package de.erethon.factionsxl.player;
 
 import de.erethon.commons.misc.EnumUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import static org.bukkit.permissions.PermissionDefault.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.bukkit.permissions.PermissionDefault.OP;
+import static org.bukkit.permissions.PermissionDefault.TRUE;
 
 /**
  * @author Daniel Saukel

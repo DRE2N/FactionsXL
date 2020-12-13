@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,16 +16,13 @@
  */
 package de.erethon.factionsxl.economy;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -36,6 +33,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Daniel Saukel
@@ -58,7 +59,7 @@ public class TradeMenu implements Listener {
         if (!plugin.getFConfig().isEconomyEnabled()) {
             gui = new PageGUI(FMessage.ERROR_ECON_DISABLED.getMessage());
             for (int i = 0; i <= 44; i++) {
-                gui.getPages().get(0).setItem(i, GUIButton.DISABLED);
+                gui.getPages().get(0).setItem(i, StandardizedGUI.DISABLED);
             }
         } else {
             gui.clear();
@@ -135,7 +136,7 @@ public class TradeMenu implements Listener {
             return;
         }
         ItemStack button = inventory.getItem(event.getSlot());
-        if (button == null || button.equals(GUIButton.DISABLED)) {
+        if (button == null || button.equals(StandardizedGUI.DISABLED)) {
             return;
         }
         if (!faction.isPrivileged(event.getWhoClicked())) {

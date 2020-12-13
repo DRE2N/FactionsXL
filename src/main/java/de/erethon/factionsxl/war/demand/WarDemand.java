@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +16,18 @@
  */
 package de.erethon.factionsxl.war.demand;
 
-import org.bukkit.inventory.ItemStack;
+import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.war.WarParty;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 /**
+ * Expects static methods:<br>
+ * ItemStack getGUIButton() - returns a button for the war demand menu<br>
+ * void openSetupGUI(Player) - opens a GUI to setup the demand to the player
+ *
  * @author Daniel Saukel
  */
-public interface WarDemand {
-
-    /**
-     * @return
-     * a button for the war demand menu
-     */
-    public ItemStack getGUIButton();
+public interface WarDemand extends ConfigurationSerializable {
 
     /**
      * Asks the demanded party to pay
@@ -35,17 +35,32 @@ public interface WarDemand {
     public void demand();
 
     /**
+     * if the demanded has enough Warscore
+     */
+    public boolean canAffordWP(WarParty wp);
+
+    public boolean canAffordWP(Faction f);
+
+    /**
      * Asks the demanded party to pay
      *
-     * @return
-     * if the target faction is able to pay
+     * @param f, f2
      */
-    public boolean pay();
+    public void pay(WarParty f, WarParty f2);
+
+    public void pay(Faction f, Faction f2);
+
+    /**
+     * Warscore cost of all demands
+     */
+    public double getWarscoreCost();
 
     /**
      * @return
      * if the target faction is able to pay
      */
-    public boolean canPay();
+    public boolean canPay(WarParty wp);
+
+    public boolean canPay(Faction f);
 
 }

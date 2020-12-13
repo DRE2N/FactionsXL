@@ -10,12 +10,9 @@
  * You should have received a copy of the CC0 Public Domain Dedication	
  * along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.	
  */
-package de.erethon.commons.gui;
+package de.erethon.factionsxl.legacygui;
 
-import static de.erethon.commons.gui.GUIButton.*;
 import de.erethon.commons.javaplugin.DREPlugin;
-import java.util.HashSet;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -24,6 +21,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static de.erethon.factionsxl.legacygui.GUIButton.*;
 
 /**
  * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette

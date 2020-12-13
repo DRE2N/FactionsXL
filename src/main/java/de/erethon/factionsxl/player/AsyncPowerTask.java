@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,16 @@
 package de.erethon.factionsxl.player;
 
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FData;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * @author Daniel Saukel
@@ -32,6 +34,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class AsyncPowerTask extends BukkitRunnable {
 
     FData data = FactionsXL.getInstance().getFData();
+    FactionsXL plugin = FactionsXL.getInstance();
+    FConfig fConfig = plugin.getFConfig();
 
     private double increaseRate;
     private double decreaseRate;
@@ -73,7 +77,7 @@ public class AsyncPowerTask extends BukkitRunnable {
 
         data.power = updatedPower;
         data.lastPowerUpdate = System.currentTimeMillis();
-        FactionsXL.debug("Updated power values");
+
     }
 
 }

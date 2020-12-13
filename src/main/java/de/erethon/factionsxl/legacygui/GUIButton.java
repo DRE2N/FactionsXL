@@ -10,14 +10,15 @@
  * You should have received a copy of the CC0 Public Domain Dedication	
  * along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.	
  */
-package de.erethon.commons.gui;
+package de.erethon.factionsxl.legacygui;
 
 import de.erethon.headlib.HeadLib;
-import java.util.Arrays;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.Arrays;
 
 /**
  * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette
@@ -37,10 +38,11 @@ public class GUIButton {
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWI2ZjFhMjViNmJjMTk5OTQ2NDcyYWVkYjM3MDUyMjU4NGZmNmY0ZTgzMjIxZTU5NDZiZDJlNDFiNWNhMTNiIn19fQ==");
 
     /* GUI buttons */
-    public static final ItemStack BACK = setDisplay(LEFT, ChatColor.GOLD.toString() + ChatColor.BOLD + "&6&lBACK");
-    public static final ItemStack NEXT_PAGE = setDisplay(RIGHT, ChatColor.GOLD.toString() + ChatColor.BOLD + "NEXT PAGE");
-    public static final ItemStack PREVIOUS_PAGE = setDisplay(LEFT, ChatColor.GOLD.toString() + ChatColor.BOLD + "PREVIOUS PAGE");
+    public static final ItemStack BACK = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.GOLD.toString() + ChatColor.BOLD + "&6&lBACK");
+    public static final ItemStack NEXT_PAGE = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.GOLD.toString() + ChatColor.BOLD + "NEXT PAGE");
+    public static final ItemStack PREVIOUS_PAGE = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.GOLD.toString() + ChatColor.BOLD + "PREVIOUS PAGE");
     public static final ItemStack PLACEHOLDER = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.RESET.toString());
+    public static final ItemStack GUI_WATER_BOTTLE = setDisplay(BLACK_STAINED_GLASS_PANE, ChatColor.BLUE.toString() + "WATER");
 
     public static ItemStack setDisplay(ItemStack itemStack, String name, String... lore) {
         itemStack = itemStack.clone();

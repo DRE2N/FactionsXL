@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Trent Hensler
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,13 @@
 package de.erethon.factionsxl.scoreboard;
 
 import com.google.common.base.Splitter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+
+import java.util.*;
 
 /**
  * Adapted from FactionsUUID by drtshock.
@@ -56,7 +52,7 @@ public class BufferedObjective {
         this.scoreboard = scoreboard;
         this.baseName = createBaseName();
 
-        current = scoreboard.registerNewObjective(getNextObjectiveName(), "dummy");
+        current = scoreboard.registerNewObjective(getNextObjectiveName(), "dummy", "f_objective");
     }
 
     private String createBaseName() {
@@ -121,11 +117,11 @@ public class BufferedObjective {
         List<Team> bufferTeams = new ArrayList<>();
 
         for (Map.Entry<Integer, String> entry : contents.entrySet()) {
-            if (entry.getValue().length() > 16) {
+            if (entry.getValue().length() > 32) {
                 Team team = scoreboard.registerNewTeam(getNextTeamName());
                 bufferTeams.add(team);
 
-                Iterator<String> split = Splitter.fixedLength(16).split(entry.getValue()).iterator();
+                Iterator<String> split = Splitter.fixedLength(32).split(entry.getValue()).iterator();
 
                 team.setPrefix(split.next());
                 String name = split.next();

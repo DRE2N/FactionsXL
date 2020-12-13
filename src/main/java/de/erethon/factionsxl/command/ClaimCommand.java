@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,12 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.War;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Calendar;
+import java.util.Set;
 
 /**
  * @author Daniel Saukel
@@ -36,7 +40,7 @@ public class ClaimCommand extends FCommand {
 
     public ClaimCommand() {
         setCommand("claim");
-        setAliases("annex");
+        setAliases("cl");
         setMinArgs(0);
         setMaxArgs(1);
         setHelp(FMessage.HELP_CLAIM.getMessage());
@@ -59,18 +63,49 @@ public class ClaimCommand extends FCommand {
         }
 
         Region region = plugin.getBoard().getByLocation(player.getLocation());
-        if (region == null || !region.isAnnexable()) {
-            ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_NOT_FOR_SALE.getMessage());
-            if (region != null && region.getCoreFactions().containsKey(faction)) {
-                ParsingUtil.sendMessage(sender, FMessage.ERROR_REGION_IS_CORE.getMessage(), region, faction);
-            } else if (region != null && region.getClaimFactions().containsKey(faction)) {
-                ParsingUtil.sendMessage(sender, FMessage.ERROR_REGION_IS_ALREADY_CLAIMED.getMessage(), region, faction);
+        Set<Region> regions = faction.getRegions();
+        if (region != null && !region.isWildernessClaim()) {
+            boolean nextTo = false;
+            for (Region r : region.getNeighbours()) {
+                if (r.getOwner() == faction) {
+                    nextTo = true;
+                }
             }
+            if (!nextTo) {
+                ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_NOT_CONNECTED.getMessage());
+                return;
+            }
+        }
+        if (region == null) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_NOT_FOR_SALE.getMessage());
             return;
+        }
+        if (region.getCoreFactions().containsKey(faction)) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_REGION_IS_CORE.getMessage(), region, faction);
+            return;
+        }
+        if (region.getClaimFactions().containsKey(faction)) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_REGION_IS_ALREADY_CLAIMED.getMessage(), region, faction);
+            return;
+        }
+
+        if (region.getOwner() == faction) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_NOT_FOR_SALE.getMessage(), region, faction);
+            return;
+        }
+        War war = plugin.getWarCache().getWarTogether(region.getOwner(), faction );
+        if (region.getOwner() != null && war != null) {
+            if (war.getAttacker().getFactions().contains(faction)) {
+                ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage());
+                return;
+            }
         }
 
         if (plugin.getFConfig().isEconomyEnabled()) {
             double price = region.getClaimPrice(faction);
+            if (region.getCoreFactions().containsKey(region.getOwner())) {
+                price = price * 2;
+            }
             if (faction.getAccount().getBalance() < price) {
                 ParsingUtil.sendMessage(player, FMessage.ERROR_NOT_ENOUGH_MONEY_FACTION.getMessage(), faction, String.valueOf(price));
                 return;
@@ -80,7 +115,14 @@ public class ClaimCommand extends FCommand {
             }
         }
 
-        region.setOwner(faction);
+        if (region.isNeutral()) {
+            region.setInfluence(50);
+            region.setOwner(faction);
+        }
+        else {
+            region.getClaimFactions().put(faction, Calendar.getInstance().getTime());
+            plugin.getCBManager().addConquestOrSubjagation(faction, region.getOwner());
+        }
         ParsingUtil.sendMessage(sender, FMessage.CMD_CLAIM_SUCCESS.getMessage(), region);
     }
 

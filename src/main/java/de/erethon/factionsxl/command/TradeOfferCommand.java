@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  */
 package de.erethon.factionsxl.command;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
@@ -24,14 +23,9 @@ import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.TradeOffer;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import de.erethon.factionsxl.player.FPermission;
-import static de.erethon.factionsxl.util.GUIButton.*;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -42,14 +36,25 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static de.erethon.factionsxl.gui.StandardizedGUI.*;
+import static de.erethon.factionsxl.legacygui.GUIButton.PLACEHOLDER;
+import static de.erethon.factionsxl.legacygui.GUIButton.setDisplay;
+
 /**
  * @author Daniel Saukel
  */
-public class TradeOfferCommand extends FCommand implements Listener {
+public class TradeOfferCommand extends FCommand implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
     FactionCache factions = plugin.getFactionCache();
@@ -197,7 +202,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
 
     private Inventory choosePartner(Faction creator) {
         int size = (int) (9 * Math.ceil(((double) factions.getActive().size() / 9)));
-        Inventory gui = Bukkit.createInventory(null, size, FMessage.TRADE_OFFER_CHOOSE_PARTNER.getMessage());
+        Inventory gui = Bukkit.createInventory(this, size, FMessage.TRADE_OFFER_CHOOSE_PARTNER.getMessage());
         int i = 0;
         for (Faction faction : factions.getActive()) {
             ItemStack icon = faction.getBannerStack();
@@ -230,7 +235,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
     }
 
     private Inventory chooseExport() {
-        Inventory gui = Bukkit.createInventory(null, 9, FMessage.TRADE_OFFER_CHOOSE_EXPORT.getMessage());
+        Inventory gui = Bukkit.createInventory(this, 9, FMessage.TRADE_OFFER_CHOOSE_EXPORT.getMessage());
         ItemStack exportIcon = E.clone();
         ItemMeta exMeta = exportIcon.getItemMeta();
         exMeta.setDisplayName(ChatColor.GREEN + FMessage.TRADE_EXPORT.getMessage());
@@ -245,7 +250,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
     }
 
     private Inventory choosePriceAndAmount(int amount, double price) {
-        Inventory gui = Bukkit.createInventory(null, 27, tradeOfferChoosePriceAndAmount.replace("&v1", String.valueOf(amount)).replace("&v2", String.valueOf(price)));
+        Inventory gui = Bukkit.createInventory(this, 27, tradeOfferChoosePriceAndAmount.replace("&v1", String.valueOf(amount)).replace("&v2", String.valueOf(price)));
         gui.setContents(choosePriceAndAmount);
         return gui;
     }
@@ -384,7 +389,7 @@ public class TradeOfferCommand extends FCommand implements Listener {
         amount = amount.split(" ")[0];
         return NumberUtil.parseInt(amount);
     }
-
+    // TODO: Broken
     private BigDecimal readPriceFromTitle(String title) {
         String price = title.split(ChatColor.DARK_AQUA.toString())[2];
         return new BigDecimal(price);
@@ -400,4 +405,8 @@ public class TradeOfferCommand extends FCommand implements Listener {
         player.performCommand(COMMAND + args);
     }
 
+    @Override
+    public Inventory getInventory() {
+        return chooseExport;
+    }
 }

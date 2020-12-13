@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ public class LongTagCommand extends FCommand {
 
     public LongTagCommand() {
         setCommand("longTag");
-        setAliases("setLongTag", "longName", "setLongName");
+        setAliases("setLongTag", "longName", "setLongName", "ltag");
         setMinArgs(-1);
         setMaxArgs(-1);
         setHelp(FMessage.HELP_LONG_TAG.getMessage());

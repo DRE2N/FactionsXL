@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ package de.erethon.factionsxl.command;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
@@ -27,8 +28,6 @@ import de.erethon.factionsxl.faction.GovernmentType;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -37,6 +36,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * @author Daniel Saukel
@@ -104,7 +106,12 @@ public class ShowCommand extends FCommand {
             MessageUtil.sendMessage(player, FMessage.CMD_SHOW_CAPITAL.getMessage() + c + faction.getCapital().getName());
             String power = String.valueOf(faction.getPower());
             String provinces = String.valueOf(faction.getRegions().size());
-            MessageUtil.sendMessage(player, FMessage.CMD_SHOW_INFO.getMessage(c.toString(), power, provinces));
+            int pop = 0;
+            for (Region rg : faction.getRegions()) {
+                pop = pop + rg.getPopulation();
+            }
+            String population = String.valueOf(pop);
+            MessageUtil.sendMessage(player, FMessage.CMD_SHOW_INFO.getMessage(c.toString(), power, provinces, population));
             MessageUtil.sendMessage(player, faction.getStabilityModifiers(c));
 
             ArrayList<BaseComponent> relList = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(FMessage.CMD_SHOW_RELATIONS.getMessage())));
@@ -133,7 +140,7 @@ public class ShowCommand extends FCommand {
                 }
                 String memPowerHover = FMessage.CMD_POWER.getMessage(ChatColor.GOLD + member.getName(), String.valueOf(memPower.intValue()));
                 HoverEvent onHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(memPowerHover));
-                BaseComponent[] components = TextComponent.fromLegacyText(c + member.getName());
+                BaseComponent[] components = TextComponent.fromLegacyText(c + plugin.getFPlayerCache().getByPlayer(member).getTitle() + " " + member.getName());
                 for (BaseComponent component : components) {
                     component.setHoverEvent(onHover);
                 }

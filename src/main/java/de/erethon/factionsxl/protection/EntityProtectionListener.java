@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,22 +24,13 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
-import static de.erethon.factionsxl.protection.EntityProtectionListener.Action.*;
 import de.erethon.factionsxl.util.ParsingUtil;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
+import de.erethon.factionsxl.war.WarCache;
+import org.bukkit.entity.*;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityTameEvent;
-import org.bukkit.event.entity.LingeringPotionSplashEvent;
-import org.bukkit.event.entity.PlayerLeashEntityEvent;
-import org.bukkit.event.entity.PotionSplashEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
@@ -48,10 +39,15 @@ import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
+import java.util.List;
+
+import static de.erethon.factionsxl.protection.EntityProtectionListener.Action.*;
+
 /**
  * @author Daniel Saukel
  */
 public class EntityProtectionListener implements Listener {
+
 
     enum Action {
         ATTACK,
@@ -66,13 +62,14 @@ public class EntityProtectionListener implements Listener {
 
     FactionsXL plugin = FactionsXL.getInstance();
     FConfig config = plugin.getFConfig();
+    WarCache wc = plugin.getWarCache();
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (config.isExcludedWorld(event.getEntity().getWorld())) {
             return;
         }
-        Player attacker = getDamageSource(event.getDamager());
+        Player attacker = getDamageSource(event.getDamager(), event.getEntity());
         Entity eAttacker = attacker != null ? attacker : event.getDamager();
         Entity eDefender = event.getEntity();
         if (!(eAttacker instanceof Player)) {
@@ -89,14 +86,25 @@ public class EntityProtectionListener implements Listener {
         }
         Faction aFaction = plugin.getFactionCache().getByMember(attacker);
         Faction dFaction = plugin.getFactionCache().getByMember(defender);
+        boolean truce = false;
+        if (wc.getWarTogether(aFaction, dFaction) != null) {
+            truce = wc.getWarTogether(aFaction, dFaction).getTruce();
+        }
+
         Faction rFaction = region != null ? region.getOwner() : null;
         double shield = config.getTerritoryShield();
-        if (aFaction != null && aFaction.getRelation(dFaction).isProtected()) {
+        if (region !=null && region.getOccupant() != null) {
+            Faction occupant = region.getOccupant();
+            if (occupant == aFaction) {
+                return;
+            }
+        }
+        if (aFaction != null && aFaction.getRelation(dFaction).isProtected() || truce) {
             ParsingUtil.sendActionBarMessage(attacker, FMessage.PROTECTION_CANNOT_ATTACK_PLAYER.getMessage(), dFaction);
             event.setCancelled(true);
         } else if (rFaction != null && rFaction.getRelation(dFaction).isProtected() && (aFaction == null || !aFaction.isInWar(dFaction))) {
-            if (config.isTerritoryProtectionEnabled() && (!config.isCapitalProtectionEnabled()
-                    || rFaction.getCapital().equals(plugin.getBoard().getByLocation(eDefender.getLocation())))) {
+            if (config.isTerritoryProtectionEnabled() || (config.isCapitalProtectionEnabled()
+                    && rFaction.getCapital().equals(plugin.getBoard().getByLocation(eDefender.getLocation())))) {
                 ParsingUtil.sendActionBarMessage(attacker, (config.isCapitalProtectionEnabled() ? FMessage.PROTECTION_CANNOT_ATTACK_CAPITAL
                         : FMessage.PROTECTION_CANNOT_ATTACK_FACTION).getMessage(), rFaction);
                 event.setCancelled(true);
@@ -192,10 +200,17 @@ public class EntityProtectionListener implements Listener {
             return;
         }
 
+
         Faction aFaction = plugin.getFactionCache().getByMember(attacker);
         Faction owner = region.getOwner();
+        if ( region.getOccupant() != null) {
+            Faction occupant = region.getOccupant();
+            if (occupant == aFaction) {
+                return;
+            }
+        }
         Relation rel = owner.getRelation(aFaction);
-        if (!rel.canBuild()) {
+        if (!rel.canBuild() || (rel == Relation.ENEMY && !region.isAttacked() && !(damaged instanceof Player)) ) {
             event.setCancelled(true);
             FMessage message = FMessage.PROTECTION_CANNOT_BUILD_FACTION;
             switch (action) {
@@ -230,13 +245,35 @@ public class EntityProtectionListener implements Listener {
     public static Player getDamageSource(Entity damager) {
         if (damager instanceof Player) {
             return (Player) damager;
-        } else if (damager instanceof Arrow) {
-            ProjectileSource shooter = ((Arrow) damager).getShooter();
+        } else if (damager instanceof Projectile) {
+            ProjectileSource shooter = ((Projectile) damager).getShooter();
             if (shooter instanceof Player) {
                 return (Player) shooter;
             }
         }
         return null;
     }
+
+    public static Player getDamageSource(Entity damager, Entity damaged) {
+        FactionsXL plugin = FactionsXL.getInstance();
+        if (damaged instanceof Player && damager instanceof Player) {
+            if (damaged.getLastDamageCause() != null) {
+                EntityDamageEvent.DamageCause cause = damaged.getLastDamageCause().getCause();
+                if (cause.equals(EntityDamageEvent.DamageCause.FIRE_TICK) || cause.equals(EntityDamageEvent.DamageCause.POISON)) {
+                    List<Player> lastDamagers = plugin.getFPlayerCache().getByPlayer((Player) damaged).getLastDamagers();
+                    if (lastDamagers.isEmpty()) {
+                        return null;
+                    }
+                    if (lastDamagers.size() <= 1) {
+                        return lastDamagers.get(0);
+                    }
+                    return lastDamagers.get(lastDamagers.size() - 1);
+                }
+            }
+            return getDamageSource(damager);
+        }
+        return getDamageSource(damager);
+    }
+
 
 }

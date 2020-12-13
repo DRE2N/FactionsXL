@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,13 @@
  */
 package de.erethon.factionsxl.command;
 
-import static de.erethon.commons.chat.FatLetter.*;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.player.FPermission;
 import org.bukkit.command.CommandSender;
+
+import static de.erethon.commons.chat.FatLetter.*;
 
 /**
  * @author Daniel Saukel
@@ -47,7 +48,7 @@ public class MainCommand extends FCommand {
         MessageUtil.sendCenteredMessage(sender, "&4" + F[4] + "&f" + X[4] + L[4]);
         MessageUtil.sendCenteredMessage(sender, "&b&l######## " + FMessage.CMD_MAIN_WELCOME.getMessage() + " &av" + plugin.getDescription().getVersion() + " &b&l########");
         MessageUtil.sendCenteredMessage(sender, FMessage.CMD_MAIN_HELP.getMessage());
-        MessageUtil.sendCenteredMessage(sender, "&7\u00a92017-2019 Daniel Saukel; licensed under GPLv3.");
+        MessageUtil.sendCenteredMessage(sender, "&7\u00a92017-2020 Daniel Saukel, Malfrador; licensed under GPLv3.");
     }
 
 }

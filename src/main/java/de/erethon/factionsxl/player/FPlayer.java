@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.player;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.player.PlayerCollection;
 import de.erethon.commons.player.PlayerUtil;
 import de.erethon.commons.player.PlayerWrapper;
@@ -28,12 +29,18 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.Request;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import de.erethon.factionsxl.war.WarParty;
+import de.erethon.factionsxl.war.demand.WarDemand;
+import de.erethon.factionsxl.war.peaceoffer.PeaceOffer;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents a player.
@@ -50,6 +57,9 @@ public class FPlayer implements FEntity, PlayerWrapper {
     private ChatChannel chatChannel = ChatChannel.PUBLIC;
     private Region autoclaiming;
     private Region lastRegion;
+    private PeaceOffer peaceOffer;
+    private double lastPlayed;
+    private List<Player> lastDamagers = new CopyOnWriteArrayList<>();
 
     private FPlayerData data;
 
@@ -85,6 +95,7 @@ public class FPlayer implements FEntity, PlayerWrapper {
         return player;
     }
 
+
     /**
      * @return
      * the player
@@ -107,7 +118,7 @@ public class FPlayer implements FEntity, PlayerWrapper {
     }
 
     /**
-     * @param the faction to check
+     * @param faction to check
      * @return
      * if the player is faction mod
      */
@@ -299,6 +310,10 @@ public class FPlayer implements FEntity, PlayerWrapper {
         return own != null ? own.isInWar(object) : false;
     }
 
+    public boolean isInWarParty(WarParty party) {
+        return getFaction().getWarParties().contains(party);
+    }
+
     public Location getHome() {
         return data.getHome();
     }
@@ -318,6 +333,9 @@ public class FPlayer implements FEntity, PlayerWrapper {
         Region region = plugin.getBoard().getByLocation(home);
         if (region == null || region.getOwner() == null) {
             return true;
+        }
+        if (region.getOwner().getRelation(this) == Relation.ENEMY) {
+            return false;
         }
         if (!region.getOwner().getRelation(this).canBuild()) {
             return false;
@@ -377,6 +395,50 @@ public class FPlayer implements FEntity, PlayerWrapper {
      */
     public void setLastRegion(Region region) {
         lastRegion = region;
+    }
+    
+    /**
+     * @return
+     * the cached PeaceOffer
+     */
+    public PeaceOffer getPeaceOffer() {
+        return peaceOffer;
+    }
+
+    /**
+     * Sets the PeaceOffer the player is creating
+     *
+     * @param peaceOffer the PeaceOffer
+     */
+    public void setPeaceOffer(PeaceOffer peaceOffer) {
+        this.peaceOffer = peaceOffer;
+    }
+
+    /**
+     * Sends a list of the player's war demands to them
+     */
+    public void listWarDemands() {
+        listWarDemands(peaceOffer.getDemands());
+    }
+
+    /**
+     * Sends a list of war demands to them
+     *
+     * @param demands
+     * the WarDemands to send
+     */
+    public void listWarDemands(Collection<WarDemand> demands) {
+        MessageUtil.sendMessage(player, FMessage.WAR_DEMAND_LIST.getMessage());
+        if (demands.isEmpty()) {
+            MessageUtil.sendMessage(player, FMessage.MISC_NONE.getMessage());
+        }
+        for (WarDemand demand : demands) {
+            MessageUtil.sendMessage(player, "&8 - " + demand.toString());
+        }
+    }
+
+    public List<Player> getLastDamagers() {
+        return lastDamagers;
     }
 
     @Override

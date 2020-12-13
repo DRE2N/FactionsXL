@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,24 +22,22 @@ import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.ProgressBar;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.RegionType;
-import static de.erethon.factionsxl.board.RegionType.*;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
-import static de.erethon.factionsxl.board.dynmap.DynmapStyle.DEFAULT_STYLE;
 import de.erethon.factionsxl.chat.ChatChannel;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.entity.Relation;
-import static de.erethon.factionsxl.entity.Relation.*;
-import static de.erethon.factionsxl.util.ParsingUtil.*;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
+
+import java.io.File;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static de.erethon.factionsxl.board.RegionType.*;
+import static de.erethon.factionsxl.board.dynmap.DynmapStyle.DEFAULT_STYLE;
+import static de.erethon.factionsxl.entity.Relation.*;
+import static de.erethon.factionsxl.util.ParsingUtil.*;
 
 /**
  * Represents the main config.yml.
@@ -51,6 +49,7 @@ public class FConfig extends DREConfig {
 
     public static final int CONFIG_VERSION = 15;
 
+    // Time in TICKS
     public static final long SECOND = 20;
     public static final long MINUTE = SECOND * 60;
     public static final long HOUR = MINUTE * 60;
@@ -61,12 +60,15 @@ public class FConfig extends DREConfig {
     public static final String SCOREBOARD_VALUE_PREFIX = "&7 ";
     public static final String VS = "&f : &c";
 
+    // General
+    private boolean sendPowerUpdate = true;
     private String language = "english";
     private double autoSaveInterval = 10;
     private double dayLength = 24;
     private int maxIdeaGroups = 2;
     private int moveCapitalCooldown = 30;
     private List<String> excludedWorlds = new ArrayList<>();
+    private List<String> forbiddenNames = new ArrayList<>();
 
     // Consume
     private double defaultManpowerModifier = 1;
@@ -93,6 +95,7 @@ public class FConfig extends DREConfig {
     private double priceClaimBase = 100;
     private double priceClaimPerChunk = 10;
     private double priceClaimIncrease = 100;
+    private double priceCoreMultiplier = 10;
     private double importModifier = 2;
     private double exportModifier = 0.5;
     private int requiredResourceUnitsPer1000Persons = 10;
@@ -105,16 +108,30 @@ public class FConfig extends DREConfig {
     private String chatFormatAlly = "&d[" + RELATION_COLOR + FACTION_TAG + "&d] " + RELATION_COLOR + PLAYER_PREFIX + "&d" + PLAYER_NAME + ": ";
     private String chatFormatCoalition = "&c[" + RELATION_COLOR + FACTION_TAG + "&c] " + RELATION_COLOR + PLAYER_PREFIX + "&c" + PLAYER_NAME + ": ";
     private String chatFormatFaction = RELATION_COLOR.getPlaceholder() + PLAYER_PREFIX + "&a" + PLAYER_TITLE + " " + PLAYER_NAME + ": ";
+    private String chatFormatRoleplay = "&8[&6RP&8]" + PLAYER_DYNASTY + "&8: &7";
 
     // Protection
     private boolean lwcEnabled = true;
     private boolean wildernessProtected = true;
 
-    // PvP
+    // PvP / War
     private boolean territoryProtectionEnabled = true;
     private double territoryShield = 0.66;
     private boolean capitalProtectionEnabled = false;
-    private double warExplosionRestorationTime = 7.5;
+    private double warExplosionTNTRestorationTime = 1.0;
+    private double warExplosionSiegeRestorationTime = 7.5;
+    private double influenceNeeded = 10;
+    private long cbLiberationExp = 60;
+    private long truceTime = 24;
+    private int maximumKillPoints = 50;
+    private int influenceFromKill = 2;
+    private double exhaustionPerCycle = 0.001;
+    private double exhaustionWhenLoosing = 0.002;
+    private boolean onlyDemandOccupied = true;
+    private boolean forceWarGoalsForAllWinners = false;
+    private boolean forceWarGoalsForAllDefenders = false;
+    private boolean defenderRaidBounty = false;
+    private boolean powerGainInWar = true;
 
     // Power etc.
     private int maxPower = 100;
@@ -124,6 +141,14 @@ public class FConfig extends DREConfig {
     private double powerDecreaseRate = 0.01;
     private double powerDeathLoss = 25;
     private int autoKickDays = 30;
+    private double influencePerDay = 5;
+    private double coringPerDay = 5;
+    public double claimTimeout = 7;
+    public int stabilityIndependence = -20;
+    public int stabilityIndependenceVassal = 0;
+    public int stabilityRegionSizeExempt = 10;
+    public double stabilityMemberPowerModifier = 2.0;
+    public double powerPerRegion = 100.00;
 
     // Holograms
     private boolean hologramsEnabled = true;
@@ -298,6 +323,38 @@ public class FConfig extends DREConfig {
 
     /**
      * @return
+     * the influence a faction looses per region per day
+     */
+    public double getInfluencePerDay() {
+        return influencePerDay;
+    }
+
+    public double getInfluenceNeeded() {
+        return influenceNeeded;
+    }
+
+    public int getInfluenceFromKill() {
+        return influenceFromKill;
+    }
+
+    /**
+     * @return
+     * the coring progress (to 100) that is made per day
+     */
+    public double getCoringPerDay() {
+        return coringPerDay;
+    }
+
+    /**
+     * @return
+     * the time in days until a claim runs out
+     */
+    public long getClaimTimeout() {
+        return (long) (claimTimeout * 86400000 );
+    }
+
+    /**
+     * @return
      * true if economy features are enabled;
      * false if not or if Vault is not installed
      */
@@ -371,6 +428,10 @@ public class FConfig extends DREConfig {
         return priceClaimIncrease;
     }
 
+    public double getPriceCoreMultiplier() {
+        return priceCoreMultiplier;
+    }
+
     /**
      * @return
      * the value modifier for importing goods
@@ -429,6 +490,8 @@ public class FConfig extends DREConfig {
                 return chatFormatLocal;
             case PUBLIC:
                 return chatFormatPublic;
+            case ROLEPLAY:
+                return chatFormatRoleplay;
             default:
                 return null;
         }
@@ -475,6 +538,29 @@ public class FConfig extends DREConfig {
 
     /**
      * @return
+     * a List of regex faction names that are not allowed in tags and long tags.
+     */
+    public List<String> getForbiddenNames() {
+        return forbiddenNames;
+    }
+
+    /**
+     * @param s
+     * the name to check
+     * @return
+     * if this string matches a string in the list of forbidden faction names
+     */
+    public boolean isNameForbidden(String s) {
+        for (String regex : forbiddenNames) {
+            if (s.matches(regex)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return
      * if players shall be protected in their territory
      */
     public boolean isTerritoryProtectionEnabled() {
@@ -501,8 +587,40 @@ public class FConfig extends DREConfig {
      * @return
      * the time until one block gets restored after being destroyed by TNT in war
      */
-    public long getWarExplosionRestorationTime() {
-        return (long) (warExplosionRestorationTime * SECOND);
+    public long getWarExplosionTNTRestorationTime() {
+        return (long) (warExplosionTNTRestorationTime * SECOND);
+    }
+
+    /**
+     * @return
+     * the time until one block gets restored after being destroyed by Siege in war
+     */
+    public long getWarExplosionSiegeRestorationTime() {
+        return (long) (warExplosionSiegeRestorationTime * SECOND);
+    }
+
+    /**
+     * @return
+     * the time in days until the CB liberation runs out
+     */
+    public long getCBLiberationExp() {
+        return cbLiberationExp;
+    }
+
+    /**
+     * @return
+     * the time in hours until truce stops
+     */
+    public long getTruceTime() {
+        return truceTime * 3600000;
+    }
+
+    /**
+     * @return
+     * how many points your WarParty can get from kills
+     */
+    public int getMaximumKillPoints() {
+        return maximumKillPoints;
     }
 
     /**
@@ -560,6 +678,105 @@ public class FConfig extends DREConfig {
     public long getAutoKickTime() {
         return (long) autoKickDays * 86400000;
     }
+
+    /**
+     * @return
+     * stability needed to declare independence
+     */
+    public int getStabilityIndependence() {
+        return stabilityIndependence;
+    }
+
+    /**
+     * @return
+     * stability calculation exemption for region size
+     */
+    public int getStabilityRegionExempt() {
+        return stabilityRegionSizeExempt;
+    }
+
+    /**
+     * @return
+     * stability calculation modifier for region size
+     */
+    public double getStabilityMemberPowerModifier() {
+        return stabilityMemberPowerModifier;
+    }
+
+    /**
+     * @return
+     * power need per region
+     */
+    public double getPowerPerRegion() {
+        return powerPerRegion;
+    }
+
+    /**
+     * @return
+     * war exhaustion per cycle
+     */
+    public double getExhaustion() {
+        return exhaustionPerCycle;
+    }
+
+    /**
+     * @return
+     * war exhaustion per cycle when loosing the war
+     */
+    public double getExhaustionLoosing() {
+        return exhaustionWhenLoosing;
+    }
+
+    /**
+     * @return
+     * stability needed to declare independence for vassals
+     */
+    public int getStabilityIndependenceVassal() {
+        return stabilityIndependenceVassal;
+    }
+
+    /**
+     * @return
+     * if its only possible to demand already occupied regions
+     */
+    public boolean isOnlyDemandOccupied() {
+        return onlyDemandOccupied;
+    }
+
+    /**
+     * @return
+     * if all allies should get their war goals
+     */
+    public boolean isForceWarGoalsForAllWinners() {
+        return forceWarGoalsForAllWinners;
+    }
+
+    /**
+     * @return
+     * if all allies should get their war goals
+     */
+    public boolean isDefenderRaidBounty() {
+        return defenderRaidBounty;
+    }
+
+    /**
+     * @return
+     * same but for winning as a defender
+     */
+    public boolean isForceWarGoalsForAllDefenders() {
+        return forceWarGoalsForAllDefenders;
+    }
+
+    /**
+     * @return
+     * if killing in war should give you power back
+     */
+    public boolean isPowerGainInWar() {
+        return powerGainInWar;
+    }
+
+
+
 
     /**
      * @return
@@ -774,12 +991,76 @@ public class FConfig extends DREConfig {
             config.set("excludedWorlds", excludedWorlds);
         }
 
+        if (!config.contains("forbiddenNames")) {
+            config.set("forbiddenNames", forbiddenNames);
+        }
+
         if (!config.contains("defaultManpowerModifier")) {
             config.set("defaultManpowerModifier", defaultManpowerModifier);
         }
 
         if (!config.contains("saturationPerDay")) {
             config.set("saturationPerDay", saturationPerDay);
+        }
+
+        if (!config.contains("war.influencePerDay")) {
+            config.set("war.influencePerDay", influencePerDay);
+        }
+
+        if (!config.contains("war.minimumStability")) {
+            config.set("war.minimumStability", stabilityIndependence);
+        }
+
+        if (!config.contains("war.minimumStabilityVassal")) {
+            config.set("war.minimumStabilityVassal", stabilityIndependenceVassal);
+        }
+
+        if (!config.contains("war.influenceFromKill")) {
+            config.set("war.influenceFromKill", influenceFromKill);
+        }
+
+        if (!config.contains("war.influenceNeededForOccupy")) {
+            config.set("war.influenceNeededForOccupy", influenceNeeded);
+        }
+
+        if (!config.contains("war.exhaustionPerCycle")) {
+            config.set("war.exhaustionPerCycle", exhaustionPerCycle);
+        }
+
+        if (!config.contains("war.exhaustionWhenLoosing")) {
+            config.set("war.exhaustionWhenLoosing", exhaustionWhenLoosing);
+        }
+
+        if (!config.contains("coringPerDay")) {
+            config.set("coringPerDay", coringPerDay);
+        }
+
+        if (!config.contains("war.truceTime")) {
+            config.set("war.truceTime", truceTime);
+        }
+
+        if (!config.contains("war.occupyNeededForDemand")) {
+            config.set("war.occupyNeededForDemand", onlyDemandOccupied);
+        }
+
+        if (!config.contains("war.maxKillPoints")) {
+            config.set("war.maxKillPoints", maximumKillPoints);
+        }
+
+        if (!config.contains("war.forceWarGoalsForAllWinners")) {
+            config.set("war.forceWarGoalsForAllWinners", forceWarGoalsForAllWinners);
+        }
+
+        if (!config.contains("war.forceWarGoalsForAllDefenders")) {
+            config.set("war.forceWarGoalsForAllDefenders", forceWarGoalsForAllDefenders);
+        }
+
+        if (!config.contains("war.defenderRaidBounty")) {
+            config.set("war.defenderRaidBounty", defenderRaidBounty);
+        }
+
+        if (!config.contains("claimTimeout")) {
+            config.set("claimTimeout", claimTimeout);
         }
 
         if (!config.contains("economyEnabled")) {
@@ -819,6 +1100,10 @@ public class FConfig extends DREConfig {
 
         if (!config.contains("price.claim.increase")) {
             config.set("price.claim.increase", priceClaimIncrease);
+        }
+
+        if (!config.contains("price.coreMultiplier")) {
+            config.set("price.coreMultiplier", priceCoreMultiplier);
         }
 
         if (!config.contains("importModifier")) {
@@ -877,8 +1162,32 @@ public class FConfig extends DREConfig {
             config.set("capitalProtectionEnabled", capitalProtectionEnabled);
         }
 
-        if (!config.contains("warExplosionRestorationTime")) {
-            config.set("warExplosionRestorationTime", warExplosionRestorationTime);
+        if (!config.contains("war.warExplosionTNTRestorationTime")) {
+            config.set("war.warExplosionTNTRestorationTime", warExplosionTNTRestorationTime);
+        }
+
+        if (!config.contains("war.warExplosionSiegeRestorationTime")) {
+            config.set("war.warExplosionSiegeRestorationTime", warExplosionSiegeRestorationTime);
+        }
+
+        if (!config.contains("war.casusBelli.liberation")) {
+            config.set("war.casusBelli.liberation", cbLiberationExp);
+        }
+
+        if (!config.contains("war.powerGain")) {
+            config.set("war.powerGain", powerGainInWar);
+        }
+
+        if (!config.contains("stabilityRegionSizeModifier")) {
+            config.set("stabilityRegionSizeModifier", getStabilityRegionExempt());
+        }
+
+        if (!config.contains("stabilityMemberPowerModifier")) {
+            config.set("stabilityMemberPowerModifier", stabilityMemberPowerModifier);
+        }
+
+        if (!config.contains("powerNeededPerRegion")) {
+            config.set("powerNeededPerRegion", powerPerRegion);
         }
 
         if (!config.contains("maxPower")) {
@@ -1035,6 +1344,10 @@ public class FConfig extends DREConfig {
             excludedWorlds = config.getStringList("excludedWorlds");
         }
 
+        if (config.contains("forbiddenNames")) {
+            forbiddenNames = config.getStringList("forbiddenNames");
+        }
+
         if (config.contains("defaultManpowerModifier")) {
             defaultManpowerModifier = config.getDouble("defaultManpowerModifier");
         }
@@ -1079,6 +1392,10 @@ public class FConfig extends DREConfig {
 
         if (config.contains("price.claim.increase")) {
             priceClaimIncrease = config.getDouble("price.claim.increase");
+        }
+
+        if (config.contains("price.coreMultiplier")) {
+            priceCoreMultiplier = config.getDouble("price.coreMultiplier");
         }
 
         if (config.contains("importModifier")) {
@@ -1137,8 +1454,72 @@ public class FConfig extends DREConfig {
             capitalProtectionEnabled = config.getBoolean("capitalProtectionEnabled");
         }
 
-        if (config.contains("warExplosionRestorationTime")) {
-            warExplosionRestorationTime = config.getDouble("warExplosionRestorationTime");
+        if (config.contains("war.warExplosionTNTRestorationTime")) {
+            warExplosionTNTRestorationTime = config.getDouble("war.warExplosionTNTRestorationTime");
+        }
+
+        if (config.contains("war.warExplosionSiegeRestorationTime")) {
+            warExplosionSiegeRestorationTime = config.getDouble("war.warExplosionSiegeRestorationTime");
+        }
+
+        if (config.contains("war.casusBelli.liberation")) {
+            cbLiberationExp = config.getLong("war.casusBelli.liberation");
+        }
+
+        if (config.contains("war.maxKillPoints")) {
+            maximumKillPoints = config.getInt("war.maxKillPoints");
+        }
+
+        if (config.contains("war.minimumStability")) {
+            stabilityIndependence = config.getInt("war.minimumStability");
+        }
+
+        if (config.contains("war.minimumStabilityVassal")) {
+            stabilityIndependenceVassal = config.getInt("war.minimumStabilityVassal");
+        }
+
+        if (config.contains("war.influenceFromKill")) {
+            influenceFromKill = config.getInt("war.influenceFromKill");
+        }
+
+        if (config.contains("war.exhaustionPerCycle")) {
+            exhaustionPerCycle = config.getDouble("war.exhaustionPerCycle");
+        }
+
+        if (config.contains("war.exhaustionWhenLoosing")) {
+            exhaustionWhenLoosing = config.getDouble("war.exhaustionWhenLoosing");
+        }
+
+        if (config.contains("war.occupyNeededForDemand")) {
+            onlyDemandOccupied = config.getBoolean("war.occupyNeededForDemand");
+        }
+
+        if (config.contains("war.forceWarGoalsForAllWinners")) {
+            forceWarGoalsForAllWinners = config.getBoolean("war.forceWarGoalsForAllWinners");
+        }
+
+        if (config.contains("war.forceWarGoalsForAllDefenders")) {
+            forceWarGoalsForAllDefenders = config.getBoolean("war.forceWarGoalsForAllDefenders");
+        }
+
+        if (config.contains("war.defenderRaidBounty")) {
+            defenderRaidBounty = config.getBoolean("war.defenderRaidBounty");
+        }
+
+        if (config.contains("war.powerGain")) {
+            powerGainInWar = config.getBoolean("war.powerGain");
+        }
+
+        if (config.contains("stabilityRegionSizeModifier")) {
+            stabilityRegionSizeExempt = config.getInt("stabilityRegionSizeModifier");
+        }
+
+        if (config.contains("stabilityMemberPowerModifier")) {
+            stabilityMemberPowerModifier = config.getDouble("stabilityMemberPowerModifier");
+        }
+
+        if (config.contains("powerNeededPerRegion")) {
+            powerPerRegion = config.getDouble("powerNeededPerRegion");
         }
 
         if (config.contains("maxPower")) {
@@ -1163,6 +1544,26 @@ public class FConfig extends DREConfig {
 
         if (config.contains("powerDeathLoss")) {
             powerDeathLoss = config.getDouble("powerDeathLoss");
+        }
+
+        if (config.contains("influencePerDay")) {
+            influencePerDay = config.getDouble("influencePerDay");
+        }
+
+        if (config.contains("war.influenceNeededForOccupy")) {
+            influenceNeeded = config.getDouble("war.influenceNeededForOccupy");
+        }
+
+        if (config.contains("war.truceTime")) {
+            truceTime = config.getLong("war.truceTime");
+        }
+
+        if (config.contains("claimTimeout")) {
+            claimTimeout = config.getDouble("claimTimeout");
+        }
+
+        if (config.contains("coringPerDay")) {
+            coringPerDay = config.getDouble("coringPerDay");
         }
 
         if (config.contains("autoKickDays")) {

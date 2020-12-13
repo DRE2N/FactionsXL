@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,12 @@ import de.erethon.commons.config.DREConfig;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Request;
+import org.bukkit.Location;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.Location;
 
 /**
  * @author Daniel Saukel
@@ -39,11 +40,21 @@ public class FPlayerData extends DREConfig {
     private String lastName;
     private String title;
     private long timeLastPlayed;
+    private long lastJoinedFaction;
+    private long timeLastLogout;
     private double powerBase;
     private boolean scoreboardEnabled = plugin.getFConfig().isScoreboardEnabledByDefault();
     private boolean anthemsEnabled = true;
     private Location home;
     private List<Request> requests;
+    private boolean isPublic = true;
+    private boolean isSpying = false;
+
+    // Stats
+    private int kills = 0;
+    private int deaths = 0;
+    private int factionsCreated = 0;
+    private double moneyDeposited = 0.00;
 
     public FPlayerData(File file) {
         super(file, CONFIG_VERSION);
@@ -62,6 +73,10 @@ public class FPlayerData extends DREConfig {
     public String getLastName() {
         return lastName;
     }
+
+    public long getLastJoinedFaction() { return lastJoinedFaction; }
+
+    public void setLastJoinedFaction(long time) { lastJoinedFaction = time; }
 
     /**
      * @param name
@@ -101,6 +116,22 @@ public class FPlayerData extends DREConfig {
      */
     public void setTimeLastPlayed(long time) {
         timeLastPlayed = time;
+    }
+
+    /**
+     * @return
+     * the last time when the player played
+     */
+    public long getTimeLastLogout() {
+        return timeLastLogout;
+    }
+
+    /**
+     * @param time
+     * the last time when the player played to set
+     */
+    public void setTimeLastLogout(long time) {
+        timeLastLogout = time;
     }
 
     /**
@@ -159,6 +190,22 @@ public class FPlayerData extends DREConfig {
         home = location;
     }
 
+    public boolean getPublicChat() {
+        return isPublic;
+    }
+
+    public void setPublicChat(boolean enabled) {
+        isPublic = enabled;
+    }
+
+    public boolean getChatSpy() {
+        return isSpying;
+    }
+
+    public void setChatSpy(boolean enabled) {
+        isSpying = enabled;
+    }
+
     /**
      * @return
      * the requests this player has
@@ -167,9 +214,30 @@ public class FPlayerData extends DREConfig {
         return requests;
     }
 
+    // Stats
+
+    public void addKill() {
+        kills++;
+    }
+    public int getKills() {return kills;}
+
+    public void addDeath() {
+        deaths++;
+    }
+    public int getDeaths() {return deaths;}
+
+    public void addCreated() {factionsCreated++;}
+    public int getFactionsCreated() {return factionsCreated;}
+
+    public void addMoney(double amount ) {moneyDeposited = moneyDeposited + amount;}
+    public double getMoneyDeposited() {return moneyDeposited;}
+
+
+
     /* Serialization */
     @Override
     public void initialize() {
+        this.timeLastPlayed = System.currentTimeMillis();
         MessageUtil.log(plugin, FMessage.LOG_NEW_PLAYER_DATA.getMessage(file.getName()));
         save();
     }
@@ -183,10 +251,28 @@ public class FPlayerData extends DREConfig {
         if (config.contains("timeLastPlayed")) {
             timeLastPlayed = config.getLong("timeLastPlayed");
         }
+        if (config.contains("timeLastJoinedFaction")) {
+            lastJoinedFaction = config.getLong("timeLastJoinedFaction");
+        }
+        if (config.contains("timeLastLogout")) {
+            timeLastLogout = config.getLong("timeLastLogout");
+        }
         scoreboardEnabled = config.getBoolean("scoreboardEnabled", scoreboardEnabled);
         anthemsEnabled = config.getBoolean("anthemsEnabled", anthemsEnabled);
         home = (Location) config.get("home");
         requests = (List<Request>) config.getList("requests", new ArrayList<>());
+        if (config.contains("isPublic")) {
+            isPublic = config.getBoolean("publicChat");
+        }
+        if (config.contains("chatSpy")) {
+            isSpying = config.getBoolean("chatSpy");
+        }
+        if (config.contains("stats.")) {
+            kills = config.getInt("stats.kills", kills);
+            deaths = config.getInt("stats.deaths", deaths);
+            factionsCreated = config.getInt("stats.createdFactions", factionsCreated);
+            moneyDeposited = config.getDouble("stats.moneyDeposited", moneyDeposited);
+        }
         FactionsXL.debug("Loaded " + this);
     }
 
@@ -195,10 +281,20 @@ public class FPlayerData extends DREConfig {
         config.set("lastName", lastName);
         config.set("title", title);
         config.set("timeLastPlayed", timeLastPlayed);
+        config.set("timeLastJoinedFaction", lastJoinedFaction);
+        config.set("timeLastLogout", timeLastLogout);
         config.set("scoreboardEnabled", scoreboardEnabled);
         config.set("anthemsEnabled", anthemsEnabled);
         config.set("home", home);
         config.set("requests", requests);
+        config.set("publicChat", isPublic);
+        config.set("chatSpy", isSpying);
+
+        // Stats
+        config.set("stats.kills", kills);
+        config.set("stats.deaths", deaths);
+        config.set("stats.createdFactions", factionsCreated);
+        config.set("stats.moneyDeposited", moneyDeposited);
         try {
             config.save(file);
         } catch (IOException exception) {

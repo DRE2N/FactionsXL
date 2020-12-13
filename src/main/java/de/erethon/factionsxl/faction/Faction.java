@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,14 +26,10 @@ import de.erethon.commons.player.PlayerCollection;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
+import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.economy.EconomyMenu;
-import de.erethon.factionsxl.economy.FAccount;
-import de.erethon.factionsxl.economy.FStorage;
-import de.erethon.factionsxl.economy.Resource;
-import de.erethon.factionsxl.economy.ResourceSubcategory;
-import de.erethon.factionsxl.economy.TradeMenu;
+import de.erethon.factionsxl.economy.*;
 import de.erethon.factionsxl.entity.FEntity;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.Request;
@@ -50,26 +46,12 @@ import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.CasusBelli;
 import de.erethon.factionsxl.war.War;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
+import de.erethon.factionsxl.war.WarParty;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -78,6 +60,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static java.lang.Math.round;
 
 /**
  * Represents a faction.
@@ -97,16 +86,19 @@ public class Faction extends LegalEntity {
     String mapIcon = "redflag";
     DynmapStyle dynmapStyle;
     boolean mapVisibility = true;
+    boolean invincible = false;
     GovernmentType type;
     boolean open;
     double prestige;
-    int stability;
+    int stabilityBase;
     double exhaustion;
     double manpowerModifier;
     Location home;
     Hologram homeHolo;
     Region capital;
     long timeLastCapitalMove;
+    long timeLastPeace;
+    int scoreLastPeace;
     Set<LazyChunk> chunks = new HashSet<>();
     Set<Region> regions = new HashSet<>();
     PlayerCollection formerAdmins = new PlayerCollection();
@@ -121,10 +113,12 @@ public class Faction extends LegalEntity {
     Map<Resource, Integer> consumableResources = new HashMap<>();
     Map<Resource, Integer> saturatedResources = new HashMap<>();
     Map<ResourceSubcategory, Integer> saturatedSubcategories = new HashMap<>();
+    Set<StatusEffect> effects = new HashSet<>();
     PopulationMenu populationMenu;
     IdeaMenu ideaMenu;
     Set<IdeaGroup> ideaGroups = new HashSet<>();
     Set<Idea> ideas = new HashSet<>();
+    Set<BuildSite> buildings = new HashSet<>();
     Set<CasusBelli> casusBelli = new HashSet<>();
     Set<War> callsToArms = new HashSet<>();
     boolean allod = true;
@@ -248,6 +242,30 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
+     * if this faction can be attacked
+     */
+    public boolean isInvincible() {
+        return invincible;
+    }
+
+    public long getTimeLastPeace() {
+        return timeLastPeace;
+    }
+
+    public void setTimeLastPeace(long timeLastPeace) {
+        this.timeLastPeace = timeLastPeace;
+    }
+
+    public int getScoreLastPeace() {
+        return scoreLastPeace;
+    }
+
+    public void setScoreLastPeace(int scoreLastPeace) {
+        this.scoreLastPeace = scoreLastPeace;
+    }
+
+    /**
+     * @return
      * the type of the government
      */
     public GovernmentType getGovernmentType() {
@@ -299,14 +317,14 @@ public class Faction extends LegalEntity {
      * the power of all players
      */
     public int getPower() {
-        Double power = 0D;
+        double power = 0D;
         for (UUID member : members.getUniqueIds()) {
             Double d = plugin.getFData().power.get(member);
             if (d != null) {
                 power += d;
             }
         }
-        return power.intValue();
+        return (int) power;
     }
 
     /**
@@ -314,18 +332,23 @@ public class Faction extends LegalEntity {
      * the stability value
      */
     public int getStability() {
-        int i = (int) Math.round(stability - exhaustion * exhaustion) - (regions.size() - 1 * regions.size() - 1) / 2;
+        int base = 50;
+        int exhaustionExponent = 1;
+        int sizeExponent = 1;
+        int sizeExemptAmount = fConfig.getStabilityRegionExempt();
+        double powerPerRegion = fConfig.getPowerPerRegion();
+        double powerRegionRatio = getPower() / (regions.size() * powerPerRegion);
+        double warExhaustion = Math.pow((-1 * exhaustion) * exhaustion, exhaustionExponent);
+        double factionSize = Math.pow((-1 * (regions.size() - sizeExemptAmount)), sizeExponent);
+        double power = getPower() / (regions.size() * powerPerRegion) * powerRegionRatio;
+        int i = base + (int) round(warExhaustion + factionSize + power);
+
         if (!members.contains(admin)) {
             i = i - 25;
         }
-        if (getPower() > chunks.size()) {
-            i += 10;
-        } else if (getPower() < chunks.size()) {
-            i -= 10;
-        }
-        for (ResourceSubcategory category : ResourceSubcategory.values()) {
+        /*for (ResourceSubcategory category : ResourceSubcategory.values()) {
             i += isSubcategorySaturated(category).getStabilityBonus();
-        }
+        }*/
         return i;
     }
 
@@ -334,29 +357,31 @@ public class Faction extends LegalEntity {
      * the stability value with all modifiers as hover texts
      */
     public BaseComponent[] getStabilityModifiers(ChatColor c) {
+        int base = 50;
+        int exhaustionExponent = 1;
+        int sizeExponent = 1;
+        int sizeExemptAmount = fConfig.getStabilityRegionExempt();
+        double powerPerRegion = fConfig.getPowerPerRegion();
+        double powerRegionRatio = getPower() / (regions.size() * powerPerRegion);
+        double warExhaustion = Math.pow((-1 * exhaustion) * exhaustion, exhaustionExponent);
+        double factionSize = Math.pow((-1 * (regions.size() - sizeExemptAmount)), sizeExponent);
+        double pow = getPower() / (regions.size() * powerPerRegion) * powerRegionRatio;
         String stability = FMessage.CMD_SHOW_STABILITY.getMessage() + c + getStability();
-        String base = FMessage.CMD_SHOW_STABILITY_MOD_BASE.getMessage() + color(this.stability) + "\n";
-        String exhaustion = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_EXHAUSTION.getMessage() + color((int) (this.exhaustion * this.exhaustion)) + "\n";
-        String size = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_PROVINCES.getMessage() + color((regions.size() - 1 * regions.size() - 1) / 2) + "\n";
+        String b = FMessage.CMD_SHOW_STABILITY_MOD_BASE.getMessage() + color(base) + "\n";
+        String exhaustion = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_EXHAUSTION.getMessage() + color((int) Math.round(warExhaustion)) + "\n";
+        String size = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_PROVINCES.getMessage() + color((int) Math.round(factionSize)) + "\n";
         String adminNotMember = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_ABSENT_MONARCH.getMessage() + color(members.contains(admin) ? 0 : -25) + "\n";
         String power = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_POWER.getMessage();
-        if (getPower() > chunks.size()) {
-            power += ChatColor.GREEN + "+10";
-        } else if (getPower() < chunks.size()) {
-            power += ChatColor.DARK_RED + "-10";
-        } else {
-            power += ChatColor.YELLOW + "0";
-        }
-        power += "\n";
+        power += color((int) Math.round(pow)) + "" + ChatColor.DARK_GRAY + " (" + ChatColor.GRAY + Math.round(powerRegionRatio * 100) + "%" + ChatColor.DARK_GRAY + ")" + "\n";
         int i = 0;
-        for (ResourceSubcategory category : ResourceSubcategory.values()) {
+        /*for (ResourceSubcategory category : ResourceSubcategory.values()) {
             i += isSubcategorySaturated(category).getStabilityBonus();
         }
-        String wealth = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_WEALTH.getMessage() + color(i);
+        String wealth = ChatColor.RESET + FMessage.CMD_SHOW_STABILITY_MOD_WEALTH.getMessage() + color(i);*/
 
         BaseComponent[] msg = TextComponent.fromLegacyText(stability);
         for (BaseComponent component : msg) {
-            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(base + exhaustion + size + adminNotMember + power + wealth)));
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(b + exhaustion + size + adminNotMember + power)));
         }
         return msg;
     }
@@ -375,8 +400,8 @@ public class Faction extends LegalEntity {
      * @param stability
      * the stability value to set
      */
-    public void setStability(int stability) {
-        this.stability = stability;
+    public void setStabilityBase(int stability) {
+        this.stabilityBase = stability;
     }
 
     /**
@@ -519,6 +544,25 @@ public class Faction extends LegalEntity {
         return regions;
     }
 
+    /**
+     * @return
+     * the territory worth of this faction (currently just amount of chunks, might get expanded)
+     */
+    public int getExpansion() {
+        Set<Region> rg = regions;
+        int value = 0;
+        for (Region r : rg) {
+            if (r.getCoreFactions().containsKey(this)) {
+                value = round(value + (r.getSize() / (float) 2));       // Core Regions only count / 2
+            }
+            else {
+                value = round(value + (r.getSize()));
+            }
+        }
+        return value;
+    }
+
+
     @Override
     public void setAdmin(OfflinePlayer admin) {
         formerAdmins.add(this.admin);
@@ -555,7 +599,7 @@ public class Faction extends LegalEntity {
             if (faction.admin.equals(admin)) {
                 relations.put(faction, Relation.PERSONAL_UNION);
                 faction.relations.put(this, Relation.PERSONAL_UNION);
-                ParsingUtil.broadcastMessage(FMessage.FACTION_PERSONAL_UNION_FORMED.getMessage(), this, faction, admin);
+                ParsingUtil.broadcastMessage(FMessage.FACTION_PERSONAL_UNION_FORMED.getMessage(), this, faction, plugin.getFPlayerCache().getByUniqueId(admin).getName());
             } else if (faction.getRelation(this) == Relation.PERSONAL_UNION) {
                 faction.relations.remove(this);
             }
@@ -790,7 +834,7 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
-     * the lord faciton
+     * the lord faction
      */
     public Faction getLord() {
         for (Entry<Faction, Relation> entry : relations.entrySet()) {
@@ -947,6 +991,32 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
+     * a set of StatusEffects that affect this faction
+     */
+    public Set<StatusEffect> getEffects() {
+        return effects;
+    }
+
+    /**
+     * @param resource
+     * @return the modifier for this resource after applying all effects
+     */
+    public double getTotalModifierForResource(Resource resource) {
+        double modifier = 0;
+        for (StatusEffect effect : getEffects()) {
+            if (effect.getProductionModifier().containsKey(resource)) {
+                modifier = modifier + effect.getProductionModifier().get(resource);
+            }
+            if (effect.getConsumptionModifier().containsKey(resource)) {
+                modifier = modifier + effect.getConsumptionModifier().get(resource);
+            }
+        }
+        return modifier;
+    }
+
+
+    /**
+     * @return
      * the population menu
      */
     public PopulationMenu getPopulationMenu() {
@@ -979,6 +1049,14 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
+     * the the faction-wide buildings this faction has completed.
+     */
+    public Set<BuildSite> getFactionBuildings() {
+        return buildings;
+    }
+
+    /**
+     * @return
      * the casus belli of this faction
      */
     public Set<CasusBelli> getCasusBelli() {
@@ -1006,7 +1084,7 @@ public class Faction extends LegalEntity {
      * true if the faction is in war
      */
     public boolean isInWar() {
-        return plugin.getWarCache().getByFaction(this) != null;
+        return !plugin.getWarCache().getByFaction(this).isEmpty();
     }
 
     @Override
@@ -1054,6 +1132,22 @@ public class Faction extends LegalEntity {
      */
     public boolean isPrivileged(FPlayer fPlayer) {
         return fPlayer.isMod(this) || admin.equals(fPlayer.getUniqueId()) || FPermission.hasPermission(fPlayer.getPlayer(), FPermission.BYPASS);
+    }
+
+    /**
+     * @return
+     * the war parties that this faction is part of
+     */
+    public Set<WarParty> getWarParties() {
+        Set<WarParty> parties = new HashSet<>();
+        for (War war : plugin.getWarCache().getByFaction(this)) {
+            if (war.getAttacker().getFactions().contains(this)) {
+                parties.add(war.getAttacker());
+            } else if (war.getDefender().getFactions().contains(this)) {
+                parties.add(war.getDefender());
+            }
+        }
+        return parties;
     }
 
     /* Actions */
@@ -1331,14 +1425,22 @@ public class Faction extends LegalEntity {
         mapLineColor = config.getString("mapLineColor");
         mapIcon = config.getString("mapIcon");
         mapVisibility = config.getBoolean("mapVisibility");
+        invincible = config.getBoolean("invincible");
         creationDate = config.getLong("creationDate");
         type = GovernmentType.valueOf(config.getString("type"));
         open = config.getBoolean("open");
-        stability = config.getInt("stability");
+        stabilityBase = config.getInt("stability");
+        exhaustion = config.getDouble("exhaustion");
         manpowerModifier = config.getDouble("manpowerModifier", fConfig.getDefaultManpowerModifier());
         setHome((Location) config.get("home"));
         capital = plugin.getBoard().getById(config.getInt("capital"));
         timeLastCapitalMove = config.getLong("timeLastCapitalMove", 0);
+        if (config.contains("timeLastPeace")) {
+            timeLastPeace = config.getLong("timeLastPeace", timeLastPeace);
+        }
+        if (config.contains("scoreLastPeace")) {
+            scoreLastPeace = config.getInt("scoreLastPeace", scoreLastPeace);
+        }
 
         admin = UUID.fromString(config.getString("admin"));
         mods.add(config.getStringList("mods"));
@@ -1411,6 +1513,12 @@ public class Faction extends LegalEntity {
             }
         }
         ideaMenu = new IdeaMenu(this);
+        ConfigurationSection bs = config.getConfigurationSection("buildSites");
+        if (bs != null) {
+            for (String b : bs.getKeys(false)) {
+                buildings.add(new BuildSite(config.getConfigurationSection("buildSites." + b)));
+            }
+        }
         ConfigurationSection cbs = config.getConfigurationSection("casusBelli");
         if (cbs != null) {
             for (String cb : cbs.getKeys(false)) {
@@ -1442,10 +1550,12 @@ public class Faction extends LegalEntity {
             config.set("mapLineColor", mapLineColor);
             config.set("mapIcon", mapIcon);
             config.set("mapVisibility", mapVisibility);
+            config.set("invincible", invincible);
             config.set("creationDate", creationDate);
             config.set("type", type.toString());
             config.set("open", open);
-            config.set("stability", stability);
+            config.set("stability", stabilityBase);
+            config.set("exhaustion", exhaustion);
             if (!active) {
                 try {
                     config.save(file);
@@ -1460,6 +1570,8 @@ public class Faction extends LegalEntity {
             }
             config.set("capital", capital.getId());
             config.set("timeLastCapitalMove", timeLastCapitalMove);
+            config.set("timeLastPeace", timeLastPeace);
+            config.set("scoreLastPeace", scoreLastPeace);
             config.set("admin", admin.toString());
             config.set("formerAdmins", formerAdmins.serialize());
 
@@ -1509,9 +1621,14 @@ public class Faction extends LegalEntity {
             }
             config.set("ideas", ideaIds);
             int i = 0;
-            for (CasusBelli cb : casusBelli) {
-                config.set("casusBelli." + i, cb.serialize());
+            for (BuildSite b : buildings) {
+                config.set("buildSites." + i, b.serialize());
                 i++;
+            }
+            int i2 = 0;
+            for (CasusBelli cb : casusBelli) {
+                config.set("casusBelli." + i2, cb.serialize());
+                i2++;
             }
             config.set("isAllod", allod);
             config.set("requests", requests);

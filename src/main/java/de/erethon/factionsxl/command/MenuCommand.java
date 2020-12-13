@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,32 +14,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.erethon.factionsxl.war.demand;
 
+package de.erethon.factionsxl.command;
+
+import de.erethon.commons.chat.MessageUtil;
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.util.GUIButton;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import de.erethon.factionsxl.menu.FMainMenu;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
-/**
- * @author Daniel Saukel
- */
-public class WarDemandMenu implements Listener {
+public class MenuCommand extends FCommand {
 
-    private Inventory gui = Bukkit.createInventory(null, 9, FMessage.WAR_DEMAND_MENU_TITLE.getMessage());
+    FactionsXL plugin = FactionsXL.getInstance();
 
-    private ItemStack listDemands = GUIButton.setDisplay(new ItemStack(Material.BOOK), FMessage.WAR_DEMAND_MENU_LIST.getMessage());
-
-    public WarDemandMenu() {
-        GUIButton.addHeader(gui);
-        gui.addItem(listDemands);
+    public MenuCommand() {
+        setCommand("menu");
+        setHelp(FMessage.HELP_MAIN.getMessage());
+        setPermission("fxl.menu");
+        setPlayerCommand(true);
+        setConsoleCommand(false);
     }
 
-    public void open(Player player) {
+    @Override
+    public void onExecute(String[] args, CommandSender sender) {
+        MessageUtil.sendMessage(sender, "Opening GUI...");
+        new FMainMenu((Player) sender).open((Player) sender);
     }
 
 }

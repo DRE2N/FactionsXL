@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,10 @@ public class SetCapitalCommand extends FCommand {
         }
         if (!region.getCoreFactions().containsKey(faction)) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_LAND_NO_CORE.getMessage());
+            return;
+        }
+        if (faction.isInWar()) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_AT_WAR.getMessage());
             return;
         }
         long moveAllowedTime = faction.getTimeLastCapitalMove() + plugin.getFConfig().getMoveCapitalCooldown();

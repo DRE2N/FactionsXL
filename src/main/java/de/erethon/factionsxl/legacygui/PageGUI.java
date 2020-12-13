@@ -10,15 +10,8 @@
  * You should have received a copy of the CC0 Public Domain Dedication	
  * along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.	
  */
-package de.erethon.commons.gui;
+package de.erethon.factionsxl.legacygui;
 
-import de.erethon.commons.compatibility.Internals;
-import static de.erethon.commons.gui.GUIButton.*;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -26,14 +19,22 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
+
+import static de.erethon.factionsxl.legacygui.GUIButton.*;
+
 /**
- * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette
+ * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette. Legacy support for 1.14+ still working
  * @author Daniel Saukel
  */
 @Deprecated
-public class PageGUI {
+public class PageGUI implements InventoryHolder {
 
     private String title;
     private boolean allowStealing;
@@ -44,6 +45,8 @@ public class PageGUI {
     private Stack<List<ItemStack>> pages1;
     private Stack<List<ItemStack>> pages2;
     private Stack<List<ItemStack>> pages3;
+
+    private Inventory gui;
 
     public PageGUI(String title) {
         this(title, false);
@@ -90,7 +93,7 @@ public class PageGUI {
     }
 
     public Inventory newPage() {
-        Inventory gui = Bukkit.createInventory(null, 54, title);
+        gui = Bukkit.createInventory(this, 54, title);
         gui.setItem(45, PREVIOUS_PAGE);
         gui.setItem(46, PLACEHOLDER);
         gui.setItem(47, PLACEHOLDER);
@@ -211,14 +214,14 @@ public class PageGUI {
     }
 
     public Inventory open(HumanEntity player) {
-        Inventory gui = pages.get(0);
+        gui = pages.get(0);
         player.openInventory(gui);
         return gui;
     }
 
     public Inventory open(HumanEntity player, int page) {
         if (pages.size() - 1 >= page && page >= 0) {
-            Inventory gui = pages.get(page);
+            gui = pages.get(page);
             player.openInventory(gui);
             return gui;
         }
@@ -254,7 +257,7 @@ public class PageGUI {
     }
 
     private Inventory generateBase() {
-        Inventory gui = Bukkit.createInventory(null, 54, title);
+        Inventory gui = Bukkit.createInventory(this, 54, title);
         gui.setContents(base);
         return gui;
     }
@@ -338,22 +341,32 @@ public class PageGUI {
 
     public static PageGUI getByInventory(Inventory inventory) {
         for (PageGUI gui : PageGUICache.getInstance().guis) {
-            if (gui.title.equals(getGUITitle(inventory))) {
+            if (gui.getInventory().getHolder().equals(inventory.getHolder())) {
                 return gui;
             }
         }
         return null;
     }
 
-    public static String getGUITitle(Inventory inventory) {
-        if (Internals.isAtMost(Internals.v1_13_R2)) {
-            try {
-                java.lang.reflect.Method getTitle = Inventory.class.getDeclaredMethod("getTitle");
-                return (String) getTitle.invoke(inventory);
-            } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException exception) {
-            }
-        }
-        throw new UnsupportedOperationException("The legacy GUI system does not support Minecraft 1.14+");
-    }
 
+    public static String getGUITitle(Inventory inventory) {
+        String invtitle = null;
+        /*try {
+            java.lang.reflect.Method getTitle = Inventory.class.getDeclaredMethod("getTitle");
+            return (String) getTitle.invoke(inventory);
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException exception) {
+            MessageUtil.log(exception.toString());
+        }*/
+
+        for (HumanEntity v : inventory.getViewers()) {
+            invtitle = v.getOpenInventory().getTitle();
+        }
+        return invtitle;
+    }
+    /**
+     * @deprecated returns inventory for workaround for 1.14+
+     */
+    public Inventory getInventory() {
+        return gui;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,12 +63,17 @@ public class GiveRegionCommand extends FCommand {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
             return;
         }
-        region.setOwner(faction);
-        if (region.getCoreFactions().containsKey(region.getOwner())) {
-            region.getCoreFactions().put(faction, region.getCoreFactions().get(region.getOwner()));
-            region.getCoreFactions().remove(region.getOwner());
+        if (faction.isInWar()) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage());
+            return;
         }
-        ParsingUtil.broadcastMessage(FMessage.CMD_GIVE_REGION_SUCCESS.getMessage(), region.getOwner(), region, faction);
+        Faction oldOwner = region.getOwner();
+        region.setOwner(faction);
+        if (region.getCoreFactions().containsKey(oldOwner)) {
+            region.getCoreFactions().put(faction, region.getCoreFactions().get(region.getOwner()));
+            region.getCoreFactions().remove(oldOwner);
+        }
+        ParsingUtil.broadcastMessage(FMessage.CMD_GIVE_REGION_SUCCESS.getMessage(), oldOwner, region, faction);
     }
 
 }

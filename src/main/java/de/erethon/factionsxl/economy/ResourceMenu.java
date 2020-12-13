@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,12 @@
  */
 package de.erethon.factionsxl.economy;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -31,14 +29,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Daniel Saukel
  */
-public class ResourceMenu implements Listener {
+public class ResourceMenu implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
 
@@ -50,7 +53,7 @@ public class ResourceMenu implements Listener {
     private Inventory gui;
 
     public ResourceMenu(Faction faction, Resource resource) {
-        exportButton = GUIButton.DOWN.clone();
+        exportButton = StandardizedGUI.DOWN.clone();
         ItemMeta exMeta = exportButton.getItemMeta();
         exMeta.setDisplayName(FMessage.TRADE_EXPORT.getMessage());
         double exValue = resource.getValue() * plugin.getFConfig().getExportModifier();
@@ -58,7 +61,7 @@ public class ResourceMenu implements Listener {
         exMeta.setLore(exLore);
         exportButton.setItemMeta(exMeta);
 
-        importButton = GUIButton.UP.clone();
+        importButton = StandardizedGUI.UP.clone();
         ItemMeta imMeta = importButton.getItemMeta();
         imMeta.setDisplayName(FMessage.TRADE_IMPORT.getMessage());
         double imValue = resource.getValue() * plugin.getFConfig().getImportModifier();
@@ -74,7 +77,7 @@ public class ResourceMenu implements Listener {
     }
 
     private void setupGUI() {
-        gui = Bukkit.createInventory(null, 27, FMessage.TRADE_RESOURCE_TITLE.getMessage(resource.getName(), faction.getName()));
+        gui = Bukkit.createInventory(this, 27, FMessage.TRADE_RESOURCE_TITLE.getMessage(resource.getName(), faction.getName()));
         ItemStack banner = faction.getBannerStack();
         ItemMeta meta = banner.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + faction.getName());
@@ -104,7 +107,7 @@ public class ResourceMenu implements Listener {
     public void onClick(InventoryClickEvent event) {
         HumanEntity player = event.getWhoClicked();
         Inventory inventory = event.getClickedInventory();
-        if (inventory == null || !PageGUI.getGUITitle(gui).equals(event.getView().getTitle())) {
+        if (inventory.getHolder() != this) {
             return;
         }
         event.setCancelled(true);
@@ -125,4 +128,8 @@ public class ResourceMenu implements Listener {
         update();
     }
 
+    @Override
+    public Inventory getInventory() {
+        return gui;
+    }
 }

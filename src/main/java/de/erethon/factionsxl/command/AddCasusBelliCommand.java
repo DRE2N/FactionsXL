@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,9 @@ import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.CasusBelli;
 import de.erethon.factionsxl.war.CasusBelli.Type;
-import java.util.Date;
 import org.bukkit.command.CommandSender;
+
+import java.util.Date;
 
 /**
  * @author Daniel Saukel

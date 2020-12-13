@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Trent Hensler
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,15 +21,16 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.scoreboard.sidebar.FDefaultSidebar;
 import de.erethon.factionsxl.scoreboard.sidebar.FWarSidebar;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Scoreboard;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Adapted from FactionsUUID by drtshock.
@@ -129,17 +130,29 @@ public class FScoreboard {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (removed || !defaultProviders.contains(defaultProviders.get(currentProvider))) {
-                    cancel();
-                    return;
-                }
-
-                if (temporaryProvider == null) {
-                    currentProvider++;
-                    if (currentProvider >= defaultProviders.size()) {
-                        currentProvider = 0;
+                try {
+                    if (defaultProviders == null) {
+                        cancel();
+                        return;
                     }
-                    updateObjective();
+                    if (defaultProviders.size() < currentProvider - 1) {
+                        cancel();
+                        return;
+                    }
+                    if (removed || !defaultProviders.contains(defaultProviders.get(currentProvider))) {
+                        cancel();
+                        return;
+                    }
+
+                    if (temporaryProvider == null) {
+                        currentProvider++;
+                        if (currentProvider >= defaultProviders.size()) {
+                            currentProvider = 0;
+                        }
+                        updateObjective();
+                    }
+                } catch (IndexOutOfBoundsException e) {
+                    return;
                 }
             }
         }.runTaskTimer(plugin, updateInterval, updateInterval);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Trent Hensler
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +20,12 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+
+import java.util.*;
 
 /**
  * Adapted from FactionsUUID by drtshock.

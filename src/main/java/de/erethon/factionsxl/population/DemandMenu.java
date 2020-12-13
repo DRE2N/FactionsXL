@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +16,14 @@
  */
 package de.erethon.factionsxl.population;
 
-import de.erethon.commons.gui.PageGUI;
-import de.erethon.commons.misc.ProgressBar;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
-import java.util.ArrayList;
+import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
@@ -32,14 +31,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
+
 /**
  * @author Daniel Saukel
  */
-public class DemandMenu implements Listener {
+public class DemandMenu implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
 
@@ -54,8 +56,8 @@ public class DemandMenu implements Listener {
     }
 
     public void update(ResourceSubcategory category) {
-        gui = Bukkit.createInventory(null, 27, FMessage.POPULATION_DEMANDS_TITLE.getMessage(category.getName()));
-        GUIButton.addHeader(gui);
+        gui = Bukkit.createInventory(this, 27, FMessage.POPULATION_DEMANDS_TITLE.getMessage(category.getName()));
+        StandardizedGUI.addHeader(gui);
 
         for (Resource resource : category.getResources()) {
             gui.addItem(formButton(faction, resource));
@@ -72,7 +74,7 @@ public class DemandMenu implements Listener {
         }
         meta.setDisplayName(level.getColor() + resource.getName());
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ProgressBar.getBar((double) faction.getSaturatedResources().get(resource)));
+        //lore.add(ProgressBar.getBar((double) faction.getSaturatedResources().get(resource)));
         lore.add(level.getColor().toString() + faction.getSaturatedResources().get(resource) + "%");
         String population = String.valueOf(faction.getPopulation());
         String units = String.valueOf(faction.getDemand(resource));
@@ -93,7 +95,7 @@ public class DemandMenu implements Listener {
     public void onClick(InventoryClickEvent event) {
         HumanEntity player = event.getWhoClicked();
         Inventory inventory = event.getClickedInventory();
-        if (inventory == null || gui == null || !PageGUI.getGUITitle(gui).equals(event.getView().getTitle())) {
+        if (inventory == null || gui == null || inventory.getHolder() != this) {
             return;
         }
         event.setCancelled(true);
@@ -109,4 +111,8 @@ public class DemandMenu implements Listener {
         }
     }
 
+    @Override
+    public Inventory getInventory() {
+        return gui;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
+import de.erethon.factionsxl.gui.StandardizedGUI;
 import de.erethon.factionsxl.util.ParsingUtil;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -125,6 +125,9 @@ public class TradeOffer {
     }
 
     public boolean check(CommandSender sender) {
+        MessageUtil.log(importer.getName());
+        MessageUtil.log(String.valueOf(price));
+        MessageUtil.log(String.valueOf(importer.getAccount().toString()));
         if (importer.getAccount().getBalance() < price + getFee()) {
             String formatted = econ.format(price + getFee());
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NOT_ENOUGH_MONEY_FACTION.getMessage(), importer, formatted);
@@ -151,11 +154,11 @@ public class TradeOffer {
 
         String command = "/factionsxl tradeOffer " + (FactionsXL.getInstance().getCommandCache().tradeOffer.finishedOffers.size() - 1);
         ClickEvent onClickConfirm = new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
-        BaseComponent confirm = GUIButton.CONFIRM.duplicate();
+        BaseComponent confirm = StandardizedGUI.CONFIRM.duplicate();
         confirm.setClickEvent(onClickConfirm);
 
         ClickEvent onClickDeny = new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " -deny");
-        BaseComponent deny = GUIButton.DENY.duplicate();
+        BaseComponent deny = StandardizedGUI.DENY.duplicate();
         deny.setClickEvent(onClickDeny);
 
         for (Player player : receiver.getOnlineMods()) {

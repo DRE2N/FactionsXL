@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,6 +69,12 @@ public class CreateCommand extends FCommand {
             return;
         }
 
+        if (config.isNameForbidden(args[1])) {
+            // TODO: FMessage (with next big update)
+            ParsingUtil.sendMessage(sender, "&4Dieser Fraktions-Name ist nicht erlaubt.");
+            return;
+        }
+
         if (config.isEconomyEnabled()) {
             if (!econ.has(player, config.getPriceCreate())) {
                 ParsingUtil.sendMessage(sender, FMessage.ERROR_NOT_ENOUGH_MONEY.getMessage(), String.valueOf(config.getPriceCreate()));
@@ -79,6 +85,7 @@ public class CreateCommand extends FCommand {
         }
 
         plugin.getFactionCache().create(player, args[1]);
+        fPlayer.getData().addCreated();
         ParsingUtil.broadcastMessage(FMessage.CMD_CREATE_SUCCESS.getMessage(), sender.getName(), args[1]);
     }
 

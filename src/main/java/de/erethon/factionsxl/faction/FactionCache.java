@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,24 +21,24 @@ import de.erethon.commons.player.PlayerCollection;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
-import java.io.File;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Facton instance manager.
@@ -48,6 +48,7 @@ import org.bukkit.entity.Player;
 public class FactionCache {
 
     FactionsXL plugin = FactionsXL.getInstance();
+    FConfig config = plugin.getFConfig();
 
     private Set<LegalEntity> entities = new HashSet<>();
     private Set<Faction> factions = new HashSet<>();
@@ -104,7 +105,7 @@ public class FactionCache {
         faction.name = name;
         faction.setAdmin(player);
         faction.type = GovernmentType.MONARCHY;
-        faction.stability = 10;
+        faction.stabilityBase = 10;
         faction.setHome(home);
         faction.capital = board.getByLocation(faction.home);
         faction.capital.setOwner(faction);
@@ -170,7 +171,7 @@ public class FactionCache {
         union.type = faction1.type;
         union.open = faction1.open;
         union.prestige = faction1.prestige + faction2.prestige;
-        union.stability = (byte) ((faction1.stability + faction2.stability) / 2);
+        union.stabilityBase = (byte) ((faction1.stabilityBase + faction2.stabilityBase) / 2);
         union.exhaustion = faction1.exhaustion + faction2.exhaustion;
         union.manpowerModifier = faction1.manpowerModifier + faction2.manpowerModifier; // Double ideas?
         union.capital = faction1.capital;
@@ -235,7 +236,7 @@ public class FactionCache {
                     coreDate = entry.getValue();
                 }
             }
-            if (coreDate != null) {
+            if (coreDate != null && (System.currentTimeMillis() > coreDate.getTime() + FConfig.MONTH)) {
                 region.getCoreFactions().put(integrating, coreDate);
             }
             region.setOwner(integrating);
@@ -296,6 +297,24 @@ public class FactionCache {
      */
     public Faction getInactiveByName(String name) {
         for (Faction faction : inactiveFactions) {
+            if (faction.getName().equalsIgnoreCase(name) || faction.getShortName().equalsIgnoreCase(name) || faction.getLongName().equalsIgnoreCase(name)) {
+                return faction;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param name
+     * the name to check
+     * @return
+     * the inactive faction that has this name
+     */
+    public Faction getAllByName(String name) {
+        Set<Faction> allFactions = new HashSet<>();
+        allFactions.addAll(inactiveFactions);
+        allFactions.addAll(factions);
+        for (Faction faction : allFactions) {
             if (faction.getName().equalsIgnoreCase(name) || faction.getShortName().equalsIgnoreCase(name) || faction.getLongName().equalsIgnoreCase(name)) {
                 return faction;
             }
@@ -392,6 +411,18 @@ public class FactionCache {
      */
     public Faction getByLocation(Location location) {
         return getByChunk(location.getChunk());
+    }
+
+    /**
+     * @param banner
+     * the banner to check
+     * @return
+     * the faction that uses this banner
+     */
+    public Faction getByBanner(ItemStack banner) {
+        if (banner == null || !banner.hasItemMeta() || !banner.getItemMeta().hasDisplayName())
+            return null;
+        return getByName(ChatColor.stripColor(banner.getItemMeta().getDisplayName()));
     }
 
     /**

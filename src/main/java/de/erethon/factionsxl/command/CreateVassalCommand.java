@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,20 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
+import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.scoreboard.FTeamWrapper;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.CasusBelli;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Date;
 
 /**
  * @author Daniel Saukel
@@ -65,6 +69,10 @@ public class CreateVassalCommand extends FCommand {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
             return;
         }
+        if (mother.isInWar()) {
+            ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage());
+            return;
+        }
 
         Location location = player.getLocation();
         Region region = board.getByLocation(location);
@@ -78,6 +86,12 @@ public class CreateVassalCommand extends FCommand {
 
         if (plugin.getFactionCache().getByName(args[1]) != null) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NAME_IN_USE.getMessage(), args[1]);
+            return;
+        }
+
+        if (config.isNameForbidden(args[1])) {
+            // TODO: FMessage (with next big update)
+            ParsingUtil.sendMessage(sender, "&4Dieser Fraktions-Name ist nicht erlaubt.");
             return;
         }
 
@@ -107,9 +121,14 @@ public class CreateVassalCommand extends FCommand {
             mother.getOnlineMembers().remove(leader.getPlayer());
         }
         FTeamWrapper.updatePrefixes(mother);
+
+        FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(leader), mother);
+        Bukkit.getPluginManager().callEvent(event);
+
         Faction vassal = plugin.getFactionCache().create(leader, location, args[1]);
         mother.getRelations().put(vassal, Relation.VASSAL);
         vassal.getRelations().put(mother, Relation.LORD);
+        vassal.getCasusBelli().add(new CasusBelli(CasusBelli.Type.INDEPENDENCE, mother, new Date(System.currentTimeMillis() + (config.getCBLiberationExp() * FConfig.DAY))));
         vassal.setAllod(false);
         ParsingUtil.broadcastMessage(FMessage.CMD_CREATE_SUCCESS.getMessage(), sender.getName(), args[1]);
         ParsingUtil.broadcastMessage(FMessage.RELATION_VASSALIZED.getMessage(), mother, vassal);

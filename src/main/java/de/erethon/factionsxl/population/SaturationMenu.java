@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,13 @@
  */
 package de.erethon.factionsxl.population;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
+import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -29,6 +30,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -36,7 +38,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 /**
  * @author Daniel Saukel
  */
-public class SaturationMenu implements Listener {
+public class SaturationMenu implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
 
@@ -45,17 +47,17 @@ public class SaturationMenu implements Listener {
     public static final ItemStack DENY_BUTTON_ZERO;
 
     static {
-        GRANT_BUTTON = GUIButton.UP.clone();
+        GRANT_BUTTON = StandardizedGUI.UP.clone();
         ItemMeta gMeta = GRANT_BUTTON.getItemMeta();
         gMeta.setDisplayName(FMessage.POPULATION_GRANT_RESOURCE.getMessage());
         GRANT_BUTTON.setItemMeta(gMeta);
 
-        DENY_BUTTON = GUIButton.DOWN.clone();
+        DENY_BUTTON = StandardizedGUI.DOWN.clone();
         ItemMeta dMeta = DENY_BUTTON.getItemMeta();
         dMeta.setDisplayName(FMessage.POPULATION_DENY_RESOURCE.getMessage());
         DENY_BUTTON.setItemMeta(dMeta);
 
-        DENY_BUTTON_ZERO = GUIButton.DOWN_ALT.clone();
+        DENY_BUTTON_ZERO = StandardizedGUI.DOWN_ALT.clone();
         ItemMeta zMeta = DENY_BUTTON_ZERO.getItemMeta();
         zMeta.setDisplayName(ChatColor.DARK_GRAY + ChatColor.stripColor(FMessage.POPULATION_DENY_RESOURCE.getMessage()));
         DENY_BUTTON_ZERO.setItemMeta(zMeta);
@@ -72,7 +74,7 @@ public class SaturationMenu implements Listener {
     }
 
     private void setupGUI() {
-        gui = Bukkit.createInventory(null, 27, FMessage.POPULATION_ADJUST_CONSUME.getMessage(faction.getName()));
+        gui = Bukkit.createInventory(this, 27, FMessage.POPULATION_ADJUST_CONSUME.getMessage(faction.getName()));
         ItemStack banner = faction.getBannerStack();
         ItemMeta meta = banner.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + faction.getName());
@@ -107,13 +109,13 @@ public class SaturationMenu implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         HumanEntity player = event.getWhoClicked();
-        Inventory inventory = event.getClickedInventory();
-        if (inventory == null || !PageGUI.getGUITitle(gui).equals(event.getView().getTitle())) {
+        Inventory i = event.getClickedInventory();
+        if (i == null || i.getHolder() != this) {
             return;
         }
         event.setCancelled(true);
         PageGUI.playSound(event);
-        ItemStack button = inventory.getItem(event.getSlot());
+        ItemStack button = i.getItem(event.getSlot());
         if (button == null) {
             return;
         }
@@ -140,4 +142,8 @@ public class SaturationMenu implements Listener {
         }
     }
 
+    @Override
+    public Inventory getInventory() {
+        return gui;
+    }
 }

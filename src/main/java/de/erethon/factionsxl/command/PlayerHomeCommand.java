@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  */
 package de.erethon.factionsxl.command;
 
-import de.erethon.commons.player.PlayerUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
@@ -72,7 +71,7 @@ public class PlayerHomeCommand extends FCommand {
         }
 
         if (FPermission.hasPermission(sender, FPermission.BYPASS)) {
-            PlayerUtil.secureTeleport(player, fPlayer.getHome());
+            player.teleport(fPlayer.getHome());
             return;
         }
 

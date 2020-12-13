@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,41 +16,42 @@
  */
 package de.erethon.factionsxl.population;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
+import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * @author Daniel Saukel
  */
-public class MilitaryMenu implements Listener {
+public class MilitaryMenu implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
 
-    public static final ItemStack SOLDIERS = GUIButton.setDisplay(GUIButton.SOLDIER, FMessage.POPULATION_MILITARY_SOLDIERS.getMessage());
+    public static final ItemStack SOLDIERS = GUIButton.setDisplay(StandardizedGUI.SOLDIER, FMessage.POPULATION_MILITARY_SOLDIERS.getMessage());
 
     private Faction faction;
     private Inventory gui;
 
     public MilitaryMenu(Faction faction) {
         this.faction = faction;
-        if (true) return; // Unused
         Bukkit.getPluginManager().registerEvents(this, plugin);
         setupGUI();
     }
 
     private void setupGUI() {
-        gui = Bukkit.createInventory(null, 27, FMessage.POPULATION_MILITARY_TITLE.getMessage(faction.getName()));
-        GUIButton.addHeader(gui);
+        gui = Bukkit.createInventory(this, 27, FMessage.POPULATION_MILITARY_TITLE.getMessage(faction.getName()));
+        StandardizedGUI.addHeader(gui);
         gui.setItem(9, SOLDIERS);
         update();
     }
@@ -75,8 +76,11 @@ public class MilitaryMenu implements Listener {
         ItemStack button = event.getCurrentItem();
         if (GUIButton.BACK.equals(button)) {
             faction.getPopulationMenu().openMain(player);
-            return;
         }
     }
 
+    @Override
+    public Inventory getInventory() {
+        return gui;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,18 +17,13 @@
 package de.erethon.factionsxl.idea;
 
 import de.erethon.commons.chat.MessageUtil;
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.util.GUIButton;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -40,6 +35,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Daniel Saukel
@@ -65,7 +63,7 @@ public class IdeaMenu implements Listener {
         for (IdeaGroup group : IdeaGroup.values()) {
             boolean has = faction.getIdeaGroups().contains(group);
             boolean freeSlots = plugin.getFConfig().getMaxIdeaGroups() > faction.getIdeaGroups().size();
-            ItemStack button = has || freeSlots ? group.getIcon() : GUIButton.DISABLED.clone();
+            ItemStack button = has || freeSlots ? group.getIcon() : StandardizedGUI.DISABLED.clone();
             ItemMeta meta = button.getItemMeta();
             meta.setDisplayName((has ? ChatColor.GREEN : ChatColor.DARK_RED) + group.getName());
             List<String> lore = new ArrayList<>();

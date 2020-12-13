@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +19,8 @@ package de.erethon.factionsxl.command;
 import de.erethon.commons.command.DRECommandCache;
 import de.erethon.commons.javaplugin.DREPlugin;
 import de.erethon.factionsxl.FactionsXL;
-import de.erethon.factionsxl.command.relation.RelationAllyCommand;
-import de.erethon.factionsxl.command.relation.RelationCommand;
-import de.erethon.factionsxl.command.relation.RelationNeutralCommand;
-import de.erethon.factionsxl.command.relation.RelationOathCommand;
-import de.erethon.factionsxl.command.relation.RelationUniteCommand;
-import de.erethon.factionsxl.command.relation.RelationVassalizeCommand;
-import de.erethon.factionsxl.command.war.ConfirmWarCommand;
-import de.erethon.factionsxl.command.war.WarCommand;
-import de.erethon.factionsxl.command.war.WarStatusCommand;
+import de.erethon.factionsxl.command.relation.*;
+import de.erethon.factionsxl.command.war.*;
 import de.erethon.factionsxl.config.FConfig;
 
 /**
@@ -45,8 +38,12 @@ public class FCommandCache extends DRECommandCache {
     public AdminCommand admin = new AdminCommand();
     public CasusBelliCommand casusBelli = new CasusBelliCommand();
     public ChatCommand chat = new ChatCommand();
+    public ChatSpyCommand chatSpy = new ChatSpyCommand();
     public ClaimCommand claim = new ClaimCommand();
+    public CoreCommand core = new CoreCommand();
+    public ConfirmPeaceRequestCommand confirmPeace = new ConfirmPeaceRequestCommand();
     public ConfirmWarCommand confirmWar = new ConfirmWarCommand();
+    public ConfirmWarRequestCommand confirmWarRequest = new ConfirmWarRequestCommand();
     public CreateCommand create = new CreateCommand();
     public CreateBullCommand createBull = new CreateBullCommand();
     public CreateVassalCommand createVassal = new CreateVassalCommand();
@@ -56,6 +53,7 @@ public class FCommandCache extends DRECommandCache {
     public HelpCommand help = new HelpCommand();
     public HomeCommand home = new HomeCommand();
     public IdeaCommand idea = new IdeaCommand();
+    public IndependenceCommand independence = new IndependenceCommand();
     public IntegrateCommand integrate = new IntegrateCommand();
     public InviteCommand invite = new InviteCommand();
     public JoinCommand join = new JoinCommand();
@@ -69,6 +67,7 @@ public class FCommandCache extends DRECommandCache {
     public MoneyCommand money = new MoneyCommand();
     public OpenCommand open = new OpenCommand();
     public PaydayCommand payday = new PaydayCommand();
+    public PeaceCommand peaceCommand = new PeaceCommand();
     public PlayerHomeCommand playerHome = new PlayerHomeCommand();
     public PowerCommand power = new PowerCommand();
     public RegionCommand region = new RegionCommand();
@@ -92,15 +91,24 @@ public class FCommandCache extends DRECommandCache {
     public SetPowerCommand setPower = new SetPowerCommand();
     public ShortTagCommand shortTag = new ShortTagCommand();
     public ShowCommand show = new ShowCommand();
+    public StatsCommand stats = new StatsCommand();
     public StorageCommand storage = new StorageCommand();
     public TagCommand tag = new TagCommand();
     public TitleCommand title = new TitleCommand();
+    public TogglePublicCommand togglePublic = new TogglePublicCommand();
     public TradeOfferCommand tradeOffer = new TradeOfferCommand();
     public UnclaimCommand unclaim = new UnclaimCommand();
     public UninviteCommand uninvite = new UninviteCommand();
     public WarCommand war = new WarCommand();
     public WarStatusCommand warStatus = new WarStatusCommand();
+    public OccupyCommand warAnnex = new OccupyCommand();
     public WorldCommand world = new WorldCommand();
+
+    public WarInviteCommand warInviteCommand = new WarInviteCommand();
+    public WarAdminCommand editWar = new WarAdminCommand();
+
+    public BuildingCommand buildingCommand = new BuildingCommand();
+    public MenuCommand menuCommand = new MenuCommand();
 
     public FCommandCache(DREPlugin plugin) {
         super(LABEL, plugin);
@@ -130,6 +138,7 @@ public class FCommandCache extends DRECommandCache {
         addCommand(mob);
         addCommand(mod);
         addCommand(open);
+        addCommand(peaceCommand);
         addCommand(power);
         addCommand(region);
         addCommand(regions);
@@ -152,12 +161,33 @@ public class FCommandCache extends DRECommandCache {
         addCommand(shortTag);
         addCommand(show);
         addCommand(tag);
+        addCommand(togglePublic);
         addCommand(title);
         addCommand(unclaim);
         addCommand(uninvite);
         addCommand(war);
         addCommand(warStatus);
         addCommand(world);
+        // experimental commands
+        addCommand(core);
+        addCommand(storage);
+        addCommand(tradeOffer);
+        addCommand(addCasusBelli);
+        addCommand(chatSpy);
+        //addCommand(idea);
+        addCommand(confirmPeace);
+        addCommand(confirmWarRequest);
+        addCommand(peaceCommand);
+        addCommand(warAnnex);
+        addCommand(independence);
+        addCommand(stats);
+
+        addCommand(menuCommand);
+
+        // debug/Workaround
+        addCommand(warInviteCommand);
+        addCommand(editWar);
+
         FConfig config = FactionsXL.getInstance().getFConfig();
         if (config.isEconomyEnabled()) {
             addCommand(idea);
@@ -165,6 +195,7 @@ public class FCommandCache extends DRECommandCache {
             addCommand(payday);
             addCommand(storage);
             addCommand(tradeOffer);
+            addCommand(buildingCommand);
         }
         if (config.arePlayerHomesEnabled()) {
             addCommand(playerHome);
@@ -177,5 +208,7 @@ public class FCommandCache extends DRECommandCache {
         plugin.getCommand("home").setExecutor(alias);
         plugin.getCommand("setHome").setExecutor(alias);
     }
+
+
 
 }

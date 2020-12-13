@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,9 +17,10 @@
 package de.erethon.factionsxl.chat;
 
 import de.erethon.factionsxl.entity.Relation;
+import org.bukkit.ChatColor;
+
 import java.util.Arrays;
 import java.util.List;
-import org.bukkit.ChatColor;
 
 /**
  * @author Daniel Saukel
@@ -30,7 +31,8 @@ public enum ChatChannel {
     COALITION(ChatColor.RED, Relation.ALLIANCE_2, Relation.ALLIANCE, Relation.COALITION),
     FACTION(ChatColor.GREEN, Relation.ALLIANCE_2),
     LOCAL(ChatColor.GRAY, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY),
-    PUBLIC(ChatColor.WHITE, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY);
+    PUBLIC(ChatColor.WHITE, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY),
+    ROLEPLAY(ChatColor.GRAY, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY);
 
     private ChatColor color;
     private List<Relation> relations;

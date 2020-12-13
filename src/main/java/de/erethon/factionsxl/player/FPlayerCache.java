@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,16 @@ package de.erethon.factionsxl.player;
 
 import de.erethon.commons.player.PlayerUtil;
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 /**
  * FPlayer instance manager.
@@ -33,6 +35,8 @@ import org.bukkit.entity.Player;
  * @author Daniel Saukel
  */
 public class FPlayerCache {
+
+    FactionsXL plugin = FactionsXL.getInstance();
 
     private Set<FPlayer> fPlayers = new HashSet<>();
 
@@ -162,13 +166,15 @@ public class FPlayerCache {
         HashSet<Faction> successions = new HashSet<>();
         for (Faction faction : FactionsXL.getInstance().getFactionCache().getActive()) {
             for (OfflinePlayer player : faction.getMembers().getOfflinePlayers()) {
-                if (System.currentTimeMillis() > player.getLastPlayed() + FactionsXL.getInstance().getFConfig().getAutoKickTime()) {
+                if ((System.currentTimeMillis() > (player.getLastPlayed() + FactionsXL.getInstance().getFConfig().getAutoKickTime())) && !player.isOnline()) {
                     FactionsXL.debug("Kicking " + player + " / Last played: " + new java.util.Date(player.getLastPlayed()));
                     faction.kick(player);
+                    FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(player), faction);
+                    Bukkit.getPluginManager().callEvent(event);
                 }
             }
             OfflinePlayer admin = faction.getAdmin();
-            if (System.currentTimeMillis() > admin.getLastPlayed() + FactionsXL.getInstance().getFConfig().getAutoKickTime()) {
+            if ((System.currentTimeMillis() > (admin.getLastPlayed() + FactionsXL.getInstance().getFConfig().getAutoKickTime())) && !admin.isOnline()) {
                 FactionsXL.debug("Starting succession for " + admin + " / Last played: " + new java.util.Date(admin.getLastPlayed()));
                 successions.add(faction);
             }

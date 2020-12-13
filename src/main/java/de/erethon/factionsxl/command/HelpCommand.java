@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@ import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.player.FPermission;
+import org.bukkit.command.CommandSender;
+
 import java.util.ArrayList;
 import java.util.Set;
-import org.bukkit.command.CommandSender;
 
 /**
  * @author Daniel Saukel

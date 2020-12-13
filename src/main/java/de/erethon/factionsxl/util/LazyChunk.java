@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,13 @@
  */
 package de.erethon.factionsxl.util;
 
-import java.lang.ref.WeakReference;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.World;
+
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * @author Daniel Saukel
@@ -61,6 +65,49 @@ public class LazyChunk {
         return z;
     }
 
+    @Override
+    public boolean equals(Object chunk) {
+        if(chunk == null) { return false; }
+        if(!(chunk instanceof LazyChunk)) { return false; }
+        LazyChunk other = (LazyChunk) chunk;
+        if  ((this.getX() == other.getX()) && (this.getZ() == other.getZ())) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public Collection<ChunkSnapshot> getChunksAround(World world) {
+
+        int[] offset = {-1,0,1};
+        ChunkSnapshot chunk = this.asBukkitChunk(world).getChunkSnapshot();
+        int baseX = chunk.getX();
+        int baseZ = chunk.getZ();
+        Collection<ChunkSnapshot> chunksAroundPlayer = new HashSet<>();
+        for(int x : offset) {
+            for(int z : offset) {
+                ChunkSnapshot c = world.getChunkAt(baseX + x, baseZ + z).getChunkSnapshot();
+                chunksAroundPlayer.add(c);
+            }
+        } return chunksAroundPlayer;
+    }
+
+    public Collection<Chunk> getFastChunksAround(World world) {
+
+        int[] offset = {-1,0,1};
+        Chunk chunk = this.asBukkitChunk(world);
+        int baseX = chunk.getX();
+        int baseZ = chunk.getZ();
+        Collection<Chunk> chunksAroundPlayer = new HashSet<>();
+        for(int x : offset) {
+            for(int z : offset) {
+                Chunk c = world.getChunkAt(baseX + x, baseZ + z);
+                chunksAroundPlayer.add(c);
+            }
+        } return chunksAroundPlayer;
+    }
+
     public Chunk asBukkitChunk(World world) {
         Chunk chunk = null;
         if (bukkit == null) {
@@ -70,6 +117,16 @@ public class LazyChunk {
             chunk = bukkit.get();
         }
         return chunk;
+    }
+    public ChunkSnapshot asSnapshot(World world) {
+        Chunk chunk = null;
+        if (bukkit == null) {
+            chunk = world.getChunkAt(x, z);
+            bukkit = new WeakReference<>(chunk);
+        } else {
+            chunk = bukkit.get();
+        }
+        return chunk.getChunkSnapshot();
     }
 
     @Override

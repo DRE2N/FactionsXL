@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ package de.erethon.factionsxl.command;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.ParsingUtil;
@@ -54,7 +55,8 @@ public class SetPlayerHomeCommand extends FCommand {
         }
 
         Region region = plugin.getBoard().getByLocation(player.getLocation());
-        if (region != null && region.getOwner() != null && !region.getOwner().getRelation(fPlayer).canBuild()) {
+        if (region != null && region.getOwner() != null && (!region.getOwner().getRelation(fPlayer).canBuild()
+                || region.getOwner().getRelation(fPlayer) == Relation.ENEMY) ) {
             ParsingUtil.sendMessage(sender, FMessage.CMD_SET_HOME_CHAR_FAIL.getMessage());
             return;
         }

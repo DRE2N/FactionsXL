@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@ package de.erethon.factionsxl.war;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.LegalEntity;
+import org.bukkit.configuration.ConfigurationSection;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * A reason to start a war.
@@ -50,6 +51,8 @@ public class CasusBelli {
         RESTORATION_OF_UNION,
         // When a faction has cores on foreign land
         RECONQUEST,
+        // When a faction has more than 50% claims on foreign land
+        SUBJAGATION,
         // When a vassal declared its independence
         RESUBJAGATION
     }

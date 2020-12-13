@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Trent Hensler
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.scoreboard.FSidebarProvider;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;

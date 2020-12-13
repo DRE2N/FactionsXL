@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 Daniel Saukel
+ * Copyright (C) 2017-2020 Daniel Saukel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,21 @@
  */
 package de.erethon.factionsxl.command;
 
-import de.erethon.commons.gui.PageGUI;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Request;
+import de.erethon.factionsxl.legacygui.PageGUI;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Daniel Saukel
