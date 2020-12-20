@@ -107,7 +107,6 @@ public class FCommandCache extends DRECommandCache {
     public WarInviteCommand warInviteCommand = new WarInviteCommand();
     public WarAdminCommand editWar = new WarAdminCommand();
 
-    public BuildingCommand buildingCommand = new BuildingCommand();
     public MenuCommand menuCommand = new MenuCommand();
 
     public FCommandCache(DREPlugin plugin) {
@@ -195,7 +194,6 @@ public class FCommandCache extends DRECommandCache {
             addCommand(payday);
             addCommand(storage);
             addCommand(tradeOffer);
-            addCommand(buildingCommand);
         }
         if (config.arePlayerHomesEnabled()) {
             addCommand(playerHome);

@@ -141,7 +141,7 @@ public class FMenu extends SingleInventoryGUI {
         String provinces = String.valueOf(f.getRegions().size());
         int pop = 0;
         for (Region rg : f.getRegions()) {
-            pop = pop + rg.getTotalPopulation();
+            pop = pop + rg.getPopulation();
         }
         String population = String.valueOf(pop);
         lines.add(FMessage.CMD_SHOW_INFO.getMessage(power, provinces, population));
@@ -166,7 +166,7 @@ public class FMenu extends SingleInventoryGUI {
         }
         lines.add(FMessage.CMD_REGION_INFLUENCE.getMessage() + rg.getInfluence() + "%");
         lines.add(FMessage.CMD_REGION_TYPE.getMessage()  + rg.getType().getName() + " (" + rg.getLevel() + ")");
-        lines.add(FMessage.CMD_REGION_POPULATION.getMessage() +  rg.getTotalPopulation() + "/" + rg.getType().getMaxPopulation(rg.getLevel()));
+        lines.add(FMessage.CMD_REGION_POPULATION.getMessage() +  rg.getPopulation() + "/" + rg.getType().getMaxPopulation(rg.getLevel()));
         return lines;
     }
 

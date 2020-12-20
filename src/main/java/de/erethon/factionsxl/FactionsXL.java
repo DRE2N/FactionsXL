@@ -26,9 +26,6 @@ import de.erethon.commons.javaplugin.DREPluginSettings;
 import de.erethon.commons.misc.FileUtil;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.dynmap.Atlas;
-import de.erethon.factionsxl.building.BuildSite;
-import de.erethon.factionsxl.building.BuildingListener;
-import de.erethon.factionsxl.building.BuildingManager;
 import de.erethon.factionsxl.chat.ChatListener;
 import de.erethon.factionsxl.command.FCommandCache;
 import de.erethon.factionsxl.command.FCommandCompleter;
@@ -113,7 +110,6 @@ public class FactionsXL extends DREPlugin {
     private BukkitTask incomeTask;
     private BukkitTask powerTask;
     private BalanceCache balanceCache;
-    private BuildingManager buildingManager;
     private boolean debugEnabled = true;
     private PrintWriter out;
     private CannonsAPI cannonsAPI;
@@ -138,7 +134,6 @@ public class FactionsXL extends DREPlugin {
         ConfigurationSerialization.registerClass(RegionDemand.class);
         ConfigurationSerialization.registerClass(RelationDemand.class);
         ConfigurationSerialization.registerClass(ItemDemand.class);
-        ConfigurationSerialization.registerClass(BuildSite.class);
         super.onEnable();
         initFolders();
         debugToFile("Enabling...");
@@ -262,7 +257,6 @@ public class FactionsXL extends DREPlugin {
         loadCBManager();
         loadAtlas();
         loadOccupationManager();
-        loadBuildings();
         loadCoring();
         loadFCommands();
         loadChatListener();
@@ -270,7 +264,6 @@ public class FactionsXL extends DREPlugin {
         loadEntityProtectionListener();
         loadLandProtectionListener();
 
-        new BuildingListener();
 
         if (fConfig.isLWCEnabled()) {
             loadLWC();
@@ -508,21 +501,6 @@ public class FactionsXL extends DREPlugin {
      */
     public void loadBoard(File dir) {
         board = new Board(dir);
-    }
-
-    /**
-     * new BuildingManager
-     */
-    public void loadBuildings() {
-        buildingManager = new BuildingManager();
-    }
-
-    /**
-     * @return
-     * the loaded instance of BuildingManager
-     */
-    public BuildingManager getBuildingManager() {
-        return buildingManager;
     }
 
     /**

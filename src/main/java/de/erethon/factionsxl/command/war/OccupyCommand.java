@@ -151,7 +151,7 @@ public class OccupyCommand extends FCommand {
                     MessageUtil.sendMessage(sender, "&cEine Region dieser Fraktion wird bereits angegriffen.");
                     return;
                 }
-                if (plugin.getOccupationManager().canStartOccupation(factionWP, factionWP.getEnemy())) {
+                if (!plugin.getOccupationManager().canStartOccupation(factionWP, factionWP.getEnemy())) {
                     MessageUtil.sendMessage(sender, "&cDu kannst aktuell keinen Angriff starten. Der Beteiligungs-Unterschied ist zu groß.");
                     MessageUtil.sendMessage(sender, "&7&oEventuell ist die Besitzer-Kriegspartei nicht aktiv oder eure eigenen Kriegsbeteiligung ist zu hoch.");
                     return;

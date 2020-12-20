@@ -58,7 +58,7 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
         Faction faction = fplayer.getFaction();
         object = f;
         // Raid is always available
-        ItemStack raidItem = new ItemStack(Material.STONE_SWORD);
+        ItemStack raidItem = new ItemStack(Material.GOLD_INGOT);
         ItemMeta raidMeta = raidItem.getItemMeta();
         raidMeta.setDisplayName(FMessage.WAR_CB_RAID.getMessage());
         raidItem.setItemMeta(raidMeta);

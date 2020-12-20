@@ -26,7 +26,6 @@ import de.erethon.commons.player.PlayerCollection;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
-import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.*;
@@ -113,12 +112,10 @@ public class Faction extends LegalEntity {
     Map<Resource, Integer> consumableResources = new HashMap<>();
     Map<Resource, Integer> saturatedResources = new HashMap<>();
     Map<ResourceSubcategory, Integer> saturatedSubcategories = new HashMap<>();
-    Set<StatusEffect> effects = new HashSet<>();
     PopulationMenu populationMenu;
     IdeaMenu ideaMenu;
     Set<IdeaGroup> ideaGroups = new HashSet<>();
     Set<Idea> ideas = new HashSet<>();
-    Set<BuildSite> buildings = new HashSet<>();
     Set<CasusBelli> casusBelli = new HashSet<>();
     Set<War> callsToArms = new HashSet<>();
     boolean allod = true;
@@ -989,31 +986,6 @@ public class Faction extends LegalEntity {
         return SaturationLevel.getByPercentage(value, subcategory.isBasic());
     }
 
-    /**
-     * @return
-     * a set of StatusEffects that affect this faction
-     */
-    public Set<StatusEffect> getEffects() {
-        return effects;
-    }
-
-    /**
-     * @param resource
-     * @return the modifier for this resource after applying all effects
-     */
-    public double getTotalModifierForResource(Resource resource) {
-        double modifier = 0;
-        for (StatusEffect effect : getEffects()) {
-            if (effect.getProductionModifier().containsKey(resource)) {
-                modifier = modifier + effect.getProductionModifier().get(resource);
-            }
-            if (effect.getConsumptionModifier().containsKey(resource)) {
-                modifier = modifier + effect.getConsumptionModifier().get(resource);
-            }
-        }
-        return modifier;
-    }
-
 
     /**
      * @return
@@ -1045,14 +1017,6 @@ public class Faction extends LegalEntity {
      */
     public Set<Idea> getIdeas() {
         return ideas;
-    }
-
-    /**
-     * @return
-     * the the faction-wide buildings this faction has completed.
-     */
-    public Set<BuildSite> getFactionBuildings() {
-        return buildings;
     }
 
     /**
@@ -1513,12 +1477,6 @@ public class Faction extends LegalEntity {
             }
         }
         ideaMenu = new IdeaMenu(this);
-        ConfigurationSection bs = config.getConfigurationSection("buildSites");
-        if (bs != null) {
-            for (String b : bs.getKeys(false)) {
-                buildings.add(new BuildSite(config.getConfigurationSection("buildSites." + b)));
-            }
-        }
         ConfigurationSection cbs = config.getConfigurationSection("casusBelli");
         if (cbs != null) {
             for (String cb : cbs.getKeys(false)) {
@@ -1620,11 +1578,6 @@ public class Faction extends LegalEntity {
                 ideaIds.add(idea.toString());
             }
             config.set("ideas", ideaIds);
-            int i = 0;
-            for (BuildSite b : buildings) {
-                config.set("buildSites." + i, b.serialize());
-                i++;
-            }
             int i2 = 0;
             for (CasusBelli cb : casusBelli) {
                 config.set("casusBelli." + i2, cb.serialize());

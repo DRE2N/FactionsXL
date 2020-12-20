@@ -21,7 +21,6 @@ import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
-import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
@@ -434,10 +433,6 @@ public class Region {
             }
         }
         return false;
-    }
-
-    public Set<BuildSite> getBuildings() {
-        return buildings;
     }
 
     /**

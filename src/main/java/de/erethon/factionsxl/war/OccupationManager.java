@@ -197,7 +197,7 @@ public class OccupationManager {
                 attackerParticipation = attackerParticipation + war.getPlayerParticipation(fp.getPlayer());
 
             }
-            }
+        }
         for (Faction f : defender.getFactions()) {
             for (FPlayer fp : f.getFPlayers()) {
                 // Only count players that are online or that were online up to 10 minutes ago
@@ -208,6 +208,7 @@ public class OccupationManager {
             }
         }
         if (defenderParticipation <= 1.00) {
+            MessageUtil.log("Defender has no participation. Cancelling... ");
             return false;
         }
         // If the attacker is weaker they should still be able to attack
