@@ -625,6 +625,19 @@ public class Region {
         }
     }
 
+    /**
+     * Deletes the region file
+     * @return
+     * true if and only if the file or directory is successfully deleted; false otherwise
+     */
+    public boolean delete() {
+        try {
+            return file.delete();
+        } catch (SecurityException e) {
+            return false;
+        }
+    }
+
     @Override
     public String toString() {
         return "Region{ID=" + id + "; name=" + name + "}";

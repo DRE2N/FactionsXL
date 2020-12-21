@@ -176,7 +176,7 @@ public class WorldCommand extends FCommand {
 
     private void delete(Player player, Region region) {
         if (region != null) {
-            board.getRegions().remove(region);
+            board.deleteRegion(region);
             ParsingUtil.sendMessage(player, FMessage.CMD_WORLD_DELETE.getMessage(ParsingUtil.getRegionName(player, region)));
         } else {
             ParsingUtil.sendMessage(player, FMessage.ERROR_NO_SUCH_REGION.getMessage());

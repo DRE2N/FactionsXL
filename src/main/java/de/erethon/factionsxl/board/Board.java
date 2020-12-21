@@ -28,6 +28,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -239,7 +240,31 @@ public class Board {
      * a new, unused region ID.
      */
     public int generateId() {
-        return regions.size();
+        return getHighestId() + 1;
+    }
+
+    /**
+     * @return
+     * the highest id used by any region
+     */
+    public int getHighestId() {
+        int highestId = 0;
+        Iterator<Region> iterator = regions.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getId() > highestId) {
+                highestId = iterator.next().getId();
+            }
+        }
+        return highestId;
+    }
+
+    /**
+     * @param region
+     * region to delete
+     */
+    public void deleteRegion(Region region) {
+        regions.remove(region);
+        region.delete();
     }
 
     /* Persistence */
