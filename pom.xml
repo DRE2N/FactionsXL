@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.erethon</groupId>
     <artifactId>factionsxl</artifactId>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>FactionsXL</name>
     <url>https://erethon.de</url>

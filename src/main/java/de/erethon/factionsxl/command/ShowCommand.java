@@ -103,7 +103,8 @@ public class ShowCommand extends FCommand {
         MessageUtil.sendMessage(player, FMessage.CMD_SHOW_GOVERNMENT_TYPE.getMessage() + c + govType);
         if (faction.isActive()) {
             MessageUtil.sendMessage(player, FMessage.CMD_SHOW_INVITATION.getMessage() + c + !faction.isOpen());
-            MessageUtil.sendMessage(player, FMessage.CMD_SHOW_CAPITAL.getMessage() + c + faction.getCapital().getName());
+            String capitalName = faction.getCapital() == null ? "none" : faction.getCapital().getName();
+            MessageUtil.sendMessage(player, FMessage.CMD_SHOW_CAPITAL.getMessage() + c + capitalName);
             String power = String.valueOf(faction.getPower());
             String provinces = String.valueOf(faction.getRegions().size());
             int pop = 0;
