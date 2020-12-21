@@ -249,10 +249,9 @@ public class Board {
      */
     public int getHighestId() {
         int highestId = 0;
-        Iterator<Region> iterator = regions.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().getId() > highestId) {
-                highestId = iterator.next().getId();
+        for (Region region : regions) {
+            if (region.getId() > highestId) {
+                highestId = region.getId();
             }
         }
         return highestId;
