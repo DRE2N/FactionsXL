@@ -161,6 +161,7 @@ public class FinalPeaceOffer extends PeaceOffer {
             }
         }
         if (add) {
+            MessageUtil.log("Added new FinalPeaceOffer to " + getObject().getName());
             getObject().getRequests().add(this);
         }
 
