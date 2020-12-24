@@ -102,12 +102,20 @@ public class EntityProtectionListener implements Listener {
         if (aFaction != null && aFaction.getRelation(dFaction).isProtected() || truce) {
             ParsingUtil.sendActionBarMessage(attacker, FMessage.PROTECTION_CANNOT_ATTACK_PLAYER.getMessage(), dFaction);
             event.setCancelled(true);
+            // Event gets fired several thousand times if the arrow is not removed
+            if (event.getDamager() instanceof AbstractArrow) {
+                event.getDamager().remove();
+            }
         } else if (rFaction != null && rFaction.getRelation(dFaction).isProtected() && (aFaction == null || !aFaction.isInWar(dFaction))) {
             if (config.isTerritoryProtectionEnabled() || (config.isCapitalProtectionEnabled()
                     && rFaction.getCapital().equals(plugin.getBoard().getByLocation(eDefender.getLocation())))) {
                 ParsingUtil.sendActionBarMessage(attacker, (config.isCapitalProtectionEnabled() ? FMessage.PROTECTION_CANNOT_ATTACK_CAPITAL
                         : FMessage.PROTECTION_CANNOT_ATTACK_FACTION).getMessage(), rFaction);
                 event.setCancelled(true);
+                // Event gets fired several thousand times if the arrow is not removed
+                if (event.getDamager() instanceof AbstractArrow) {
+                    event.getDamager().remove();
+                }
             } else if (shield != 0) {
                 event.setDamage(event.getDamage() - event.getDamage() * shield);
                 ParsingUtil.sendActionBarMessage(attacker, FMessage.PROTECTION_DAMAGE_REDUCED.getMessage(), (int) (shield * 100), rFaction);
