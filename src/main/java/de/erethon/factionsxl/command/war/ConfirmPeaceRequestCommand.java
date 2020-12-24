@@ -132,8 +132,11 @@ public class ConfirmPeaceRequestCommand extends FCommand {
             }
             Collection<FinalPeaceOffer> requests = null;
             try {
+                MessageUtil.log("Getting final peace offers for " + wp.getName() + " (Leader: " + wp.getLeader().getName() + ")");
                 requests = wp.getRequests(FinalPeaceOffer.class);
             } catch (NullPointerException e) {
+                MessageUtil.log("Error: NPE while looking for FinalPeaceOffers  for " + wp.getName() + " found!");
+                e.printStackTrace();
                 MessageUtil.sendMessage(player, FMessage.CMD_PEACE_CONFIRM_EMPTY.getMessage());
             }
             if (requests == null) {
@@ -147,6 +150,7 @@ public class ConfirmPeaceRequestCommand extends FCommand {
                 }
             }
             if (peace == null) {
+                MessageUtil.log("Error: No FinalPeaceOffers  for " + wp.getName() + " found!");
                 return;
             }
             if (wp.getEnemy().getPoints() >= 50) { // Auto confirm if enemy has over 50 score
