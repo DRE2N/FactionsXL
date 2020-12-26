@@ -25,6 +25,7 @@ import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
+import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarParty;
 import de.erethon.factionsxl.war.WarRequest;
 import org.bukkit.command.CommandSender;
@@ -89,8 +90,15 @@ public class RelationCommand extends FCommand {
             subjectFaction.getRequests().removeAll(toRemove);
             return;
         }
-
         Relation relation = Relation.fromString(args[3]);
+        if (subjectFaction.isInWar()) {
+            for (WarParty wp : subjectFaction.getWarParties()) {
+                if (wp.getEnemy().getFactions().contains(objectFaction)) {
+                    MessageUtil.sendMessage(sender, FMessage.ERROR_AT_WAR.getMessage());
+                    return;
+                }
+            }
+        }
         if (subjectFaction.getRelation(objectFaction) == Relation.PERSONAL_UNION && relation != Relation.REAL_UNION) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_PERSONAL_UNION_WITH_FACTION.getMessage(), subjectFaction, objectFaction);
             return;
