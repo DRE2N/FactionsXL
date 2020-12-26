@@ -86,7 +86,7 @@ public class RelationNeutralCommand extends FCommand {
                 return;
             case ENEMY:
                 if (subject.isInWar()) {
-                    ParsingUtil.sendMessage(sender, FMessage.ERROR_IN_WAR.getMessage(), subject, object);
+                    ParsingUtil.sendMessage(sender, FMessage.ERROR_AT_WAR.getMessage(), subject, object);
                     return;
                 }
             default:
