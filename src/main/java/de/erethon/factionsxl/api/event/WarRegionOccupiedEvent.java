@@ -15,42 +15,58 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.event;
+package de.erethon.factionsxl.api.event;
 
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * Gets called when a player joins a faction
+ * This event gets fired when a region is occupied
  */
-public class FPlayerFactionJoinEvent extends Event {
+public class WarRegionOccupiedEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
+    WarParty attacker;
+    WarParty defender;
+    Faction occupant;
+    Region region;
 
-    FPlayer fPlayer;
-    Faction faction;
-
-    public FPlayerFactionJoinEvent(FPlayer fp, Faction f) {
-        fPlayer = fp;
-        faction = f;
+    public WarRegionOccupiedEvent(WarParty a, WarParty d, Region rg, Faction f) {
+        attacker = a;
+        defender = d;
+        region = rg;
+        occupant = f;
     }
 
     /**
-     *
-     * @return the {@link FPlayer} that joined the faction
+     * @return  the {@link WarParty} of the attacker
      */
-    public FPlayer getFPlayer() {
-        return fPlayer;
+    public WarParty getAttacker() {
+        return attacker;
     }
 
     /**
-     *
-     * @return the {@link Faction}
+     * @return the {@link WarParty} of the defender
      */
-    public Faction getFaction() {
-        return faction;
+    public WarParty getDefender() {
+        return defender;
+    }
+
+    /**
+     * @return the {@link Region} that was occupied
+     */
+    public Region getRegion() {
+        return region;
+    }
+
+    /**
+     * @return the {@link Faction} that now occupies the region
+     */
+    public Faction getOccupant() {
+        return occupant;
     }
 
     public static HandlerList getHandlerList() {

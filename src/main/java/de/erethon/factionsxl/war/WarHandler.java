@@ -24,7 +24,7 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.RelationRequest;
-import de.erethon.factionsxl.event.WarTruceEndEvent;
+import de.erethon.factionsxl.api.event.WarTruceEndEvent;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.Bukkit;

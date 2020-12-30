@@ -14,44 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package de.erethon.factionsxl.api.event;
 
-package de.erethon.factionsxl.event;
-
-import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.player.FPlayer;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * Gets called when a player leaves a faction, was kicked from it or left the faction to create a vassal (via independence or command).
- * Also gets called when a player gets kicked for inactivity, if this is enabled.
+ * @author Daniel Saukel
  */
-public class FPlayerFactionLeaveEvent extends Event {
+public class DataReloadEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
+    private boolean cancelled;
 
-    FPlayer fPlayer;
-    Faction faction;
-
-    public FPlayerFactionLeaveEvent(FPlayer fp, Faction f) {
-        fPlayer = fp;
-        faction = f;
-    }
-
-    /**
-     *
-     * @return the {@link FPlayer} that left the faction
-     */
-    public FPlayer getFPlayer() {
-        return fPlayer;
-    }
-
-    /**
-     *
-     * @return the {@link Faction}
-     */
-    public Faction getFaction() {
-        return faction;
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
     }
 
     public static HandlerList getHandlerList() {
@@ -59,7 +38,13 @@ public class FPlayerFactionLeaveEvent extends Event {
     }
 
     @Override
-    public HandlerList getHandlers() {
-        return handlers;
+    public boolean isCancelled() {
+        return cancelled;
     }
+
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
 }

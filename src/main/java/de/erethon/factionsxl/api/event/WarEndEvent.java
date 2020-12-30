@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.event;
+package de.erethon.factionsxl.api.event;
 
 import de.erethon.factionsxl.war.CasusBelli;
 import de.erethon.factionsxl.war.WarParty;
@@ -24,9 +24,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * This event gets fired when a war is successfully declared. Can be cancelled to prevent the war.
+ * This event gets fired when a war ends. Can be cancelled.
  */
-public class WarDeclarationEvent extends Event implements Cancellable {
+public class WarEndEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
     WarParty attacker;
@@ -34,7 +34,7 @@ public class WarDeclarationEvent extends Event implements Cancellable {
     CasusBelli casusBelli;
     private boolean cancelled;
 
-    public WarDeclarationEvent(WarParty a, WarParty d, CasusBelli cb) {
+    public WarEndEvent(WarParty a, WarParty d, CasusBelli cb) {
         attacker = a;
         defender = d;
         casusBelli = cb;
@@ -55,7 +55,7 @@ public class WarDeclarationEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return the {@link CasusBelli} of the war
+     * @return  the {@link CasusBelli} of the war
      */
     public CasusBelli getCasusBelli() {
         return casusBelli;

@@ -19,7 +19,7 @@ package de.erethon.factionsxl.command;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.event.DataReloadEvent;
+import de.erethon.factionsxl.api.event.DataReloadEvent;
 import de.erethon.factionsxl.player.FPermission;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;

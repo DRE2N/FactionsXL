@@ -18,7 +18,7 @@ package de.erethon.factionsxl.player;
 
 import de.erethon.commons.player.PlayerUtil;
 import de.erethon.factionsxl.FactionsXL;
-import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
+import de.erethon.factionsxl.api.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;

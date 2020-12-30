@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.event;
+package de.erethon.factionsxl.api.event;
 
 import de.erethon.factionsxl.war.CasusBelli;
 import de.erethon.factionsxl.war.WarParty;

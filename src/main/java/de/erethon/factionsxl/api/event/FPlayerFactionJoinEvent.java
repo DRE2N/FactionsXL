@@ -14,23 +14,43 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.erethon.factionsxl.event;
 
-import org.bukkit.event.Cancellable;
+package de.erethon.factionsxl.api.event;
+
+import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.player.FPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * @author Daniel Saukel
+ * Gets called when a player joins a faction
  */
-public class DataReloadEvent extends Event implements Cancellable {
+public class FPlayerFactionJoinEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
-    private boolean cancelled;
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
+    FPlayer fPlayer;
+    Faction faction;
+
+    public FPlayerFactionJoinEvent(FPlayer fp, Faction f) {
+        fPlayer = fp;
+        faction = f;
+    }
+
+    /**
+     *
+     * @return the {@link FPlayer} that joined the faction
+     */
+    public FPlayer getFPlayer() {
+        return fPlayer;
+    }
+
+    /**
+     *
+     * @return the {@link Faction}
+     */
+    public Faction getFaction() {
+        return faction;
     }
 
     public static HandlerList getHandlerList() {
@@ -38,13 +58,7 @@ public class DataReloadEvent extends Event implements Cancellable {
     }
 
     @Override
-    public boolean isCancelled() {
-        return cancelled;
+    public HandlerList getHandlers() {
+        return handlers;
     }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
-    }
-
 }

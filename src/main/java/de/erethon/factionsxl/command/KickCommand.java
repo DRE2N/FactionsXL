@@ -18,7 +18,7 @@ package de.erethon.factionsxl.command;
 
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
+import de.erethon.factionsxl.api.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;

@@ -15,30 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.event;
+package de.erethon.factionsxl.api.event;
 
 import de.erethon.factionsxl.board.Region;
-import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * This event gets fired when a region is occupied
+ * This event gets fired when a attack on a region starts (/f occupy command).
  */
-public class WarRegionOccupiedEvent extends Event {
+public class WarRegionAttackEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     WarParty attacker;
     WarParty defender;
-    Faction occupant;
     Region region;
 
-    public WarRegionOccupiedEvent(WarParty a, WarParty d, Region rg, Faction f) {
+    public WarRegionAttackEvent(WarParty a, WarParty d, Region rg) {
         attacker = a;
         defender = d;
         region = rg;
-        occupant = f;
     }
 
     /**
@@ -56,18 +53,12 @@ public class WarRegionOccupiedEvent extends Event {
     }
 
     /**
-     * @return the {@link Region} that was occupied
+     * @return the {@link Region} that is getting attacked
      */
     public Region getRegion() {
         return region;
     }
 
-    /**
-     * @return the {@link Faction} that now occupies the region
-     */
-    public Faction getOccupant() {
-        return occupant;
-    }
 
     public static HandlerList getHandlerList() {
         return handlers;

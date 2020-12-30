@@ -15,50 +15,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.event;
+package de.erethon.factionsxl.api.event;
 
-import de.erethon.factionsxl.board.Region;
-import de.erethon.factionsxl.war.WarParty;
+import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.player.FPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * This event gets fired when a attack on a region starts (/f occupy command).
+ * Gets called when a player leaves a faction, was kicked from it or left the faction to create a vassal (via independence or command).
+ * Also gets called when a player gets kicked for inactivity, if this is enabled.
  */
-public class WarRegionAttackEvent extends Event {
+public class FPlayerFactionLeaveEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
-    WarParty attacker;
-    WarParty defender;
-    Region region;
 
-    public WarRegionAttackEvent(WarParty a, WarParty d, Region rg) {
-        attacker = a;
-        defender = d;
-        region = rg;
+    FPlayer fPlayer;
+    Faction faction;
+
+    public FPlayerFactionLeaveEvent(FPlayer fp, Faction f) {
+        fPlayer = fp;
+        faction = f;
     }
 
     /**
-     * @return  the {@link WarParty} of the attacker
+     *
+     * @return the {@link FPlayer} that left the faction
      */
-    public WarParty getAttacker() {
-        return attacker;
+    public FPlayer getFPlayer() {
+        return fPlayer;
     }
 
     /**
-     * @return the {@link WarParty} of the defender
+     *
+     * @return the {@link Faction}
      */
-    public WarParty getDefender() {
-        return defender;
+    public Faction getFaction() {
+        return faction;
     }
-
-    /**
-     * @return the {@link Region} that is getting attacked
-     */
-    public Region getRegion() {
-        return region;
-    }
-
 
     public static HandlerList getHandlerList() {
         return handlers;
