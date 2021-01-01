@@ -38,6 +38,7 @@ public enum FPermission {
     ADD_CASUS_BELLI("addcasusbelli", OP),
     ADMIN("admin", TRUE),
     BUILD("build", OP),
+    BUILDING_TICKETS("buildingticket", OP),
     BYPASS("bypass", OP),
     CASUS_BELLI("casusbelli", TRUE),
     CASUS_BELLI_OTHERS("casusbelli.others", TRUE),

@@ -30,8 +30,10 @@ public enum FMessage implements Message {
 
     BULL_ID("bull.id"),
     BULL_RIGHT_KLICK("bull.rightClick"),
+    BUILDING_BUSY("building.site.busy"),
     BUILDING_SITE_CREATED("building.site.created"),
     BUILDING_SITE_HINT("building.site.hint"),
+    BUILDING_SITE_WAITING("building.site.waitingForTicket"),
     CHAT_CHANNEL_SWITCHED("chat.channelSwitched"),
     CHAT_PREFIX_ADMIN("chat.prefix.admin"),
     CHAT_PREFIX_MEMBER("chat.prefix.member"),
@@ -158,6 +160,7 @@ public enum FMessage implements Message {
     DEATH_PLAYER_KILL_KILLER("death.playerKill.killer"),
     ERROR_ALLOD("error.allod"),
     ERROR_AT_WAR("error.atWar"),
+    ERROR_BUILDING_BLOCKED("error.building.blocked"),
     ERROR_BUILDING_REQUIRED_FACTION("error.building.required.faction"),
     ERROR_BUILDING_REQUIRED_REGION("error.building.required.region"),
     ERROR_BUILDING_TOO_CLOSE_BORDER("error.building.tooCloseToBorder"),

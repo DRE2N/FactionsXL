@@ -57,14 +57,17 @@ public class BuildSite implements ConfigurationSerializable {
     BuildingManager buildingManager = plugin.getBuildingManager();
     FConfig fConfig = plugin.getFConfig();
 
-    Building building;
-    Region region;
-    Location corner;
-    Location otherCorner;
-    Location interactive;
-    FTouchHandler fTouchHandler;
-    Map<Material, Integer> placedBlocks = new HashMap<>();
-    boolean finished;
+    private final Building building;
+    private final Region region;
+    private final Location corner;
+    private final Location otherCorner;
+    private final Location interactive;
+    private String problemMessage = null;
+    private final FTouchHandler fTouchHandler;
+    private Map<Material, Integer> placedBlocks = new HashMap<>();
+    private boolean finished;
+    private boolean hasTicket = false;
+    private boolean isBusy = false;
 
     Hologram progressHolo;
 
@@ -89,8 +92,13 @@ public class BuildSite implements ConfigurationSerializable {
         MessageUtil.log((String) args.get("location.interactable"));
         interactive = Location.deserialize((Map<String, Object>)args.get("location.interactable"));
         finished = (boolean) args.get("finished");
+        hasTicket = (boolean) args.get("hasTicket");
+        problemMessage = (String) args.get("problemMessage");
         region.getBuildings().add(this);
         fTouchHandler = new FTouchHandler();
+        if (hasTicket) {
+            buildingManager.getBuildingTickets().add(getSite());
+        }
         setupHolo();
     }
     
@@ -102,6 +110,8 @@ public class BuildSite implements ConfigurationSerializable {
         interactive = Location.deserialize(config.getConfigurationSection("location.interactable").getValues(false));
         MessageUtil.log(corner.toString());
         finished = config.getBoolean("finished");
+        hasTicket = config.getBoolean("hasTicket");
+        problemMessage = config.getString("problemMessage");
         region.getBuildings().add(this);
         fTouchHandler = new FTouchHandler();
         scheduleProgressUpdate();
@@ -112,6 +122,9 @@ public class BuildSite implements ConfigurationSerializable {
             }
         };
         delayedSetup.runTaskLater(plugin, 60);
+        if (hasTicket) {
+            buildingManager.getBuildingTickets().add(getSite());
+        }
     }
 
     public void setupHolo() {
@@ -150,15 +163,38 @@ public class BuildSite implements ConfigurationSerializable {
         progressHolo.clearLines();
         progressHolo.appendTextLine(ChatColor.GOLD + building.getName()).setTouchHandler(fTouchHandler);
         progressHolo.appendTextLine(" ").setTouchHandler(fTouchHandler);
-        for (Material material : building.getRequiredBlocks().keySet()) {
-            String output = plugin.getFTranslation().getTranslatedName(material);
-            progressHolo.appendTextLine(ChatColor.GRAY + output + ChatColor.DARK_GRAY + ": " + (getProgressString(material))).setTouchHandler(fTouchHandler);
+        if (!isFinished() || !buildingManager.getBuildingTickets().contains(getSite())) {
+            for (Material material : building.getRequiredBlocks().keySet()) {
+                String output = plugin.getFTranslation().getTranslatedName(material);
+                progressHolo.appendTextLine(ChatColor.GRAY + output + ChatColor.DARK_GRAY + ": " + (getProgressString(material))).setTouchHandler(fTouchHandler);
+            }
+        }
+        if (buildingManager.getBuildingTickets().contains(getSite())) {
+            progressHolo.appendTextLine(FMessage.BUILDING_SITE_WAITING.getMessage());
+            if (problemMessage != null) {
+                progressHolo.appendTextLine(ChatColor.RED + problemMessage);
+            }
         }
         progressHolo.appendTextLine(FMessage.BUILDING_SITE_HINT.getMessage()).setTouchHandler(fTouchHandler);
     }
 
+    public void finishBuilding() {
+        StatusEffect effect = new StatusEffect(getSite(), true, 0);
+        effect.getProductionModifier().put(Resource.STONE, 2.0);
+        region.getEffects().add(effect);
+        finished = true;
+        problemMessage = null;
+        hasTicket = false;
+        getRegion().getOwner().sendMessage("&aEin(e) &6" + getBuilding().getName() + " &ain " + getRegion().getName() + " &awurde akzeptiert und die Effekte sind nun aktiv.");
+    }
+
+    public void removeEffects() {
+
+    }
+
     public void scheduleProgressUpdate() {
         CompletableFuture<Chunk> chunk = getCorner().getWorld().getChunkAtAsync(getCorner());
+        isBusy = true;
         BukkitRunnable waitForChunk = new BukkitRunnable() {
             @Override
             public void run() {
@@ -182,26 +218,30 @@ public class BuildSite implements ConfigurationSerializable {
     }
 
     public void checkProgress() {
-        BukkitRunnable finished = new BukkitRunnable() {
+        isBusy = true;
+        BukkitRunnable complete = new BukkitRunnable() {
             @Override
             public void run() {
                 updateHolo();
-                boolean finished = true;
+                isBusy = false;
+                boolean fini = true;
                 for (Material material : building.getRequiredBlocks().keySet()) {
                     if (getPlacedBlocks().get(material) < building.getRequiredBlocks().get(material)) {
-                        finished = false;
+                        fini = false;
                     }
                 }
-                if (finished && isDestroyed()) {
+                if (finished && !fini) {
                     finished = false;
-                    MessageUtil.broadcastMessage("Building was destroyed!");
+                    getRegion().getOwner().sendMessage("&aEin(e) &6" + getBuilding().getName() + " &ain " + getRegion().getName() + " &awurde zerstört!");
+                    removeEffects();
                     return;
                 }
-                if (finished) {
-                    MessageUtil.broadcastMessage("Finished!");
-                    StatusEffect effect = new StatusEffect(getSite(), true, 0);
-                    effect.getProductionModifier().put(Resource.STONE, 2.0);
-                    region.getEffects().add(effect);
+                if (fini && !isFinished() && !hasTicket) {
+                    buildingManager.getBuildingTickets().add(getSite());
+                    hasTicket = true;
+                    getRegion().getOwner().sendMessage("&aEin(e) &6" + getBuilding().getName() + " &ain " + getRegion().getName() + " &awurde fertiggestellt");
+                    getRegion().getOwner().sendMessage("&7&oEin Ticket wurde automatisch erstellt und das Gebäude wird zeitnah überprüft.");
+                    MessageUtil.log("A new BuildSite ticket for " + getBuilding().getName() + " in " + getRegion().getName() + " was created.");
                 }
             }
         };
@@ -222,11 +262,10 @@ public class BuildSite implements ConfigurationSerializable {
                         placed.put(type, amount + 1);
                     }
                 }
-                MessageUtil.broadcastMessage("Progress!");
                 MessageUtil.log("-------------------");
                 MessageUtil.log(placed.toString());
                 placedBlocks = placed;
-                finished.runTask(plugin);
+                complete.runTask(plugin);
             }
         };
         runAsync.runTaskAsynchronously(plugin);
@@ -247,13 +286,7 @@ public class BuildSite implements ConfigurationSerializable {
         return ChatColor.translateAlternateColorCodes('&', "&a" + placed + "&8/&7" + total);
     }
 
-    public boolean isInBuildSite(Player player) {
-        FPlayer fPlayer = plugin.getFPlayerCache().getByPlayer(player);
-        Region rg = fPlayer.getLastRegion();
-        if (rg == null) {
-            return false;
-        }
-        Location location = player.getLocation();
+    public boolean isInBuildSite(Location location) {
         double xp = location.getX();
         double yp = location.getY();
         double zp = location.getZ();
@@ -266,6 +299,18 @@ public class BuildSite implements ConfigurationSerializable {
         double z2 = otherCorner.getZ();
         return new IntRange(x1, x2).containsDouble(xp) && new IntRange(y1, y2).containsDouble(yp) && new IntRange(z1, z2).containsDouble(zp);
     }
+
+    public boolean isInBuildSite(Player player) {
+        FPlayer fPlayer = plugin.getFPlayerCache().getByPlayer(player);
+        Region rg = fPlayer.getLastRegion();
+        if (rg == null) {
+            return false;
+        }
+        Location location = player.getLocation();
+        return isInBuildSite(location);
+    }
+
+
 
     public Set<Block> getBlocks(World world) {
         Set<Block> blockList = new HashSet<>();
@@ -322,8 +367,18 @@ public class BuildSite implements ConfigurationSerializable {
         return finished;
     }
 
+    public void setProblemMessage(String msg) {
+        problemMessage = msg;
+    }
 
 
+    /**
+     * true if there is already a async operation running
+     * on this buildsite
+     */
+    public boolean isBusy() {
+        return isBusy;
+    }
 
     @Override
     public Map<String, Object> serialize() {
@@ -334,6 +389,8 @@ public class BuildSite implements ConfigurationSerializable {
         args.put("location.otherCorner", otherCorner.serialize());
         args.put("location.interactable", interactive.serialize());
         args.put("finished", finished);
+        args.put("hasTicket", hasTicket);
+        args.put("problemMessage", problemMessage);
         return args;
     }
 }

@@ -108,6 +108,7 @@ public class FCommandCache extends DRECommandCache {
     public WarAdminCommand editWar = new WarAdminCommand();
 
     public BuildingCommand buildingCommand = new BuildingCommand();
+    public BuildingTicketCommand buildingTicketCommand = new BuildingTicketCommand();
     public MenuCommand menuCommand = new MenuCommand();
 
     public FCommandCache(DREPlugin plugin) {
@@ -183,6 +184,7 @@ public class FCommandCache extends DRECommandCache {
         addCommand(stats);
 
         addCommand(menuCommand);
+        addCommand(buildingTicketCommand);
 
         // debug/Workaround
         addCommand(warInviteCommand);

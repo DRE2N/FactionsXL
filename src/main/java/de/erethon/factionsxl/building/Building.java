@@ -51,6 +51,7 @@ import java.util.*;
 public class Building {
 
     FactionsXL plugin = FactionsXL.getInstance();
+    BuildingManager manager = plugin.getBuildingManager();
 
     public static final String YAML = ".yml";
 
@@ -121,6 +122,16 @@ public class Building {
         }
         if (isBorder) {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_TOO_CLOSE_BORDER.getMessage());
+            return false;
+        }
+        boolean isInOtherBuilding = false;
+        for (BuildSite site : rg.getBuildings()) {
+            if (manager.hasOverlap(getCorner1(loc), getCorner2(loc), site)) {
+                isInOtherBuilding = true;
+            }
+        }
+        if (isInOtherBuilding) {
+            MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_BLOCKED.getMessage());
             return false;
         }
         if (isCoreRequired() && !rg.getCoreFactions().containsKey(faction)) {

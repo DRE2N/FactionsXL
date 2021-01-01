@@ -20,10 +20,16 @@ package de.erethon.factionsxl.building;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BuildingManager {
@@ -31,6 +37,7 @@ public class BuildingManager {
     FactionsXL plugin = FactionsXL.getInstance();
 
     private List<Building> buildings = new CopyOnWriteArrayList<>();
+    private List<BuildSite> buildingTickets = new ArrayList<>();
 
     public BuildingManager() {
         load();
@@ -61,12 +68,45 @@ public class BuildingManager {
         MessageUtil.log("Loaded " + buildings.size() + " Buildings.");
     }
 
-    public BuildSite getBuildSite(Block check, Region region) {
+    public void deleteBuilding(Player player) {
+        Region rg = plugin.getFPlayerCache().getByPlayer(player).getLastRegion();
+        if (rg == null) {
+            MessageUtil.sendMessage(player, "&cNot in Region.");
+            return;
+        }
+        BuildSite buildSite = getBuildSite(player.getTargetBlock(20), rg);
+        if (buildSite == null) {
+            MessageUtil.sendMessage(player, "&cNot a build site.");
+        }
+        buildSite.getRegion().getBuildings().remove(buildSite);
+        buildSite.getRegion().getOwner().getFactionBuildings().remove(buildSite);
+        MessageUtil.sendMessage(player, "&aBuildSite deleted.");
+
+    }
+
+    public BuildSite getBuildSite(Location loc, Region region) {
         for (BuildSite buildSite : region.getBuildings()) {
-            if (buildSite.getInteractive().equals(check)) {
+            if (buildSite.isInBuildSite(loc)) {
                 return buildSite;
             }
         }
         return null;
+    }
+
+    public boolean hasOverlap(Location corner1, Location corner2, BuildSite existingSite) {
+        return existingSite.isInBuildSite(corner1) || existingSite.isInBuildSite(corner2);
+    }
+
+    public BuildSite getBuildSite(Block check, Region region) {
+        for (BuildSite buildSite : region.getBuildings()) {
+            if (buildSite.getInteractive().equals(check.getLocation())) {
+                return buildSite;
+            }
+        }
+        return null;
+    }
+
+    public List<BuildSite> getBuildingTickets() {
+        return buildingTickets;
     }
 }
