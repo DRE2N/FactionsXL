@@ -22,6 +22,7 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.legacygui.PageGUI;
+import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.ChatColor;
@@ -116,40 +117,42 @@ public class FStorage {
         faction.updateSaturatedSubcategories();
         Set<String> tooMany = new HashSet<>();
         Set<String> tooFew = new HashSet<>();
-        for (Resource resource : Resource.values()) {
-            int saturation = faction.getSaturatedResources().get(resource);
-            int demand = faction.getDemand(resource);
-            int max = demand != 0 ? SaturationLevel.getByPercentage(saturation / demand * 100).getMinPercentage() : 100;
-            int daily = FactionsXL.getInstance().getFConfig().getSaturationPerDay();
-            int consume = faction.getConsumableResources().get(resource);
-            if (demand > consume) {
-                tooFew.add(ChatColor.GOLD + resource.getName());
-            } else if (demand < consume) {
-                tooMany.add(ChatColor.GOLD + resource.getName());
-            }
-            double change = daily;
-            if (consume != 0 && demand != 0) {
-                change = consume >= daily ? daily : -10 * (double) consume / demand;
-            } else if (consume == 0 && demand != 0) {
-                change = -1 * daily;
-            }
-            if (faction.chargeResource(resource, consume)) {
-                int newSaturation = (saturation + (int) change) > max ? max : (saturation + (int) change);
-                if (newSaturation < 0) {
-                    newSaturation = 0;
+        for (PopulationLevel level : PopulationLevel.values()) {
+            for (Resource resource : Resource.values()) {
+                int saturation = faction.getSaturatedResources().get(resource);
+                int demand = faction.getDemand(resource, level);
+                int max = demand != 0 ? SaturationLevel.getByPercentage(saturation / demand * 100).getMinPercentage() : 100;
+                int daily = FactionsXL.getInstance().getFConfig().getSaturationPerDay();
+                int consume = faction.getConsumableResources().get(resource);
+                if (demand > consume) {
+                    tooFew.add(ChatColor.GOLD + resource.getName());
+                } else if (demand < consume) {
+                    tooMany.add(ChatColor.GOLD + resource.getName());
                 }
-                faction.getSaturatedResources().put(resource, newSaturation);
-            } else {
-                faction.getSaturatedResources().put(resource, saturation - daily < 0 ? 0 : (saturation - daily));
+                double change = daily;
+                if (consume != 0 && demand != 0) {
+                    change = consume >= daily ? daily : -10 * (double) consume / demand;
+                } else if (consume == 0 && demand != 0) {
+                    change = -1 * daily;
+                }
+                if (faction.chargeResource(resource, consume)) {
+                    int newSaturation = Math.min((saturation + (int) change), max);
+                    if (newSaturation < 0) {
+                        newSaturation = 0;
+                    }
+                    faction.getSaturatedResources().put(resource, newSaturation);
+                } else {
+                    faction.getSaturatedResources().put(resource, Math.max(saturation - daily, 0));
+                }
             }
-        }
-        if (!tooMany.isEmpty()) {
-            faction.sendMessage(FMessage.POPULATION_WARNING_TOO_MANY_RESOURCES_GRANTED.getMessage());
-            faction.sendMessage(ParsingUtil.collectionToString(tooMany, ChatColor.DARK_RED));
-        }
-        if (!tooFew.isEmpty()) {
-            faction.sendMessage(FMessage.POPULATION_WARNING_NOT_ENOUGH_RESOURCES_GRANTED.getMessage());
-            faction.sendMessage(ParsingUtil.collectionToString(tooFew, ChatColor.DARK_RED));
+            if (!tooMany.isEmpty()) {
+                faction.sendMessage(FMessage.POPULATION_WARNING_TOO_MANY_RESOURCES_GRANTED.getMessage());
+                faction.sendMessage(ParsingUtil.collectionToString(tooMany, ChatColor.DARK_RED));
+            }
+            if (!tooFew.isEmpty()) {
+                faction.sendMessage(FMessage.POPULATION_WARNING_NOT_ENOUGH_RESOURCES_GRANTED.getMessage());
+                faction.sendMessage(ParsingUtil.collectionToString(tooFew, ChatColor.DARK_RED));
+            }
         }
 
         // Trade
@@ -166,7 +169,7 @@ public class FStorage {
                 faction.getAccount().deposit(-1 * amount * resource.getValue() * exportModifier);
             }
         }
-        // Perform import actions later sothat they don't fail if the money generated from exports makes them possible
+        // Perform import actions later so that they don't fail if the money generated from exports makes them possible
         for (Entry<Resource, Integer> entry : importActions.entrySet()) {
             faction.chargeMoneyForResource(entry.getKey(), entry.getValue(), importModifier);
         }
@@ -187,6 +190,21 @@ public class FStorage {
             serialized.put(entry.getKey().toString(), entry.getValue());
         }
         return serialized;
+    }
+
+    public void updatePopulation() {
+        Set<PopulationLevel> populationLevels = new HashSet<>();
+        // Only update the levels we need
+        for (PopulationLevel level : PopulationLevel.values()) {
+            if (faction.getPopulation(level) > 0) {
+                populationLevels.add(level);
+            }
+        }
+        for (PopulationLevel level : populationLevels) {
+            for (ResourceSubcategory resource : level.getRequiredResources().keySet()) {
+
+            }
+        }
     }
 
     public void update() {

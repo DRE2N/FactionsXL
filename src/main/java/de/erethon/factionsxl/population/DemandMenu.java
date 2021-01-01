@@ -64,6 +64,7 @@ public class DemandMenu implements Listener, InventoryHolder {
         }
     }
 
+    // TODO: Needs updating for PopulationLevels
     public static ItemStack formButton(Faction faction, Resource resource) {
         ItemStack icon = resource.getIcon();
         ItemMeta meta = icon.getItemMeta();
@@ -77,7 +78,7 @@ public class DemandMenu implements Listener, InventoryHolder {
         //lore.add(ProgressBar.getBar((double) faction.getSaturatedResources().get(resource)));
         lore.add(level.getColor().toString() + faction.getSaturatedResources().get(resource) + "%");
         String population = String.valueOf(faction.getPopulation());
-        String units = String.valueOf(faction.getDemand(resource));
+        String units = String.valueOf(faction.getDemand(resource, PopulationLevel.PEASANT));
         lore.add(FMessage.POPULATION_REQUIRED.getMessage(population, units, resource.getName()));
         lore.add(FMessage.POPULATION_GRANTING1.getMessage());
         lore.add(FMessage.POPULATION_GRANTING2.getMessage(String.valueOf(faction.getConsumableResources().get(resource)), resource.getName()));

@@ -39,6 +39,7 @@ import de.erethon.factionsxl.idea.IdeaMenu;
 import de.erethon.factionsxl.player.Dynasty;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.population.PopulationMenu;
 import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.scoreboard.FTeamWrapper;
@@ -434,6 +435,18 @@ public class Faction extends LegalEntity {
 
     /**
      * @return
+     * the amount of people on a certain level
+     */
+    public int getPopulation(PopulationLevel level) {
+        int total = 0;
+        for (Region region : regions) {
+            total += region.getPopulation(level);
+        }
+        return total;
+    }
+
+    /**
+     * @return
      * the manpower value
      */
     public int getManpower() {
@@ -450,8 +463,8 @@ public class Faction extends LegalEntity {
      * @return
      * how much of a resource is needed to saturate a resource at 100%
      */
-    public int getDemand(Resource resource) {
-        return (int) (SaturationLevel.getRequiredResourceUnits(getPopulation()) * resource.getRequiredAmountModifier());
+    public int getDemand(Resource resource, PopulationLevel level) {
+        return (int) (SaturationLevel.getRequiredResourceUnits(getPopulation(level)) * resource.getRequiredAmountModifier());
     }
 
     /**

@@ -35,10 +35,10 @@ public enum PopulationLevel {
     PopulationLevel() {
     }
 
-    public Map<ResourceSubcategory, Integer> getRequiredResources(PopulationLevel level) {
+    public Map<ResourceSubcategory, Integer> getRequiredResources() {
         FactionsXL plugin = FactionsXL.getInstance();
         Map<PopulationLevel, Map<ResourceSubcategory, Integer>> required = plugin.getFConfig().getPopulationLevelResources();
-        return required.get(level);
+        return required.get(this);
     }
 
     public boolean canLevelUp(Region rg, PopulationLevel level) {
@@ -47,7 +47,7 @@ public enum PopulationLevel {
         faction.updateSaturatedSubcategories();
         boolean happy = true;
         Map<ResourceSubcategory, Integer> saturated = faction.getSaturatedSubcategories();
-        for (ResourceSubcategory subcategory : getRequiredResources(level).keySet()) {
+        for (ResourceSubcategory subcategory : getRequiredResources().keySet()) {
             //faction.getDemand();
             }
 
