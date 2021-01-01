@@ -18,7 +18,9 @@
 package de.erethon.factionsxl.building;
 
 import com.gmail.filoghost.holographicdisplays.api.handler.TouchHandler;
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.player.FPlayerCache;
 import org.bukkit.entity.Player;
@@ -36,6 +38,10 @@ public class FTouchHandler implements TouchHandler {
         }
         for (BuildSite buildSite : fPlayer.getLastRegion().getBuildings()) {
             if (buildSite.isInBuildSite(player)) {
+                if (buildSite.isBusy()) {
+                    MessageUtil.sendMessage(player, FMessage.BUILDING_BUSY.getMessage());
+                    return;
+                }
                 buildSite.checkProgress();
                 buildSite.getBuilding().displayFrame(player, buildSite.getInteractive(), true);
             }
