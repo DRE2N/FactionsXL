@@ -60,7 +60,9 @@ public class Region {
     private String name;
     private RegionType type;
     private int level;
-    private int population;
+    private Map<PopulationLevel, Integer> population = new HashMap<>();
+    private Set<StatusEffect> effects = new HashSet<>();
+    private Set<BuildSite> buildings = new HashSet<>();
     private int influence = 100;
     private Faction owner;
     private Faction occupant;

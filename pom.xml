@@ -65,8 +65,8 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>de.erethon.commons</pattern>
-                                    <shadedPattern>de.erethon.factionsxl.util.commons</shadedPattern>
+                                    <pattern>de.erethon.commons.*</pattern>
+                                    <shadedPattern>de.erethon.factionsxl.util.commons.*</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>de.erethon.vignette</pattern>
