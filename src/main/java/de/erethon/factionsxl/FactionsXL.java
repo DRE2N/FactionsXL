@@ -46,6 +46,7 @@ import de.erethon.factionsxl.player.AsyncPowerTask;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.player.PlayerListener;
+import de.erethon.factionsxl.population.PopulationMessage;
 import de.erethon.factionsxl.protection.EntityProtectionListener;
 import de.erethon.factionsxl.protection.LWCIntegration;
 import de.erethon.factionsxl.protection.LandProtectionListener;
@@ -120,6 +121,7 @@ public class FactionsXL extends DREPlugin {
     private boolean debugEnabled = true;
     private PrintWriter out;
     private CannonsAPI cannonsAPI;
+    private PopulationMessage populationMessages;
 
     public FactionsXL() {
         settings = DREPluginSettings.builder()
@@ -274,6 +276,7 @@ public class FactionsXL extends DREPlugin {
         loadEntityProtectionListener();
         loadLandProtectionListener();
         loadFTranslation();
+        loadPopulationMessages();
 
         new BuildingListener();
 
@@ -758,6 +761,14 @@ public class FactionsXL extends DREPlugin {
 
     public WarPoints getWarPoints() {
         return warPoints;
+    }
+
+    public PopulationMessage getPopulationMessages() {
+        return populationMessages;
+    }
+
+    public void loadPopulationMessages() {
+        populationMessages =  new PopulationMessage();
     }
 
     /**

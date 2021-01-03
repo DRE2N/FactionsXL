@@ -1,0 +1,55 @@
+BEGGAR:
+  EUPHORIC:
+    - Euphoric
+  HAPPY:
+    - Happy
+  CONTENT:
+    - Content
+  UNHAPPY:
+    - Unhappy
+  ANGRY:
+    - Angry
+PEASANT:
+  EUPHORIC:
+    - Euphoric
+  HAPPY:
+    - Happy
+  CONTENT:
+    - Content
+  UNHAPPY:
+    - Unhappy
+  ANGRY:
+    - Angry
+CITIZEN:
+  EUPHORIC:
+    - Euphoric
+  HAPPY:
+    - Happy
+  CONTENT:
+    - Content
+  UNHAPPY:
+    - Unhappy
+  ANGRY:
+    - Angry
+PATRICIAN:
+  EUPHORIC:
+    - Euphoric
+  HAPPY:
+    - Happy
+  CONTENT:
+    - Content
+  UNHAPPY:
+    - Unhappy
+  ANGRY:
+    - Angry
+NOBLEMEN:
+  EUPHORIC:
+    - Euphoric
+  HAPPY:
+    - Happy
+  CONTENT:
+    - Content
+  UNHAPPY:
+    - Unhappy
+  ANGRY:
+    - Angry
