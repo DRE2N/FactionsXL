@@ -179,9 +179,10 @@ public class BuildSite implements ConfigurationSerializable {
     }
 
     public void finishBuilding() {
-        StatusEffect effect = new StatusEffect(getSite(), true, 0);
-        effect.getProductionModifier().put(Resource.STONE, 2.0);
-        region.getEffects().add(effect);
+        region.getEffects().addAll(getBuilding().getEffects());
+        if (getBuilding().isFactionBuilding()) {
+            region.getOwner().getEffects().addAll(getBuilding().getEffects());
+        }
         finished = true;
         problemMessage = null;
         hasTicket = false;
@@ -189,7 +190,8 @@ public class BuildSite implements ConfigurationSerializable {
     }
 
     public void removeEffects() {
-
+        getRegion().getEffects().removeIf(effect -> effect.getOrigin() == getSite());
+        getRegion().getOwner().getEffects().removeIf(effect -> effect.getOrigin() == getSite());
     }
 
     public void scheduleProgressUpdate() {
