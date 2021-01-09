@@ -34,6 +34,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -133,7 +134,9 @@ public class ConfirmPeaceRequestCommand extends FCommand {
             Collection<FinalPeaceOffer> requests = null;
             try {
                 MessageUtil.log("Getting final peace offers for " + wp.getName() + " (Leader: " + wp.getLeader().getName() + ")");
+                MessageUtil.log("RequestCollection: " + wp.getRequests().toString());
                 requests = wp.getRequests(FinalPeaceOffer.class);
+                MessageUtil.log("RequestCollection (FinalPeaceOffer): " + requests.toString());
             } catch (NullPointerException e) {
                 MessageUtil.log("Error: NPE while looking for FinalPeaceOffers  for " + wp.getName() + " found!");
                 e.printStackTrace();
