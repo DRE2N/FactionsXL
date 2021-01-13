@@ -67,6 +67,7 @@ public class WarParty implements FEntity {
         points = (int) serialized.get("score");
         pointsFromKills = (int) serialized.get("killPoints");
         fights = (int) serialized.get("fights");
+        requests = new ArrayList<>();
         role = WarPartyRole.valueOf((String) serialized.get("role"));
     }
 
@@ -94,6 +95,7 @@ public class WarParty implements FEntity {
     public List<Request> getRequests() {
         return requests;
     }
+
 
     public void initRequests() {
         requests = new ArrayList<>();
