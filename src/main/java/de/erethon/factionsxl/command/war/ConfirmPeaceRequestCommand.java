@@ -140,10 +140,12 @@ public class ConfirmPeaceRequestCommand extends FCommand {
                 MessageUtil.sendMessage(player, FMessage.CMD_PEACE_CONFIRM_EMPTY.getMessage());
             }
             if (requests == null) {
+                MessageUtil.log("Requests are empty.");
                 return;
             }
             FinalPeaceOffer peace = null;
             for (FinalPeaceOffer p : requests) {
+                MessageUtil.log("Checking offer: " + p.toString() + " - (War: " + p.getWar().toString() + ")");
                 if (p.getWar() == war) {
                     peace = p;
                     break;
