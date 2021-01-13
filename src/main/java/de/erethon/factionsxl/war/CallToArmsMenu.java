@@ -184,10 +184,8 @@ public class CallToArmsMenu implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
+        MessageUtil.log("Closing CallToArmsMenu...");
         if (event.getPlayer() != cachedViewer || !(event.getPlayer() instanceof Player)) {
-            return;
-        }
-        if (!(event.getView().getTitle().equals(FMessage.WAR_CALL_TO_ARMS_TITLE.getMessage()))) {
             return;
         }
         if (isReopen) {
