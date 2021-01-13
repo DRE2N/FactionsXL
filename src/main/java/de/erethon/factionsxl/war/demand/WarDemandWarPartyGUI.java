@@ -21,76 +21,118 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.gui.WarPartyGUI;
+import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarCache;
 import de.erethon.factionsxl.war.WarParty;
 import de.erethon.factionsxl.war.peaceoffer.FinalPeaceOffer;
 import de.erethon.factionsxl.war.peaceoffer.SeparatePeaceOffer;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Daniel Saukel
  */
-public class WarDemandWarPartyGUI extends WarPartyGUI {
+public class WarDemandWarPartyGUI implements InventoryHolder, Listener {
 
     private final FPlayerCache fPlayers;
+    FactionsXL plugin = FactionsXL.getInstance();
+    Inventory gui;
+    WarParty enemy;
     private final WarCache wars;
 
-    private final Collection<Faction> ownFactions;
-
-    public WarDemandWarPartyGUI(FactionsXL plugin, Collection<Faction> ownFactions, WarParty... parties) {
-        super(plugin, FMessage.FACTION_SELECT.getMessage(), parties);
+    public WarDemandWarPartyGUI(WarParty warParty) {
+        enemy = warParty;
+        gui = Bukkit.createInventory(this, 54, "Fraktion auswählen:");
+        Bukkit.getPluginManager().registerEvents(this, plugin);
         fPlayers = plugin.getFPlayerCache();
         wars = plugin.getWarCache();
-        this.ownFactions = ownFactions;
     }
 
-    @Override
-    public void onButtonClick(Player whoClicked, boolean left, boolean right, Faction buttonFaction) {
-        WarParty offerTarget = null;
-        for (WarParty party : buttonFaction.getWarParties()) {
-            if (party.getLeader() == buttonFaction) {
-                offerTarget = party;
+    public void open(Player player) {
+        for (Faction faction : enemy.getFactions()) {
+            ItemStack banner = faction.getBannerStack();
+            ItemMeta meta = banner.getItemMeta();
+            List<String> lore = new ArrayList<>();
+            lore.add("§6§nRechtsklick§r§7: §r§cForderung §7erstellen");
+            lore.add("§7Ihr erhaltet etwas von " + faction.getName());
+            lore.add("§7§oFoderungen mit über 50 Kriegspunkten können nicht abgelehnt werden.");
+            lore.add("§7§oForderungen mit weniger Kriegspunkten sorgen bei Ablehnung für Kriegsermüdung.");
+            lore.add("§6§nLinksklick§r§7: §r§aAngebot §7erstellen");
+            lore.add("§7Ihr gebt etwas an " + faction.getName() + "§7 ab.");
+            lore.add("§7§oEin Angebot ist freiwillig, hat dafür aber keine Konsequenzen.");
+            if (enemy.getLeader() == faction) {
+                lore.add("§r");
+                lore.add("§9§oDiese Fraktion ist Anführer ihrer");
+                lore.add("§9§oKriegspartei. Ein Frieden §9§lbeendet §r§9den Krieg.");
+            } else {
+                lore.add("§r");
+                lore.add("§9§oDies ist ein Separatfrieden. Ihr scheidet");
+                lore.add("§9§onur aus dem Krieg aus.");
             }
+            meta.setLore(lore);
+            meta.setDisplayName(faction.getName());
+            banner.setItemMeta(meta);
+            gui.addItem(banner);
+        }
+        player.openInventory(gui);
+    }
+
+    @EventHandler
+    public void onButtonClick(InventoryClickEvent event) {
+        if (event.getInventory().getHolder() != this) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        boolean right = event.isRightClick();
+        boolean left = event.isLeftClick();
+        String name = event.getCurrentItem().getItemMeta().getDisplayName();
+        Faction faction = plugin.getFactionCache().getByName(name);
+        Player whoClicked = (Player) event.getWhoClicked();
+        WarParty offerTarget = null;
+        if (enemy.getLeader() == faction) {
+            offerTarget = enemy;
         }
         if (offerTarget != null) {
             War war = offerTarget.getWar();
             WarParty demanding = war.getEnemy(offerTarget);
             if (right) {
-                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new FinalPeaceOffer(war, demanding, offerTarget));
+                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new FinalPeaceOffer(enemy.getWar(), demanding, offerTarget));
                 MessageUtil.sendMessage(whoClicked, FMessage.WAR_DEMAND_CREATION_MENU_MAKE_DEMANDS.getMessage());
-                wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, false);
+                wars.getWarDemandCreationMenu().open(whoClicked, faction, false);
             }
             if (left) {
-                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new FinalPeaceOffer(war, true, demanding, offerTarget));
+                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new FinalPeaceOffer(enemy.getWar(), true, demanding, offerTarget));
                 MessageUtil.sendMessage(whoClicked, FMessage.WAR_DEMAND_CREATION_MENU_MAKE_OFFER.getMessage());
-                wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, true);
+                wars.getWarDemandCreationMenu().open(whoClicked, faction, true);
             }
         } else {
-            War war = null;
-            for (Faction f : ownFactions) {
-                if (wars.getWarTogether(f, buttonFaction) != null) {
-                    war = wars.getWarTogether(f, buttonFaction);
-                }
-            }
-            if (war == null) {
-                MessageUtil.sendMessage(whoClicked, FMessage.ERROR_NOT_IN_WAR.getMessage());
-                return;
-            }
             if (right) {
-                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new SeparatePeaceOffer(war, fPlayers.getByPlayer(whoClicked).getFaction() , buttonFaction, false));
+                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new SeparatePeaceOffer(enemy.getWar(), fPlayers.getByPlayer(whoClicked).getFaction() , faction, false));
                 MessageUtil.sendMessage(whoClicked, FMessage.WAR_DEMAND_CREATION_MENU_MAKE_DEMANDS.getMessage());
-                wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, false);
+                wars.getWarDemandCreationMenu().open(whoClicked, faction, false);
             }
             if (left) {
-                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new SeparatePeaceOffer(war, fPlayers.getByPlayer(whoClicked).getFaction(), buttonFaction, true));
+                fPlayers.getByPlayer(whoClicked).setPeaceOffer(new SeparatePeaceOffer(enemy.getWar(), fPlayers.getByPlayer(whoClicked).getFaction(), faction, true));
                 MessageUtil.sendMessage(whoClicked, FMessage.WAR_DEMAND_CREATION_MENU_MAKE_OFFER.getMessage());
-                wars.getWarDemandCreationMenu().open(whoClicked, buttonFaction, true);
+                wars.getWarDemandCreationMenu().open(whoClicked, faction, true);
             }
         }
         HandlerList.unregisterAll(this);

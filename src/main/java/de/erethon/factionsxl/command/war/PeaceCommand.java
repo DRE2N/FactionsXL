@@ -26,6 +26,7 @@ import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.WarCache;
 import de.erethon.factionsxl.war.WarParty;
+import de.erethon.factionsxl.war.demand.EnemySelectGUI;
 import de.erethon.factionsxl.war.demand.WarDemandWarPartyGUI;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -84,11 +85,6 @@ public class PeaceCommand extends FCommand implements Listener {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
             return;
         }
-        Set<Faction> ownFactions = factions.getByLeader(player);
-        Set<WarParty> parties = new HashSet<>();
-        ownFactions.forEach(fc -> f.getWarParties().forEach(p -> parties.add(p.getEnemy())));
-        new WarDemandWarPartyGUI(plugin, ownFactions, parties.toArray(new WarParty[]{})).open(player);
-        MessageUtil.sendMessage(player, "&6&o&lRIGHT CLICK&8: &f&lDemand");
-        MessageUtil.sendMessage(player, "&6&o&lLEFT CLICK&8: &f&lOffer");
+        new EnemySelectGUI(plugin).open(player);
     }
 }
