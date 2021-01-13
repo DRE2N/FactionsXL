@@ -108,7 +108,6 @@ public class WarDemandCreationGUI implements Listener, StandardizedGUI, Inventor
         if (!(event.getWhoClicked() instanceof Player)) {
             return;
         }
-        Inventory inventory = event.getClickedInventory();
         if (event.getInventory().getHolder() != this) {
             return;
         }
@@ -120,10 +119,7 @@ public class WarDemandCreationGUI implements Listener, StandardizedGUI, Inventor
         }
         FPlayer player = plugin.getFPlayerCache().getByPlayer((Player) event.getWhoClicked());
         if (GUIButton.BACK.equals(button)) {
-            Set<Faction> ownFactions = plugin.getFactionCache().getByLeader(player.getPlayer());
-            Set<WarParty> parties = new HashSet<>();
-            ownFactions.forEach(f -> f.getWarParties().forEach(p -> parties.add(p.getEnemy())));
-            new WarDemandWarPartyGUI(plugin, ownFactions, parties.toArray(new WarParty[]{})).open(player.getPlayer());
+            new EnemySelectGUI(plugin).open(player.getPlayer());
         } else if (listDemands.equals(button)) {
             player.listWarDemands();
         } else if (send.equals(button)) {
