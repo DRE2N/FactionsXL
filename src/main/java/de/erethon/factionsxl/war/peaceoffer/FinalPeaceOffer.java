@@ -122,6 +122,7 @@ public class FinalPeaceOffer extends PeaceOffer {
 
     @Override
     public void send() {
+        MessageUtil.log("Starting to send FinalPeaceOffer...");
         if (!isOffer) {
             if (getCost() > getSubject().getPoints()) {
                 for (Player player : subject.getRequestAuthorizedPlayers(getClass()).getOnlinePlayers()) {
@@ -147,22 +148,28 @@ public class FinalPeaceOffer extends PeaceOffer {
 
         boolean add = true;
         if (getObject().getRequests() == null) {
+            MessageUtil.log("WarParty Requests are null. Initializing...");
             getObject().initRequests();
         }
+        MessageUtil.log("Checking existing requests for " + getObject().toString());
         for (PeaceOffer check : getObject().getRequests(PeaceOffer.class)) {
+            MessageUtil.log("Req (" + getObject() + "): " + check.toString());
             if (check.getSubject() == subject && check.getObject() == object) {
+                MessageUtil.log("Same object/subject: " + check.toString());
                 add = false;
                 break;
             }
         }
-        if (!(add)) {
+        if (!add) {
+            MessageUtil.log("Found existing request with the same subject/object. Aborting...");
             for (Player player : object.getRequestAuthorizedPlayers(getClass()).getOnlinePlayers()) {
                 MessageUtil.sendMessage(player, FMessage.WAR_DEMAND_REQUEST_ALREADY_SENT.getMessage());
             }
         }
         if (add) {
-            MessageUtil.log("Added new FinalPeaceOffer to " + getObject().getName());
+            MessageUtil.log("Added new FinalPeaceOffer to " + getObject().toString());
             getObject().getRequests().add(this);
+            MessageUtil.log("Reqs: " + getObject().getRequests().toString());
         }
 
         sendSubjectMessage();
