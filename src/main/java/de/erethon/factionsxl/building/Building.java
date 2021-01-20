@@ -17,6 +17,8 @@
 
 package de.erethon.factionsxl.building;
 
+import com.destroystokyo.paper.MaterialSetTag;
+import com.destroystokyo.paper.MaterialTags;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
@@ -67,6 +69,7 @@ public class Building {
     private int size;
     private Map<Resource, Integer> unlockCost = new HashMap<>();
     private Map<Material, Integer> requiredBlocks = new HashMap<>();
+    private Map<FSetTag, Integer> requiredBlockTypes = new HashMap<>();
     private Map<PopulationLevel, Integer> requiredPopulation = new HashMap<>();
     private List<String> requiredBuildings = new ArrayList<>(); // String with ids because the other buildings might not be loaded yet.
     private Set<StatusEffect> effects = new HashSet<>();
@@ -444,6 +447,14 @@ public class Building {
         size = config.getInt("size");
         description = (List<String>) config.getList("description");
         requiredBuildings = (List<String>) config.getList("requiredBuildings");
+        if (config.contains("requiredCategories")) {
+            Set<String> cfgList = config.getConfigurationSection("requiredCategories").getKeys(false);
+            for (String s : cfgList) {
+                FSetTag tag = FSetTag.valueOf(s);
+                int amount = config.getInt("requiredCategories." + s);
+                requiredBlockTypes.put(tag, amount);
+            }
+        }
         if (config.contains("requiredBlocks")) {
             Set<String> cfgList = config.getConfigurationSection("requiredBlocks").getKeys(false);
             for (String s : cfgList) {
@@ -451,8 +462,6 @@ public class Building {
                 int amount = config.getInt("requiredBlocks." + s);
                 requiredBlocks.put(material, amount);
             }
-        } else {
-            MessageUtil.log("Building " + name + "has a invalid config.");
         }
         if (config.contains("unlockCost")) {
             Set<String> cfgList = config.getConfigurationSection("unlockCost").getKeys(false);
