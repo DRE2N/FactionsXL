@@ -94,9 +94,14 @@ public class TechTreeMenu {
             if (icon == null) {
                 icon = Material.BARRIER;
             }
-            TextComponent description = new TextComponent(MessageUtil.parse(building.getDescription().toString()));
+            TextComponent description = new TextComponent();
+            for (String line : building.getDescription()) {
+                TextComponent tmp = new TextComponent(MessageUtil.parse(line));
+                tmp.addExtra("\n");
+                description.addExtra(tmp);
+            }
             new Advancement(key, new ItemObject().setItem(icon),
-                    new TextComponent(building.getName()), new TextComponent("Test \n Test2"))
+                    new TextComponent(MessageUtil.parse(building.getName()  + "          <reset>")), description)
                     .addTrigger("dummy", new ImpossibleTrigger())
                     .makeChild(parent)
                     .setFrame(Advancement.Frame.GOAL)
@@ -140,8 +145,7 @@ public class TechTreeMenu {
                 description.addExtra(tmp);
             }
             new Advancement(key, new ItemObject().setItem(icon),
-
-                    new TextComponent(building.getName() + "          §r"), description)
+                    new TextComponent(MessageUtil.parse(building.getName() + "          <reset>")), description)
                     .addTrigger("dummy", new ImpossibleTrigger())
                     .makeChild(parent)
                     .setFrame(Advancement.Frame.GOAL)
