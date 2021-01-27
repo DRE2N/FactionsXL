@@ -340,7 +340,13 @@ public class FactionsXL extends DREPlugin {
             warHandler.relationFixer(war);
         }
 
-        new TechTreeMenu().load();
+        BukkitRunnable runLater = new BukkitRunnable() {
+            @Override
+            public void run() {
+                new TechTreeMenu().load();
+            }
+        };
+        runLater.runTaskLater(this, 40);
     }
 
 

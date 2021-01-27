@@ -73,6 +73,7 @@ public class Building {
     private Map<PopulationLevel, Integer> requiredPopulation = new HashMap<>();
     private List<String> requiredBuildings = new ArrayList<>(); // String with ids because the other buildings might not be loaded yet.
     private Set<StatusEffect> effects = new HashSet<>();
+    Material icon;
 
 
     public Building(File file) {
@@ -399,6 +400,10 @@ public class Building {
         return effects;
     }
 
+    public Material getIcon() {
+        return icon;
+    }
+
     public StatusEffect loadEffect(ConfigurationSection section) {
         StatusEffect effect = null;
         MessageUtil.log("Loading effect... " + section.getKeys(false).toString());
@@ -447,6 +452,14 @@ public class Building {
         size = config.getInt("size");
         description = (List<String>) config.getList("description");
         requiredBuildings = (List<String>) config.getList("requiredBuildings");
+        if (config.contains("icon")) {
+            Material material = Material.getMaterial(config.getString("icon"));
+            if (material == null) {
+                icon = Material.BARRIER;
+            } else {
+                icon = material;
+            }
+        }
         if (config.contains("requiredCategories")) {
             Set<String> cfgList = config.getConfigurationSection("requiredCategories").getKeys(false);
             for (String s : cfgList) {

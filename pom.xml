@@ -61,6 +61,7 @@
                                     <include>de.erethon.commons:commons-dist</include>
                                     <include>de.erethon.vignette:vignette-dist</include>
                                     <include>de.erethon:headlib</include>
+                                    <include>com.github.Trigary:AdvancementCreator</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -163,6 +164,7 @@
             <groupId>com.github.Trigary</groupId>
             <artifactId>AdvancementCreator</artifactId>
             <version>v2.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <repositories>
