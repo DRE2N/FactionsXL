@@ -101,6 +101,7 @@ public class FConfig extends DREConfig {
     private double importModifier = 2;
     private double exportModifier = 0.5;
     private int requiredResourceUnitsPer1000Persons = 10;
+    private Map<PopulationLevel, Map<String, Boolean>> populationBuildings = new HashMap<>();
     private Map<PopulationLevel, Map<ResourceSubcategory, Integer>> populationLevelResources= new HashMap<PopulationLevel, Map<ResourceSubcategory, Integer>>() {
         final Map<ResourceSubcategory, Integer> basicResources = new HashMap<ResourceSubcategory, Integer>() {
             {
@@ -477,6 +478,10 @@ public class FConfig extends DREConfig {
 
     public Map<PopulationLevel, Map<ResourceSubcategory, Integer>> getPopulationLevelResources() {
         return populationLevelResources;
+    }
+
+    public Map<PopulationLevel, Map<String, Boolean>> getPopulationLevelBuildings() {
+        return populationBuildings;
     }
 
     /**
@@ -1151,208 +1156,218 @@ public class FConfig extends DREConfig {
             }
         }
 
-        if (!config.contains("chatFormat.ally")) {
-            config.set("chatFormat.ally", chatFormatAlly);
-        }
-
-        if (!config.contains("chatFormat.coalition")) {
-            config.set("chatFormat.coalition", chatFormatCoalition);
-        }
-
-        if (!config.contains("chatFormat.faction")) {
-            config.set("chatFormat.faction", chatFormatFaction);
-        }
-
-        if (!config.contains("chatFormat.local")) {
-            config.set("chatFormat.local", chatFormatLocal);
-        }
-
-        if (!config.contains("chatFormat.public")) {
-            config.set("chatFormat.public", chatFormatPublic);
-        }
-
-        if (!config.contains("chatFormat.handlePublic")) {
-            config.set("chatFormat.handlePublic", publicChatHandled);
-        }
-
-        if (!config.contains("lwcEnabled")) {
-            config.set("lwcEnabled", lwcEnabled);
-        }
-
-        if (!config.contains("wildernessProtected")) {
-            config.set("wildernessProtected", wildernessProtected);
-        }
-
-        if (!config.contains("territoryProtectionEnabled")) {
-            config.set("territoryProtectionEnabled", territoryProtectionEnabled);
-        }
-
-        if (!config.contains("territoryShield")) {
-            config.set("territoryShield", territoryShield);
-        }
-
-        if (!config.contains("capitalProtectionEnabled")) {
-            config.set("capitalProtectionEnabled", capitalProtectionEnabled);
-        }
-
-        if (!config.contains("war.warExplosionTNTRestorationTime")) {
-            config.set("war.warExplosionTNTRestorationTime", warExplosionTNTRestorationTime);
-        }
-
-        if (!config.contains("war.warExplosionSiegeRestorationTime")) {
-            config.set("war.warExplosionSiegeRestorationTime", warExplosionSiegeRestorationTime);
-        }
-
-        if (!config.contains("war.casusBelli.liberation")) {
-            config.set("war.casusBelli.liberation", cbLiberationExp);
-        }
-
-        if (!config.contains("war.powerGain")) {
-            config.set("war.powerGain", powerGainInWar);
-        }
-
-        if (!config.contains("stabilityRegionSizeModifier")) {
-            config.set("stabilityRegionSizeModifier", getStabilityRegionExempt());
-        }
-
-        if (!config.contains("stabilityMemberPowerModifier")) {
-            config.set("stabilityMemberPowerModifier", stabilityMemberPowerModifier);
-        }
-
-        if (!config.contains("powerNeededPerRegion")) {
-            config.set("powerNeededPerRegion", powerPerRegion);
-        }
-
-        if (!config.contains("maxPower")) {
-            config.set("maxPower", maxPower);
-        }
-
-        if (!config.contains("minPower")) {
-            config.set("minPower", minPower);
-        }
-
-        if (!config.contains("powerUpdateInterval")) {
-            config.set("powerUpdateInterval", powerUpdateInterval);
-        }
-
-        if (!config.contains("powerIncreaseRate")) {
-            config.set("powerIncreaseRate", powerIncreaseRate);
-        }
-
-        if (!config.contains("powerDecreaseRate")) {
-            config.set("powerDecreaseRate", powerDecreaseRate);
-        }
-
-        if (!config.contains("powerDeathLoss")) {
-            config.set("powerDeathLoss", powerDeathLoss);
-        }
-
-        if (!config.contains("autoKickDays")) {
-            config.set("autoKickDays", autoKickDays);
-        }
-
-        if (!config.contains("hologramsEnabled")) {
-            config.set("hologramsEnabled", hologramsEnabled);
-        }
-
-        if (!config.contains("homeHologramText")) {
-            config.set("homeHologramText", homeHologramText);
-        }
-
-        if (!config.contains("nametag.prefix")) {
-            config.set("nametag.prefix", nametagPrefix);
-        }
-
-        if (!config.contains("scoreboard.expiration")) {
-            config.set("scoreboard.expiration", scoreboardExpiration);
-        }
-
-        if (!config.contains("scoreboard.updateInterval")) {
-            config.set("scoreboard.updateInterval", scoreboardUpdateInterval);
-        }
-
-        if (!config.contains("scoreboard.defaultPrefixes")) {
-            config.set("scoreboard.defaultPrefixes", defaultScoreboardPrefixes);
-        }
-
-        if (!config.contains("scoreboard.enabledByDefault")) {
-            config.set("scoreboard.enabledByDefault", scoreboardEnabledByDefault);
-        }
-
-        if (!config.contains("scoreboard.factionlessEnabled")) {
-            config.set("scoreboard.factionlessEnabled", scoreboardFactionlessEnabled);
-        }
-
-        if (!config.contains("scoreboard.defaultTitle")) {
-            config.set("scoreboard.defaultTitle", defaultScoreboardTitle);
-        }
-
-        if (!config.contains("scoreboard.default")) {
-            config.set("scoreboard.default", scoreboardDefault);
-        }
-
-        if (!config.contains("scoreboard.factionInfo")) {
-            config.set("scoreboard.factionInfo", scoreboardFactionInfo);
-        }
-
-        if (!config.contains("scoreboard.warInfo")) {
-            config.set("scoreboard.warInfo", scoreboardWarInfo);
-        }
-
-        if (!config.contains("scoreboard.factionless")) {
-            config.set("scoreboard.factionless", scoreboardFactionless);
-        }
-
-        if (!config.contains("dynmap.enabled")) {
-            config.set("dynmap.enabled", dynmapEnabled);
-        }
-
-        if (!config.contains("dynmap.layer.priority.faction")) {
-            config.set("dynmap.layer.priority.faction", dynmapLayerPriorityFaction);
-        }
-
-        if (!config.contains("dynmap.layer.priority.region")) {
-            config.set("dynmap.layer.priority.region", dynmapLayerPriorityRegion);
-        }
-
-        if (!config.contains("dynmap.layer.minimumZoom")) {
-            config.set("dynmap.layer.minimumZoom", dynmapLayerMinimumZoom);
-        }
-
-        if (!config.contains("dynmap.description.faction")) {
-            config.set("dynmap.description.faction", dynmapDescriptionFaction);
-        }
-
-        if (!config.contains("dynmap.description.region")) {
-            config.set("dynmap.description.region", dynmapDescriptionRegion);
-        }
-
-        if (!config.contains("dynmap.updateInterval.faction")) {
-            config.set("dynmap.updateInterval.faction", dynmapUpdateIntervalFaction);
-        }
-
-        if (!config.contains("dynmap.updateInterval.region")) {
-            config.set("dynmap.updateInterval.region", dynmapUpdateIntervalRegion);
-        }
-
-        if (!config.contains("dynmap.hiddenWorlds")) {
-            config.set("dynmap.hiddenWorlds", dynmapHiddenWorlds);
-        }
-
-        if (!config.contains("dynmap.regionTypeStyles")) {
-            for (Entry<RegionType, DynmapStyle> entry : dynmapRegionTypeStyles.entrySet()) {
-                config.set("dynmap.regionTypeStyles." + entry.getKey().toString(), entry.getValue().fillColor + "/" + entry.getValue().lineColor);
+        if (!config.contains("buildingNeeds")) {
+            config.createSection("buildingNeeds");
+            for (Entry<PopulationLevel, Map<String, Boolean>> entry : populationBuildings.entrySet()) {
+                config.createSection("buildingNeeds." + entry.getKey());
+                for (Entry<String, Boolean> subEntry : entry.getValue().entrySet()) {
+                    config.set("buildingNeeds." + entry.getKey() + "." + subEntry.getKey(), subEntry.getValue());
+                }
             }
+
+            if (!config.contains("chatFormat.ally")) {
+                config.set("chatFormat.ally", chatFormatAlly);
+            }
+
+            if (!config.contains("chatFormat.coalition")) {
+                config.set("chatFormat.coalition", chatFormatCoalition);
+            }
+
+            if (!config.contains("chatFormat.faction")) {
+                config.set("chatFormat.faction", chatFormatFaction);
+            }
+
+            if (!config.contains("chatFormat.local")) {
+                config.set("chatFormat.local", chatFormatLocal);
+            }
+
+            if (!config.contains("chatFormat.public")) {
+                config.set("chatFormat.public", chatFormatPublic);
+            }
+
+            if (!config.contains("chatFormat.handlePublic")) {
+                config.set("chatFormat.handlePublic", publicChatHandled);
+            }
+
+            if (!config.contains("lwcEnabled")) {
+                config.set("lwcEnabled", lwcEnabled);
+            }
+
+            if (!config.contains("wildernessProtected")) {
+                config.set("wildernessProtected", wildernessProtected);
+            }
+
+            if (!config.contains("territoryProtectionEnabled")) {
+                config.set("territoryProtectionEnabled", territoryProtectionEnabled);
+            }
+
+            if (!config.contains("territoryShield")) {
+                config.set("territoryShield", territoryShield);
+            }
+
+            if (!config.contains("capitalProtectionEnabled")) {
+                config.set("capitalProtectionEnabled", capitalProtectionEnabled);
+            }
+
+            if (!config.contains("war.warExplosionTNTRestorationTime")) {
+                config.set("war.warExplosionTNTRestorationTime", warExplosionTNTRestorationTime);
+            }
+
+            if (!config.contains("war.warExplosionSiegeRestorationTime")) {
+                config.set("war.warExplosionSiegeRestorationTime", warExplosionSiegeRestorationTime);
+            }
+
+            if (!config.contains("war.casusBelli.liberation")) {
+                config.set("war.casusBelli.liberation", cbLiberationExp);
+            }
+
+            if (!config.contains("war.powerGain")) {
+                config.set("war.powerGain", powerGainInWar);
+            }
+
+            if (!config.contains("stabilityRegionSizeModifier")) {
+                config.set("stabilityRegionSizeModifier", getStabilityRegionExempt());
+            }
+
+            if (!config.contains("stabilityMemberPowerModifier")) {
+                config.set("stabilityMemberPowerModifier", stabilityMemberPowerModifier);
+            }
+
+            if (!config.contains("powerNeededPerRegion")) {
+                config.set("powerNeededPerRegion", powerPerRegion);
+            }
+
+            if (!config.contains("maxPower")) {
+                config.set("maxPower", maxPower);
+            }
+
+            if (!config.contains("minPower")) {
+                config.set("minPower", minPower);
+            }
+
+            if (!config.contains("powerUpdateInterval")) {
+                config.set("powerUpdateInterval", powerUpdateInterval);
+            }
+
+            if (!config.contains("powerIncreaseRate")) {
+                config.set("powerIncreaseRate", powerIncreaseRate);
+            }
+
+            if (!config.contains("powerDecreaseRate")) {
+                config.set("powerDecreaseRate", powerDecreaseRate);
+            }
+
+            if (!config.contains("powerDeathLoss")) {
+                config.set("powerDeathLoss", powerDeathLoss);
+            }
+
+            if (!config.contains("autoKickDays")) {
+                config.set("autoKickDays", autoKickDays);
+            }
+
+            if (!config.contains("hologramsEnabled")) {
+                config.set("hologramsEnabled", hologramsEnabled);
+            }
+
+            if (!config.contains("homeHologramText")) {
+                config.set("homeHologramText", homeHologramText);
+            }
+
+            if (!config.contains("nametag.prefix")) {
+                config.set("nametag.prefix", nametagPrefix);
+            }
+
+            if (!config.contains("scoreboard.expiration")) {
+                config.set("scoreboard.expiration", scoreboardExpiration);
+            }
+
+            if (!config.contains("scoreboard.updateInterval")) {
+                config.set("scoreboard.updateInterval", scoreboardUpdateInterval);
+            }
+
+            if (!config.contains("scoreboard.defaultPrefixes")) {
+                config.set("scoreboard.defaultPrefixes", defaultScoreboardPrefixes);
+            }
+
+            if (!config.contains("scoreboard.enabledByDefault")) {
+                config.set("scoreboard.enabledByDefault", scoreboardEnabledByDefault);
+            }
+
+            if (!config.contains("scoreboard.factionlessEnabled")) {
+                config.set("scoreboard.factionlessEnabled", scoreboardFactionlessEnabled);
+            }
+
+            if (!config.contains("scoreboard.defaultTitle")) {
+                config.set("scoreboard.defaultTitle", defaultScoreboardTitle);
+            }
+
+            if (!config.contains("scoreboard.default")) {
+                config.set("scoreboard.default", scoreboardDefault);
+            }
+
+            if (!config.contains("scoreboard.factionInfo")) {
+                config.set("scoreboard.factionInfo", scoreboardFactionInfo);
+            }
+
+            if (!config.contains("scoreboard.warInfo")) {
+                config.set("scoreboard.warInfo", scoreboardWarInfo);
+            }
+
+            if (!config.contains("scoreboard.factionless")) {
+                config.set("scoreboard.factionless", scoreboardFactionless);
+            }
+
+            if (!config.contains("dynmap.enabled")) {
+                config.set("dynmap.enabled", dynmapEnabled);
+            }
+
+            if (!config.contains("dynmap.layer.priority.faction")) {
+                config.set("dynmap.layer.priority.faction", dynmapLayerPriorityFaction);
+            }
+
+            if (!config.contains("dynmap.layer.priority.region")) {
+                config.set("dynmap.layer.priority.region", dynmapLayerPriorityRegion);
+            }
+
+            if (!config.contains("dynmap.layer.minimumZoom")) {
+                config.set("dynmap.layer.minimumZoom", dynmapLayerMinimumZoom);
+            }
+
+            if (!config.contains("dynmap.description.faction")) {
+                config.set("dynmap.description.faction", dynmapDescriptionFaction);
+            }
+
+            if (!config.contains("dynmap.description.region")) {
+                config.set("dynmap.description.region", dynmapDescriptionRegion);
+            }
+
+            if (!config.contains("dynmap.updateInterval.faction")) {
+                config.set("dynmap.updateInterval.faction", dynmapUpdateIntervalFaction);
+            }
+
+            if (!config.contains("dynmap.updateInterval.region")) {
+                config.set("dynmap.updateInterval.region", dynmapUpdateIntervalRegion);
+            }
+
+            if (!config.contains("dynmap.hiddenWorlds")) {
+                config.set("dynmap.hiddenWorlds", dynmapHiddenWorlds);
+            }
+
+            if (!config.contains("dynmap.regionTypeStyles")) {
+                for (Entry<RegionType, DynmapStyle> entry : dynmapRegionTypeStyles.entrySet()) {
+                    config.set("dynmap.regionTypeStyles." + entry.getKey().toString(), entry.getValue().fillColor + "/" + entry.getValue().lineColor);
+                }
+            }
+
+            for (Resource resource : Resource.values()) {
+                config.set("resourcePrices." + resource.toString(), resource.getValue());
+                config.set("requiredAmountModifiers." + resource.toString(), resource.getRequiredAmountModifier());
+            }
+
+            config.createSection("regionIncome");
+
+            save();
         }
-
-        for (Resource resource : Resource.values()) {
-            config.set("resourcePrices." + resource.toString(), resource.getValue());
-            config.set("requiredAmountModifiers." + resource.toString(), resource.getRequiredAmountModifier());
-        }
-
-        config.createSection("regionIncome");
-
-        save();
     }
 
     @Override
@@ -1455,6 +1470,17 @@ public class FConfig extends DREConfig {
                     resources.put(ResourceSubcategory.valueOf(subEntry.getKey()), (int) subEntry.getValue());
                 }
                 populationLevelResources.put(level, resources);
+            }
+        }
+
+        if (config.contains("buildingNeeds")) {
+            for (Entry<String, Object> entry : ConfigUtil.getMap(config, "buildingNeeds").entrySet()) {
+                PopulationLevel level = PopulationLevel.valueOf(entry.getKey());
+                Map<String, Boolean> buildingEntry = new HashMap<>();
+                for(Entry<String, Object> subEntry : ConfigUtil.getMap(config, "buildingNeeds." + level.toString()).entrySet()) {
+                    buildingEntry.put(subEntry.getKey(), (boolean) subEntry.getValue());
+                }
+                populationBuildings.put(level, buildingEntry);
             }
         }
 
