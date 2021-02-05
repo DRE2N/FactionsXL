@@ -28,8 +28,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -41,6 +40,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Board {
 
     private List<Region> regions = new CopyOnWriteArrayList<>();
+    private final HashMap<Region, Long> cache = new HashMap<>();
 
     public Board(File dir) {
         for (File file : dir.listFiles()) {
@@ -57,6 +57,7 @@ public class Board {
             }
         }
         new CleanerTask().runTaskTimer(FactionsXL.getInstance(), FConfig.HOUR, FConfig.HOUR);
+        new CacheCleanTask().runTaskTimer(FactionsXL.getInstance(), FConfig.MINUTE * 5, FConfig.MINUTE * 5);
     }
 
     /* Getters and setters */
@@ -113,10 +114,22 @@ public class Board {
      * the region that contains the chunk
      */
     public Region getByChunk(Chunk chunk) {
+        // Check cache first
+        for (Region cachedRegion : cache.keySet()) {
+            if (cachedRegion.getWorld().equals(chunk.getWorld())) {
+                for (LazyChunk rChunk : cachedRegion.getChunks()) {
+                    if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
+                        return cachedRegion;
+                    }
+                }
+            }
+        }
+        // Check entire board
         for (Region region : regions) {
             if (region.getWorld().equals(chunk.getWorld())) {
                 for (LazyChunk rChunk : region.getChunks()) {
                     if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
+                        cache.put(region, System.currentTimeMillis()); // Add region to cache
                         return region;
                     }
                 }
@@ -136,7 +149,6 @@ public class Board {
      * the region that contains the chunk
      */
     public Region getByChunk(Chunk chunk, Region region) {
-        Region rg = null;
         // Check chunks of the region first.
         if (region != null) {
             for (LazyChunk ownChunk : region.getChunks()) {
@@ -144,16 +156,7 @@ public class Board {
                     return region;
                 }
             }
-        // If no results found, check chunks of adjacent regions.
-            for (Region rNeighbour : region.getNeighbours()) {
-                for (LazyChunk rChunk : rNeighbour.getChunks()) {
-                    if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
-                        return rNeighbour;
-                    }
-                }
-            }
         }
-        // If still no region found, check the entire board.
         return getByChunk(chunk);
     }
 
@@ -286,9 +289,22 @@ public class Board {
         FactionsXL.debug("Loaded board with " + regions.size() + " regions.");
     }
 
+    public class CacheCleanTask extends BukkitRunnable {
+        @Override
+        public void run() {
+            Set<Region> toRemove = new HashSet<>();
+            long time = System.currentTimeMillis();
+            for (Entry<Region, Long> entry : cache.entrySet()) {
+                if (entry.getValue() + 300000 < time) {
+                    toRemove.add(entry.getKey());
+                }
+            }
+            cache.keySet().removeAll(toRemove);
+        }
+    }
+
     @Deprecated
     public class CleanerTask extends BukkitRunnable {
-
         @Override
         public void run() {
             for (Region region : regions) {
