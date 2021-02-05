@@ -78,7 +78,7 @@ public class WarCommand extends FCommand {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
             return;
         }
-        if (f.isVassal() && !(f.getLord() == object)) {
+        if (f.isVassal() && !(f.getLord() == object || f.getOverlord() == object)) {
             MessageUtil.sendMessage(player, "&cVasallen können nur ihrem Lord den Krieg erklären.");
             return;
         }
