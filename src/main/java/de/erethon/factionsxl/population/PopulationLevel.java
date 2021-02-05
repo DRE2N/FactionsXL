@@ -17,12 +17,17 @@
 
 package de.erethon.factionsxl.population;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.building.Building;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
+import org.bukkit.ChatColor;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public enum PopulationLevel {
 
@@ -39,6 +44,54 @@ public enum PopulationLevel {
         FactionsXL plugin = FactionsXL.getInstance();
         Map<PopulationLevel, Map<ResourceSubcategory, Integer>> required = plugin.getFConfig().getPopulationLevelResources();
         return required.get(this);
+    }
+
+    public Set<Building> getRequiredRegionBuildings() {
+        FactionsXL plugin = FactionsXL.getInstance();
+        Map<String, Boolean> buildingMap = plugin.getFConfig().getPopulationLevelBuildings().get(this);
+        Set<Building> buildings = new HashSet<>();
+        for (String id : buildingMap.keySet()) {
+            if (!buildingMap.get(id)) {
+                Building building = plugin.getBuildingManager().getByID(id);
+                if (building == null) {
+                    MessageUtil.log(ChatColor.RED + "There was an error loading required buildings for " + this.toString() + ". Building " + id + " does not exist. Check your config.yml!");
+                    continue;
+                }
+                buildings.add(building);
+            }
+        }
+        return buildings;
+    }
+
+    public Set<Building> getRequiredFactionBuildings() {
+        FactionsXL plugin = FactionsXL.getInstance();
+        Map<String, Boolean> buildingMap = plugin.getFConfig().getPopulationLevelBuildings().get(this);
+        Set<Building> buildings = new HashSet<>();
+        for (String id : buildingMap.keySet()) {
+            if (buildingMap.get(id)) {
+                Building building = plugin.getBuildingManager().getByID(id);
+                if (building == null) {
+                    MessageUtil.log(ChatColor.RED + "There was an error loading required buildings for " + this.toString() + ". Building " + id + " does not exist. Check your config.yml!");
+                    continue;
+                }
+                buildings.add(building);
+            }
+        }
+        return buildings;
+    }
+
+    public boolean hasRequiredRegionBuildings(Region rg) {
+        Set<Building> buildingsRequired = getRequiredRegionBuildings();
+        Set<Building> buildingsBuilt = new HashSet<>();
+        rg.getBuildings().forEach(buildSite -> buildingsBuilt.add(buildSite.getBuilding()));
+        return buildingsBuilt.containsAll(buildingsRequired);
+    }
+
+    public boolean hasRequiredFactionBuildings(Faction f) {
+        Set<Building> buildingsRequired = getRequiredFactionBuildings();
+        Set<Building> buildingsBuilt = new HashSet<>();
+        f.getFactionBuildings().forEach(buildSite -> buildingsBuilt.add(buildSite.getBuilding()));
+        return buildingsBuilt.containsAll(buildingsRequired);
     }
 
     public boolean canLevelUp(Region rg, PopulationLevel level) {
