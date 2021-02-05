@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.command;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
@@ -70,6 +71,10 @@ public class UnclaimCommand extends FCommand {
         Faction faction = region.getOwner();
         if (!faction.isPrivileged(player)) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_PERMISSION.getMessage());
+            return;
+        }
+        if (faction.isInWar()) {
+            MessageUtil.sendMessage(player, FMessage.ERROR_AT_WAR.getMessage());
             return;
         }
 
