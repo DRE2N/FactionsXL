@@ -26,6 +26,7 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.StatusEffect;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.population.HappinessLevel;
 import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.war.WarParty;
@@ -61,6 +62,7 @@ public class Region {
     private RegionType type;
     private int level;
     private Map<PopulationLevel, Integer> population = new HashMap<>();
+    private Map<PopulationLevel, HappinessLevel> populationHappiness = new HashMap<>();
     private Set<StatusEffect> effects = new HashSet<>();
     private Set<BuildSite> buildings = new HashSet<>();
     private int influence = 100;
@@ -125,23 +127,25 @@ public class Region {
     /* Getters and setters */
     @Override
     public boolean equals(Object region) {
-        if(region == null) { return false; }
-        if(!(region instanceof Region)) { return false; }
+        if (region == null) {
+            return false;
+        }
+        if (!(region instanceof Region)) {
+            return false;
+        }
         Region other = (Region) region;
         return this.getId() == other.getId();
     }
 
     /**
-     * @return
-     * the ID
+     * @return the ID
      */
     public int getId() {
         return id;
     }
 
     /**
-     * @return
-     * the name of the region
+     * @return the name of the region
      */
     public String getName() {
         if (name.contains("_")) {
@@ -151,80 +155,74 @@ public class Region {
     }
 
     /**
-     * @return
-     * the name of the region, but without fancy replacements
+     * @return the name of the region, but without fancy replacements
      */
     public String getName(boolean noReplacement) {
         return name;
     }
 
     /**
-     * @param name
-     * the name to set
+     * @param name the name to set
      */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
-     * @return
-     * the resource type of the region
+     * @return the resource type of the region
      */
     public RegionType getType() {
         return type;
     }
 
     /**
-     * @return
-     * a Map of the resources of the region
+     * @return a Map of the resources of the region
      */
     public Map<Resource, Integer> getResources() {
         return type.getResources(level);
     }
 
     /**
-     * @param type
-     * the resource type to set
+     * @param type the resource type to set
      */
     public void setType(RegionType type) {
         this.type = type;
     }
 
     /**
-     * @return
-     * the region resource level
+     * @return the region resource level
      */
     public int getLevel() {
         return level;
     }
 
     /**
-     * @param level
-     * the region resource level to set
+     * @param level the region resource level to set
      */
     public void setLevel(int level) {
         this.level = level;
     }
 
     /**
-     * @return
-     * the population map
+     * @return the population map
      */
     public Map<PopulationLevel, Integer> getPopulation() {
         return population;
     }
 
     /**
-     * @return
-     * the population for a specific pop level
+     * @return the population for a specific pop level
      */
     public int getPopulation(PopulationLevel level) {
         return population.get(level);
     }
 
+    public void setPopulation(PopulationLevel level, int i) {
+        population.put(level, i);
+    }
+
     /**
-     * @return
-     * the total population
+     * @return the total population
      */
     public int getTotalPopulation() {
         int pop = 0;
@@ -232,6 +230,14 @@ public class Region {
             pop = pop + population.get(level);
         }
         return pop;
+    }
+
+    public Map<PopulationLevel, HappinessLevel> getPopulationHappiness() {
+        return populationHappiness;
+    }
+
+    public void setHappiness(PopulationLevel level, HappinessLevel happinessLevel) {
+        populationHappiness.put(level, happinessLevel);
     }
 
     /**
@@ -243,16 +249,14 @@ public class Region {
     }*/
 
     /**
-     * @return
-     * the faction that owns the region
+     * @return the faction that owns the region
      */
     public Faction getOwner() {
         return owner;
     }
 
     /**
-     * @param faction
-     * the new owner
+     * @param faction the new owner
      */
     public void setOwner(Faction faction) {
         if (owner != null) {
@@ -265,8 +269,7 @@ public class Region {
     }
 
     /**
-     * @return
-     * the faction that currently occupies this region
+     * @return the faction that currently occupies this region
      */
     public Faction getOccupant() {
         return occupant;
@@ -287,32 +290,28 @@ public class Region {
     }
 
     /**
-     * @return
-     * the chunks that belong to this region
+     * @return the chunks that belong to this region
      */
     public Set<LazyChunk> getChunks() {
         return chunks;
     }
 
     /**
-     * @return
-     * the amount of chunks that belong to this region
+     * @return the amount of chunks that belong to this region
      */
     public int getSize() {
         return chunks.size();
     }
 
     /**
-     * @return
-     * all faction that regard this region as their core land
+     * @return all faction that regard this region as their core land
      */
     public Map<Faction, Date> getCoreFactions() {
         return cores;
     }
 
     /**
-     * @return
-     * all factions that are currently trying to make this land a core
+     * @return all factions that are currently trying to make this land a core
      */
     public Map<Faction, Integer> getCoringProgress() {
         return coringProgress;
@@ -334,34 +333,29 @@ public class Region {
 
 
     /**
-     * @return
-     * all factions that claim this land
+     * @return all factions that claim this land
      */
     public Map<Faction, Date> getClaimFactions() {
         return claims;
     }
 
     /**
-     * @return
-     * the Dynmap fill color
+     * @return the Dynmap fill color
      */
     public String getMapFillColor() {
         return mapFillColor;
     }
 
     /**
-     * @return
-     * the Dynmap line color
+     * @return the Dynmap line color
      */
     public String getMapLineColor() {
         return mapLineColor;
     }
 
     /**
-     * @param fill
-     * the Dynmap fill color to set
-     * @param line
-     * the Dynmap line color to set
+     * @param fill the Dynmap fill color to set
+     * @param line the Dynmap line color to set
      */
     public void setMapColor(String fill, String line) {
         if (fill.matches("#[0-9A-F]{6}") && line.matches("#[0-9A-F]{6}")) {
@@ -372,8 +366,7 @@ public class Region {
     }
 
     /**
-     * @return
-     * the dynmap style of the faction
+     * @return the dynmap style of the faction
      */
     public DynmapStyle getDynmapStyle() {
         if (dynmapStyle == null) {
@@ -387,40 +380,35 @@ public class Region {
     }
 
     /**
-     * @return
-     * true if the region has no owner
+     * @return true if the region has no owner
      */
     public boolean isAttacked() {
         return isAttacked;
     }
 
     /**
-     * @return
-     * true if the region has no owner
+     * @return true if the region has no owner
      */
     public void setAttacked(boolean attacked) {
         isAttacked = attacked;
     }
 
     /**
-     * @return
-     * if the region is unclaimable
+     * @return if the region is unclaimable
      */
     public boolean isUnclaimable() {
         return unclaimable;
     }
 
     /**
-     * @return
-     * true if the region has no owner
+     * @return true if the region has no owner
      */
     public boolean isNeutral() {
         return owner == null;
     }
 
     /**
-     * @return
-     * true if the region is neutral and not marked as unclaimable
+     * @return true if the region is neutral and not marked as unclaimable
      */
     public boolean isWildernessClaim() {
         return isNeutral() && !unclaimable;
@@ -428,8 +416,7 @@ public class Region {
 
     /**
      * @param region the region to check against
-     * @return
-     * if this region is next to another region.
+     * @return if this region is next to another region.
      */
     public boolean isNextTo(Region region) {
         return this.adjacentRegions.contains(region);
@@ -446,8 +433,7 @@ public class Region {
 
     /**
      * @param warParty that wants to attack
-     * @return
-     * if the warParty can attack in this region
+     * @return if the warParty can attack in this region
      */
     public boolean isAttackable(WarParty warParty) {
         for (Region rg : this.getNeighbours()) {
@@ -466,56 +452,49 @@ public class Region {
     }
 
     /**
-     * @return
-     * the world where the region is
+     * @return the world where the region is
      */
     public World getWorld() {
         return world;
     }
 
     /**
-     * @return
-     * the influence of the owner on the region
+     * @return the influence of the owner on the region
      */
     public int getInfluence() {
         return influence;
     }
 
     /**
-     * @param time
-     * time when the attack started
+     * @param time time when the attack started
      */
     public void setAttackStartTime(long time) {
         attackStartTime = time;
     }
 
     /**
-     * @return
-     * when the attack on the region started
+     * @return when the attack on the region started
      */
     public long getAttackStartTime() {
         return attackStartTime;
     }
 
     /**
-     * @param time
-     * time when the last attack ended
+     * @param time time when the last attack ended
      */
     public void setLastDefendedTime(long time) {
         lastDefendedTime = time;
     }
 
     /**
-     * @return
-     * the influence of the owner on the region
+     * @return the influence of the owner on the region
      */
     public long getLastDefendedTime() {
         return lastDefendedTime;
     }
 
     /**
-     * @param inf
-     * new influence value
+     * @param inf new influence value
      */
     public void setInfluence(int inf) {
         if (inf <= 100) {
@@ -524,10 +503,8 @@ public class Region {
     }
 
     /**
-     * @param faction
-     * the faction to calculate the per claim price increase
-     * @return
-     * the price to claim this region
+     * @param faction the faction to calculate the per claim price increase
+     * @return the price to claim this region
      */
     public double getClaimPrice(Faction faction) {
         FConfig config = plugin.getFConfig();
@@ -668,7 +645,7 @@ public class Region {
         }
         config.set("claims", serializedClaims);
 
-        List<Integer>serializedRegions = new ArrayList<>();
+        List<Integer> serializedRegions = new ArrayList<>();
         for (Region rg : adjacentRegions) {
             if (!(adjacentRegions.isEmpty()) && !(rg.getName() == null)) {
                 serializedRegions.add(rg.getId());
@@ -698,8 +675,8 @@ public class Region {
 
     /**
      * Deletes the region file
-     * @return
-     * true if and only if the file or directory is successfully deleted; false otherwise
+     *
+     * @return true if and only if the file or directory is successfully deleted; false otherwise
      */
     public boolean delete() {
         try {
@@ -715,3 +692,4 @@ public class Region {
     }
 
 }
+

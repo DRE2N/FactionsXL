@@ -23,6 +23,7 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.board.RegionType;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.FStorage;
 import de.erethon.factionsxl.economy.Resource;
@@ -66,11 +67,13 @@ public class Building {
     private boolean isCoreRequired;
     private boolean isCapitalRequired;
     private boolean isFactionBuilding;
+    private boolean isWarBuilding;
     private int size;
     private Map<Resource, Integer> unlockCost = new HashMap<>();
     private Map<Material, Integer> requiredBlocks = new HashMap<>();
     private Map<FSetTag, Integer> requiredBlockTypes = new HashMap<>();
     private Map<PopulationLevel, Integer> requiredPopulation = new HashMap<>();
+    private Set<RegionType> requiredRegionTypes = new HashSet<>();
     private List<String> requiredBuildings = new ArrayList<>(); // String with ids because the other buildings might not be loaded yet.
     private Set<StatusEffect> effects = new HashSet<>();
     Material icon;
@@ -113,7 +116,13 @@ public class Building {
             MessageUtil.sendMessage(p, FMessage.ERROR_LAND_WILDERNESS.getMessage());
             return false;
         }
-        if (rg.getOwner() != faction) {
+        // If the faction does not own the region and the building is not a war building
+        if (rg.getOwner() != faction && !isWarBuilding()) {
+            MessageUtil.sendMessage(p, FMessage.ERROR_LAND_NOT_OWNED.getMessage());
+            return false;
+        }
+        // If the building is a war building, but the owner and the building faction are not currently at war. Or they are at war, but the region is currently safe
+        if ((isWarBuilding() && !rg.getOwner().isInWar(faction)) || (rg.getOwner().isInWar(faction))  && !rg.isAttacked()) {
             MessageUtil.sendMessage(p, FMessage.ERROR_LAND_NOT_OWNED.getMessage());
             return false;
         }
@@ -124,6 +133,7 @@ public class Building {
                 isBorder = true;
             }
         }
+        // If the building area overlaps with another region
         if (isBorder) {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_TOO_CLOSE_BORDER.getMessage());
             return false;
@@ -134,34 +144,47 @@ public class Building {
                 isInOtherBuilding = true;
             }
         }
+        // If the building overlaps with an existing building
         if (isInOtherBuilding) {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_BLOCKED.getMessage());
             return false;
         }
+        // If the region is not of the correct RegionType
+        if (!hasRequiredType(rg)) {
+            MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_REQUIRED_TYPE.getMessage());
+            return false;
+        }
+        // If the building requires a core region, but the current region is not a core
         if (isCoreRequired() && !rg.getCoreFactions().containsKey(faction)) {
             MessageUtil.sendMessage(p, FMessage.ERROR_LAND_NO_CORE.getMessage());
             return false;
         }
+        // If the building requires a capital region, but the current region is not the capital
         if (isCapitalRequired() && faction.getCapital() != rg) {
             MessageUtil.sendMessage(p, FMessage.ERROR_LAND_NO_CAPITAL.getMessage());
             return false;
         }
+        // If the building requires other buildings to be built first in this faction
         if (isFactionBuilding() && !hasRequiredBuilding(faction)) {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_REQUIRED_FACTION.getMessage());
             return false;
         }
+        // If the building requires other buildings to be built first in this region
         if (!isFactionBuilding() && !hasRequiredBuilding(rg)) {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_REQUIRED_REGION.getMessage());
             return false;
         }
+        // If the building requires a certain amount of population at a specific level
         if (!isFactionBuilding() && !hasRequiredPopulation(rg)) {
             MessageUtil.sendMessage(p, FMessage.ERROR_BUILDING_POPULATION_TOO_LOW.getMessage());
             return false;
         }
-        if (faction.isInWar()) {
+        // If the faction currently is in war and the building is not a war building
+        if (faction.isInWar() && !isWarBuilding()) {
             MessageUtil.sendMessage(p, FMessage.ERROR_IN_WAR.getMessage());
             return false;
         }
+        // If the faction can not afford the unlock costs.
         if (!canPay(faction)) {
             MessageUtil.sendMessage(p, FMessage.ERROR_NOT_ENOUGH_RESOURCES.getMessage());
             return false;
@@ -247,6 +270,10 @@ public class Building {
             }
         }
         return requirements;
+    }
+
+    public boolean hasRequiredType(Region rg) {
+        return requiredRegionTypes.contains(rg.getType());
     }
 
     /**
@@ -347,6 +374,10 @@ public class Building {
         return isFactionBuilding;
     }
 
+    public boolean isWarBuilding() {
+        return isWarBuilding;
+    }
+
     public void setCapitalRequired(boolean capitalRequired) {
         isCapitalRequired = capitalRequired;
     }
@@ -404,17 +435,49 @@ public class Building {
         return icon;
     }
 
+    public boolean isBuilt(Region rg) {
+        for (BuildSite buildSite : rg.getBuildings()) {
+            if (buildSite.getBuilding() == this && buildSite.isFinished() && !buildSite.isDestroyed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isBuilt(Faction faction) {
+        for (BuildSite buildSite : faction.getFactionBuildings()) {
+            if (buildSite.getBuilding() == this && buildSite.isFinished() && !buildSite.isDestroyed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public StatusEffect loadEffect(ConfigurationSection section) {
         StatusEffect effect = null;
         MessageUtil.log("Loading effect... " + section.getKeys(false).toString());
         boolean isRegional = section.getBoolean("regionEffect", true);
         long expiration = section.getLong("expiration", 0);
         effect = new StatusEffect(isRegional, expiration);
+        // Modifiers
         effect.setMemberModifier(section.getDouble("member", 0.0));
-        effect.setPrestige(section.getInt("prestige", 0));
         effect.setRegionModifier(section.getDouble("regions", 0.0));
         effect.setManpowerModifier(section.getDouble("manpower", 0.0));
+        effect.setStabilityModifier(section.getDouble("stability", 0.0));
+        effect.setExhaustionModifier(section.getDouble("exhaustion", 0.0));
+        effect.setAttackDamageModifier(section.getDouble("attackDamage", 0.0));
+        effect.setShieldModifier(section.getDouble("shield", 0.0));
+        // Flat buffs/limits
+        effect.setTransportShipLimit(section.getInt("transportShipLimit", 0));
+        effect.setTransportCoachLimit(section.getInt("transportShipLimit", 0));
+        effect.setTransportAirshipLimit(section.getInt("transportAirshipLimit",0));
+        effect.setAllianceLimitBuff(section.getInt("allianceLimit", 0));
+        effect.setPrestige(section.getInt("prestige", 0));
+        // Other
         effect.setDisplayName(section.getString("displayName"));
+        effect.setChangeTypeTo(RegionType.valueOf(section.getString("type")));
+
+        // Lists
         if (section.contains("production")) {
             Set<String> cfgList = section.getConfigurationSection("production").getKeys(false);
             for (String s : cfgList) {
@@ -437,6 +500,22 @@ public class Building {
                 Resource resource = Resource.getByName(s);
                 int mod = section.getInt("productionBuff." + s);
                 effect.getProductionBuff().put(resource, mod);
+            }
+        }
+        if (section.contains("happiness")) {
+            Set<String> cfgList = section.getConfigurationSection("happiness").getKeys(false);
+            for (String s : cfgList) {
+                PopulationLevel level = PopulationLevel.valueOf(s);
+                int mod = section.getInt("happiness." + s);
+                effect.getHappinessBuff().put(level, mod);
+            }
+        }
+        if (section.contains("effects")) {
+            Set<String> cfgList = section.getConfigurationSection("effects").getKeys(false);
+            for (String s : cfgList) {
+                Effect eff = Effect.valueOf(s);
+                int level = section.getInt("effects." + s);
+                effect.getMinecraftEffects().put(eff, level);
             }
         }
         return effect;
@@ -490,6 +569,13 @@ public class Building {
                 PopulationLevel level = PopulationLevel.valueOf(s);
                 int mod = config.getInt("requiredPopulation." + s);
                 requiredPopulation.put(level, mod);
+            }
+        }
+        if (config.contains("requiredRegionTypes")) {
+            Set<String> cfgList = config.getConfigurationSection("requiredRegionTypes").getKeys(false);
+            for (String s : cfgList) {
+                RegionType type = RegionType.valueOf(s);
+                requiredRegionTypes.add(type);
             }
         }
         if (config.contains("effects")) {
