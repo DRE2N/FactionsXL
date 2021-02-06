@@ -426,8 +426,8 @@ public class LandProtectionListener implements Listener {
             if (FPermission.hasPermission(breaker, FPermission.BUILD)) {
                 return;
             }
-
-            Region region = board.getByChunk(event.getClickedBlock().getChunk());
+            FPlayer fPlayer = fPlayers.getByPlayer(breaker);
+            Region region = board.getByChunk(event.getClickedBlock().getChunk(), fPlayer.getLastRegion());
             if (region == null || region.isNeutral()) {
                 return;
             }
@@ -463,8 +463,8 @@ public class LandProtectionListener implements Listener {
         if (FPermission.hasPermission(breaker, FPermission.BUILD)) {
             return;
         }
-
-        Region region = board.getByChunk(destroyed.getChunk());
+        FPlayer fPlayer = fPlayers.getByPlayer(breaker);
+        Region region = board.getByChunk(destroyed.getChunk(), fPlayer.getLastRegion());
         if (region == null || region.isNeutral()) {
             if (wildernessProtected) {
                 event.setCancelled(true);
@@ -475,7 +475,6 @@ public class LandProtectionListener implements Listener {
 
         Faction bFaction = factions.getByMember(breaker);
         Faction owner = region.getOwner();
-        FPlayer fPlayer = fPlayers.getByPlayer(breaker);
         if (region.getOccupant() != null) {
             Faction occupant = region.getOccupant();
             if (occupant == bFaction) {
