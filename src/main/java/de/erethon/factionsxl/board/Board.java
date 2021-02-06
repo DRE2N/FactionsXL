@@ -41,6 +41,7 @@ public class Board {
 
     private List<Region> regions = new CopyOnWriteArrayList<>();
     private final HashMap<Region, Long> cache = new HashMap<>();
+    private final HashMap<Chunk, AbstractMap.SimpleEntry<Region, Long>> chunkCache = new HashMap<>();
 
     public Board(File dir) {
         for (File file : dir.listFiles()) {
@@ -114,7 +115,11 @@ public class Board {
      * the region that contains the chunk
      */
     public Region getByChunk(Chunk chunk) {
-        // Check cache first
+        // Check chunk cache first
+        if (chunkCache.containsKey(chunk)) {
+            return chunkCache.get(chunk).getKey();
+        }
+        // Check region cache
         for (Region cachedRegion : cache.keySet()) {
             if (cachedRegion.getWorld().equals(chunk.getWorld())) {
                 for (LazyChunk rChunk : cachedRegion.getChunks()) {
@@ -149,7 +154,10 @@ public class Board {
      * the region that contains the chunk
      */
     public Region getByChunk(Chunk chunk, Region region) {
-        // Check chunks of the region first.
+        if (chunkCache.containsKey(chunk)) {
+            return chunkCache.get(chunk).getKey();
+        }
+        // Check chunks of the region
         if (region != null) {
             for (LazyChunk ownChunk : region.getChunks()) {
                 if (ownChunk.getX() == chunk.getX() && ownChunk.getZ() == chunk.getZ()) {
@@ -299,7 +307,14 @@ public class Board {
                     toRemove.add(entry.getKey());
                 }
             }
+            Set<Chunk> toRemoveChunks = new HashSet<>();
+            for (Entry<Chunk, AbstractMap.SimpleEntry<Region, Long>> entry : chunkCache.entrySet()) {
+                if (entry.getValue().getValue() + 300000 < time) {
+                    toRemoveChunks.add(entry.getKey());
+                }
+            }
             cache.keySet().removeAll(toRemove);
+            chunkCache.keySet().removeAll(toRemoveChunks);
         }
     }
 
