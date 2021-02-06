@@ -79,23 +79,38 @@ public class StatusEffect implements ConfigurationSerializable  {
                 String name = key.replace("consumption.", "");
                 consumptionModifier.put(Resource.getByName(name), (double) args.get(key));
             }
-        }
-        for (String key : args.keySet()) {
             if (key.contains("production.")) {
                 String name = key.replace("production.", "");
                 productionModifier.put(Resource.getByName(name), (double) args.get(key));
             }
-        }
-        for (String key : args.keySet()) {
             if (key.contains("resources.")) {
                 String name = key.replace("resources.", "");
                 productionBuff.put(Resource.getByName(name), (int) args.get(key));
+            }
+            if (key.contains("effects.")) {
+                String name = key.replace("effects.", "");
+                minecraftEffects.put(Effect.valueOf(name), (int) args.get(key));
+            }
+            if (key.contains("happiness.")) {
+                String name = key.replace("happiness.", "");
+                happinessBuff.put(PopulationLevel.valueOf(name), (int) args.get(key));
             }
         }
         memberModifier = (double) args.get("members");
         regionModifier = (double) args.get("regions");
         manpowerModifier = (double) args.get("manpower");
         prestige = (int) args.get("prestige");
+        if (args.containsKey("type")) {
+            changeTypeTo = RegionType.valueOf((String) args.get("type"));
+        }
+        stabilityModifier = (double) args.get("stability");
+        exhaustionModifier = (double) args.get("exhaustion");
+        attackDamageModifier = (double) args.get("attackDamage");
+        shieldModifier = (double) args.get("shield");
+        allianceLimitBuff = (int) args.get("allianceLimit");
+        transportShipLimit = (int) args.get("transportShipLimit");
+        transportCoachLimit = (int) args.get("transportCoachLimit");
+        transportAirshipLimit = (int) args.get("transportAirshipLimit");
     }
 
     public BuildSite getOrigin() {
@@ -193,8 +208,6 @@ public class StatusEffect implements ConfigurationSerializable  {
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
-
-
 
     public Map<Effect, Integer> getMinecraftEffects() {
         return minecraftEffects;
