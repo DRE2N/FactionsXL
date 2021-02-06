@@ -137,10 +137,9 @@ public class WorldCommand extends FCommand {
         } else if (sub.equalsIgnoreCase("listAdjacent") || sub.equalsIgnoreCase("lista") || sub.equalsIgnoreCase("la")) {
             listNeighbours(player, region);
 
-        } else if (sub.equalsIgnoreCase("calcAllAdjacent") || sub.equalsIgnoreCase("calcAll")) {
-            //calcAllNeighbours();
-            //MessageUtil.sendMessage(player, "&aCalculating &a&lall&r &aneighbours started. See console for progress.");
-            MessageUtil.sendMessage(player, "&cThis feature is currently disabled.");
+        } else if (sub.equalsIgnoreCase("setUnclaimable") || sub.equalsIgnoreCase("unclaimable") ||sub.equalsIgnoreCase("un")) {
+            region.setUnclaimable(!region.isUnclaimable());
+            MessageUtil.sendMessage(player, "&aUnclaimable: " + region.isUnclaimable());
 
         } else {
             MessageUtil.sendMessage(player, "&6/f &aw&8orld &5- &7Help");
@@ -149,16 +148,16 @@ public class WorldCommand extends FCommand {
             MessageUtil.sendMessage(player, "&6/f &awn a&8dd &7<Name> &5- &7Adds a chunk to a region. &7&oauto / radius <x> / line <x>");
             MessageUtil.sendMessage(player, "&6/f &aw r&8emove &5- &7Removes the current chunk from its region.");
             MessageUtil.sendMessage(player, "&6/f &aw &8re&an&8ame &7<Name> &5- &7Renames the region.");
-            MessageUtil.sendMessage(player, "&6/f &aw &8se&aT&8ype &5- &7Sets the region type.");
-            MessageUtil.sendMessage(player, "&6/f &aw &8se&aL&8evel &5- &7Sets the region level.");
+            MessageUtil.sendMessage(player, "&6/f &aw &8set&aT&8ype &5- &7Sets the region type.");
+            MessageUtil.sendMessage(player, "&6/f &aw &8set&aL&8evel &5- &7Sets the region level.");
             MessageUtil.sendMessage(player, "&6/f &aw &aaddCore &7<Faction> &5- &7Adds a core.");
             MessageUtil.sendMessage(player, "&6/f &aw &aaddClaim &7<Faction> &5- &7Adds a claim.");
             MessageUtil.sendMessage(player, "&6/f &aw &aremoveCore &7<Faction> &5- &7Removes a core.");
             MessageUtil.sendMessage(player, "&6/f &aw &aremoveClaim &7<Faction> &5- &7Removes a claim.");
             MessageUtil.sendMessage(player, "&6/f &aw &aa&8dd&aA&8djacent &7<Region> &5- &7Adds a adjacent region.");
             MessageUtil.sendMessage(player, "&6/f &aw &ar&8emove&aA&8djacent &7<Region> &5- &7Removes a adjacent region.");
-            MessageUtil.sendMessage(player, "&6/f &aw &ac&8alc&aA&8djacent &5- &7Tries to find adjacent regions automatically.");
             MessageUtil.sendMessage(player, "&6/f &aw &al&8ist&aA&8djacent &5- &7Lists all adjacent regions.");
+            MessageUtil.sendMessage(player, "&6/f &aw &8set&aUn&8claimable &5- &7Changes the unclaimable state of the region");
 
         }
     }

@@ -385,6 +385,13 @@ public class Region {
     }
 
     /**
+     * @param bool if the region should be claimable or not
+     */
+    public void setUnclaimable(boolean bool) {
+        unclaimable = bool;
+    }
+
+    /**
      * @return
      * true if the region has no owner
      */
