@@ -102,12 +102,14 @@ public class WarStatusCommand extends FCommand {
         int attackerDeaths = war.getAttacker().deaths;
         double attackerKD = war.getAttacker().getKD();
         int attackerPoints = war.getAttacker().getPoints();
+        double attackerParticipation = FactionsXL.getInstance().getOccupationManager().getParticipation(war.getAttacker());
         String defenderLeader = war.getDefender().getLeader().getName();
         String defenders = ParsingUtil.factionsToString(war.getDefender().getFactions(), ChatColor.GRAY);
         int defenderKills = war.getDefender().kills;
         int defenderDeaths = war.getDefender().deaths;
         double defenderKD = war.getDefender().getKD();
         int defenderPoints = war.getDefender().getPoints();
+        double defenderParticipation = FactionsXL.getInstance().getOccupationManager().getParticipation(war.getDefender());
         String cb = war.getCasusBelli().getType().toString();
         String date = SimpleDateUtil.ddMMyyyyhhmm(war.getStartDate());
         MessageUtil.sendCenteredMessage(sender, ChatColor.DARK_RED + attackerLeader + ChatColor.RED + " vs. " + ChatColor.DARK_RED + defenderLeader);
@@ -117,9 +119,11 @@ public class WarStatusCommand extends FCommand {
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_ATTACKERS.getMessage() + attackers);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLS_AND_DEATHS.getMessage(String.valueOf(attackerKills), String.valueOf(attackerDeaths), String.valueOf(attackerKD)));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_POINTS.getMessage() + String.valueOf(attackerPoints));
+        MessageUtil.sendMessage(sender, "&6Kriegsbeteiligung: " + attackerParticipation); // TODO: FMessage
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_DEFENDERS.getMessage() + defenders);
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_KILLS_AND_DEATHS.getMessage(String.valueOf(defenderKills), String.valueOf(defenderDeaths), String.valueOf(defenderKD)));
         MessageUtil.sendMessage(sender, FMessage.CMD_WAR_STATUS_POINTS.getMessage() + String.valueOf(defenderPoints));
+        MessageUtil.sendMessage(sender, "&6Kriegsbeteiligung: " + defenderParticipation); // TODO: FMessage
         FScoreboard.get((Player) sender).setTemporarySidebar(new FWarSidebar(war));
     }
 
