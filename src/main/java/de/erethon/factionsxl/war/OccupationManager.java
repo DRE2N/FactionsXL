@@ -108,16 +108,7 @@ public class OccupationManager {
     // Checks if a player of WarParty wp is in Region rg.
     public boolean isInRegion(WarParty wp, Region rg, boolean offlineProtection) {
         long now = System.currentTimeMillis();
-        int online = 0;
-        for (Faction f : wp.getFactions()) {
-            for (FPlayer fp : f.getFPlayers()) {
-                // Only count players that are online or that were online up to 10 minutes ago
-                if (!fp.isOnline() && fp.getData().getTimeLastLogout() != 0 && (now > (fp.getData().getTimeLastLogout() + 600000))) {
-                    continue;
-                }
-                online++;
-            }
-        }
+        int online = getActivePlayers(wp);
         if (online == 0 && offlineProtection) {
             // Offline factions are always defended
             return true;
@@ -162,6 +153,40 @@ public class OccupationManager {
         }
     }
 
+    public double getParticipation(WarParty wp) {
+        War war = wp.getWar();
+        long now = System.currentTimeMillis();
+        double participation = 0.00;
+        for (Faction f : wp.getFactions()) {
+            for (FPlayer fp : f.getFPlayers()) {
+                // Only count players that are online or that were online up to 10 minutes ago
+                if (!fp.isOnline() && fp.getData().getTimeLastLogout() != 0 && (now > (fp.getData().getTimeLastLogout() + 600000))) {
+                    continue;
+                }
+                participation = participation + war.getPlayerParticipation(fp.getPlayer());
+
+            }
+        }
+        return participation;
+    }
+
+    public int getActivePlayers(WarParty wp) {
+        War war = wp.getWar();
+        long now = System.currentTimeMillis();
+        int active = 0;
+        for (Faction f : wp.getFactions()) {
+            for (FPlayer fp : f.getFPlayers()) {
+                // Only count players that are online or that were online up to 10 minutes ago
+                if (!fp.isOnline() && fp.getData().getTimeLastLogout() != 0 && (now > (fp.getData().getTimeLastLogout() + 600000))) {
+                    continue;
+                }
+                active++;
+
+            }
+        }
+        return active;
+    }
+
     public int getTimeLeft(Region rg) {
         long now = System.currentTimeMillis();
         long minutes;
@@ -189,32 +214,11 @@ public class OccupationManager {
 
     public boolean canStartOccupation(WarParty attacker, WarParty defender) {
         War war = attacker.getWar();
-        double attackerParticipation = 0.00;
-        int attackerPlayers = 0;
-        double defenderParticipation = 0.00;
-        int defenderPlayers = 0;
+        double attackerParticipation = getParticipation(attacker);
+        int attackerPlayers = getActivePlayers(attacker);
+        double defenderParticipation = getParticipation(defender);
+        int defenderPlayers = getActivePlayers(defender);
         long now = System.currentTimeMillis();
-        for (Faction f : attacker.getFactions()) {
-            for (FPlayer fp : f.getFPlayers()) {
-                // Only count players that are online or that were online up to 10 minutes ago
-                if (!fp.isOnline() && fp.getData().getTimeLastLogout() != 0 && (now > (fp.getData().getTimeLastLogout() + 600000))) {
-                    continue;
-                }
-                attackerParticipation = attackerParticipation + war.getPlayerParticipation(fp.getPlayer());
-                attackerPlayers++;
-
-            }
-        }
-        for (Faction f : defender.getFactions()) {
-            for (FPlayer fp : f.getFPlayers()) {
-                // Only count players that are online or that were online up to 10 minutes ago
-                if (!fp.isOnline() && fp.getData().getTimeLastLogout() != 0 && (now > (fp.getData().getTimeLastLogout() + 600000))) {
-                    continue;
-                }
-                defenderParticipation = defenderParticipation + war.getPlayerParticipation(fp.getPlayer());
-                defenderPlayers++;
-            }
-        }
         // If the attacker is weaker they should still be able to attack
         if (attackerParticipation < defenderParticipation) {
             MessageUtil.log("Attacker is weaker than defender. Can start attack. ");
