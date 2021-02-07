@@ -27,6 +27,7 @@ import de.erethon.factionsxl.player.FPlayerCache;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class OccupationManager {
@@ -95,6 +96,9 @@ public class OccupationManager {
         }
         if (rg.getOccupant() != null && attacker.getFactions().contains(rg.getOccupant())) {
             return;
+        }
+        if (isInRegion(attacker, rg, false) && !isInRegion(defender, rg, false)) {
+            rg.setInfluence(rg.getInfluence() - 5);
         }
         if (isInRegion(attacker, rg, false)) {
             rg.setInfluence(rg.getInfluence() - 1);
@@ -186,7 +190,9 @@ public class OccupationManager {
     public boolean canStartOccupation(WarParty attacker, WarParty defender) {
         War war = attacker.getWar();
         double attackerParticipation = 0.00;
+        int attackerPlayers = 0;
         double defenderParticipation = 0.00;
+        int defenderPlayers = 0;
         long now = System.currentTimeMillis();
         for (Faction f : attacker.getFactions()) {
             for (FPlayer fp : f.getFPlayers()) {
@@ -195,6 +201,7 @@ public class OccupationManager {
                     continue;
                 }
                 attackerParticipation = attackerParticipation + war.getPlayerParticipation(fp.getPlayer());
+                attackerPlayers++;
 
             }
         }
@@ -205,16 +212,21 @@ public class OccupationManager {
                     continue;
                 }
                 defenderParticipation = defenderParticipation + war.getPlayerParticipation(fp.getPlayer());
+                defenderPlayers++;
             }
-        }
-        if (defenderParticipation <= 1.00) {
-            MessageUtil.log("Defender has no participation. Cancelling... ");
-            return false;
         }
         // If the attacker is weaker they should still be able to attack
         if (attackerParticipation < defenderParticipation) {
             MessageUtil.log("Attacker is weaker than defender. Can start attack. ");
             return true;
+        }
+        if (defenderParticipation <= 1.00 && defenderPlayers >= 1 && attacker.getPoints() <= 10) {
+            MessageUtil.log("Defender has no participation, but is online and attacker has less than 10 points. Can start attack");
+            return true;
+        }
+        if (defenderParticipation <= 1.00) {
+            MessageUtil.log("Defender has no participation. Cancelling... ");
+            return false;
         }
         MessageUtil.log("Participation: Defender: " + attackerParticipation + " / Attacker: " + defenderParticipation);
         return Math.abs(attackerParticipation - defenderParticipation) < 10;

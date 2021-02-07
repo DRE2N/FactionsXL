@@ -27,8 +27,10 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.faction.Federation;
 import de.erethon.factionsxl.faction.LegalEntity;
+import de.erethon.factionsxl.player.FPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -299,6 +301,16 @@ public class WarParty implements FEntity {
      */
     public WarParty getEnemy() {
         return getWar().getEnemy(this);
+    }
+
+    public int getOnlinePlayers() {
+        int count = 0;
+        for (Faction faction : getFactions()) {
+            for (Player player : faction.getOnlineMembers()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /* Serialization */
