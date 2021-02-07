@@ -17,6 +17,8 @@
 
 package de.erethon.factionsxl.economy;
 
+import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.population.PopulationLevel;
 import org.bukkit.Effect;
 
@@ -26,6 +28,94 @@ import java.util.List;
 import java.util.Map;
 
 public class StatusEffectTools {
+
+    public static double getTotalMemberModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getMemberModifier();
+    }
+
+    public static double getTotalRegionModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getRegionModifier();
+    }
+
+    public static double getTotalManpowerModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getManpowerModifier();
+    }
+
+    public static double getTotalStabilityModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getStabilityModifier();
+    }
+
+    public static double getTotalExhaustionModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getExhaustionModifier();
+    }
+
+    public static double getTotalDamageModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getAttackDamageModifier();
+    }
+
+    public static double getTotalDamageModifier(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getAttackDamageModifier();
+    }
+
+    public static double getTotalShieldModifier(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getShieldModifier();
+    }
+
+    public static double getTotalShieldModifier(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getShieldModifier();
+    }
+
+    public static int getTotalPrestige(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getPrestige();
+    }
+
+    public static int getTotalAllianceLimitBuff(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getAllianceLimitBuff();
+    }
+
+    public static int getTotalShipLimitBuff(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getTransportShipLimit();
+    }
+
+    public static int getTotalShipLimitBuff(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getTransportShipLimit();
+    }
+
+    public static int getTotalCoachLimitBuff(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getTransportCoachLimit();
+    }
+
+    public static int getTotalCoachLimitBuff(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getTransportCoachLimit();
+    }
+
+    public static int getTotalAirshipLimitBuff(Faction faction) {
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getTransportAirshipLimit();
+    }
+
+    public static int getTotalAirshipLimitBuff(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getTransportAirshipLimit();
+    }
+
+    public static Map<Resource, Double> getTotalResourceConsumption(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getConsumptionModifier();
+    }
+
+    public static Map<Resource, Double> getTotalResourceProduction(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getProductionModifier();
+    }
+
+    public static Map<Resource, Integer> getTotalResourceProductionBuff(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getProductionBuff();
+    }
+
+    public static Map<PopulationLevel, Integer> getTotalHappinessBuff(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getHappinessBuff();
+    }
+
+    public static Map<Effect, Integer> getTotalMinecraftEffects(Region region) {
+        return combine((StatusEffect[]) region.getEffects().toArray()).getMinecraftEffects();
+    }
 
     /**
      * Combines several StatusEffects. Careful: Does not check if they all have the same origin/expiration/regionModifier state
@@ -43,9 +133,6 @@ public class StatusEffectTools {
     }
 
     public static StatusEffect add(StatusEffect one, StatusEffect two) {
-        if (!one.getDisplayName().equals(two.getDisplayName()) || one.isRegionModifier() != two.isRegionModifier()) {
-            return null;
-        }
         StatusEffect result = new StatusEffect(one.getOrigin(), one.isRegionModifier(), one.getExpiration());
         result.setDisplayName(one.getDisplayName());
         double member = one.getMemberModifier() + two.getMemberModifier();

@@ -25,6 +25,7 @@ import de.erethon.factionsxl.building.BuildSite;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.StatusEffect;
+import de.erethon.factionsxl.economy.StatusEffectTools;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.population.HappinessLevel;
 import de.erethon.factionsxl.population.PopulationLevel;
@@ -179,7 +180,10 @@ public class Region {
      * @return a Map of the resources of the region
      */
     public Map<Resource, Integer> getResources() {
-        return type.getResources(level);
+        Map<Resource, Integer> resourceMap = new HashMap<>(type.getResources(level));
+        Map<Resource, Integer> buff = StatusEffectTools.getTotalResourceProductionBuff(this);
+        resourceMap.replaceAll((k, v) -> v + buff.get(k));
+        return resourceMap;
     }
 
     /**
