@@ -158,7 +158,15 @@ public class WarHandler {
         Faction enemyLeader = (Faction) enemy.getLeader();
         Set<Region> enemyRegions = enemyLeader.getRegions();
         switch (warParty.getWar().getCasusBelli().getType()) {
-            case BORDER_FRICTION: // Not implemented
+            case BORDER_FRICTION:
+                for (Region r : plugin.getBoard().getBorderRegions(enemyLeader, leader )) {
+                    if (r.getOccupant() != null && warParty.getFactions().contains(r.getOccupant())) {
+                        if (r.getCoreFactions().containsKey(r.getOwner())) {
+                            r.getOwner().getCasusBelli().add(new CasusBelli(CasusBelli.Type.RECONQUEST, warParty.getLeader(), null));
+                        }
+                        r.setOwner(leader);
+                    }
+                }
             case LIBERATION:
             case RESTORATION_OF_UNION:
             case IMPERIAL_BAN:
@@ -250,6 +258,11 @@ public class WarHandler {
         Faction enemyLeader = (Faction) enemy.getLeader();
         switch (warParty.getWar().getCasusBelli().getType()) {
             case BORDER_FRICTION:
+                for (Region rg : enemyLeader.getRegions()) {
+                    if (rg.getOccupant() != null && warParty.getFactions().contains(rg.getOccupant())) {
+                        rg.setOwner((Faction) warParty.getLeader());
+                    }
+                }
             case CLAIM_ON_THRONE:
             case IMPERIAL_BAN:
             case RESTORATION_OF_UNION: // Not implemented
