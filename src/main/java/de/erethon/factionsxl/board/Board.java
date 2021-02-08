@@ -16,10 +16,14 @@
  */
 package de.erethon.factionsxl.board;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FConfig;
+import de.erethon.factionsxl.entity.Relation;
+import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.util.LazyChunk;
+import de.erethon.factionsxl.war.CasusBelli;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
@@ -59,6 +63,7 @@ public class Board {
         }
         new CleanerTask().runTaskTimer(FactionsXL.getInstance(), FConfig.HOUR, FConfig.HOUR);
         new CacheCleanTask().runTaskTimer(FactionsXL.getInstance(), FConfig.MINUTE * 5, FConfig.MINUTE * 5);
+        new DelayedUpdateTask().runTaskLater(FactionsXL.getInstance(), 60);
     }
 
     /* Getters and setters */
@@ -173,6 +178,37 @@ public class Board {
      * a list of all regions
      */
     public List<Region> getRegions() {
+        return regions;
+    }
+
+    /**
+     * @param one the first faction
+     * @param two the second faction
+     * @return true if both factions share a border, false if otherwise
+     */
+    public boolean doShareBorder(Faction one, Faction two) {
+        for (Region rg : one.getRegions()) {
+            if (!Collections.disjoint(rg.getNeighbours(), two.getRegions())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param one the first faction
+     * @param two the second faction
+     * @return a list of all Regions owned by faction One, that border Regions owned by faction Two.
+     */
+    public Set<Region> getBorderRegions(Faction one, Faction two) {
+        Set<Region> regions = new HashSet<>();
+        for (Region rg : one.getRegions()) {
+            for (Region neighbour : rg.getNeighbours()) {
+                if (two.getRegions().contains(neighbour)) {
+                    regions.add(rg);
+                }
+            }
+        }
         return regions;
     }
 
@@ -315,6 +351,36 @@ public class Board {
             }
             cache.keySet().removeAll(toRemove);
             chunkCache.keySet().removeAll(toRemoveChunks);
+        }
+    }
+
+    public class DelayedUpdateTask extends BukkitRunnable {
+        @Override
+        public void run() {
+            // Add BorderFriction CBs if necessary
+            MessageUtil.log("Updating region-related Casus Belli...");
+            FactionsXL plugin = FactionsXL.getInstance();
+            for (Faction faction : plugin.getFactionCache().getActive()) {
+                List<Faction> cbCandidates = new ArrayList<>();
+                for (Region rg : faction.getRegions()) {
+                    for (Region neighbour : rg.getNeighbours()) {
+                        if (neighbour.getOwner() != null && !cbCandidates.contains(neighbour.getOwner())) {
+                            cbCandidates.add(neighbour.getOwner());
+                        }
+                    }
+                }
+                for (Faction faction2 : cbCandidates) {
+                    if (faction.getRelation(faction2) == null || faction.getRelation(faction2) == Relation.PEACE) {
+                        if (plugin.getCBManager().hasCBAlready(faction, CasusBelli.Type.BORDER_FRICTION, faction2)) {
+                            continue;
+                        }
+                        CasusBelli toAdd = new CasusBelli(CasusBelli.Type.BORDER_FRICTION, faction2, null);
+                        faction.getCasusBelli().add(toAdd);
+                        MessageUtil.log("Added missing BorderFriction CB to " + faction + " (" + toAdd.toString() + ")");
+                    }
+                }
+            }
+            MessageUtil.log("Finished updating CBs!");
         }
     }
 
