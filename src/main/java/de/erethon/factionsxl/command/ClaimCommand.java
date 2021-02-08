@@ -121,7 +121,7 @@ public class ClaimCommand extends FCommand {
         }
         else {
             region.getClaimFactions().put(faction, Calendar.getInstance().getTime());
-            plugin.getCBManager().addConquestOrSubjagation(faction, region.getOwner());
+            plugin.getCBManager().addClaimCB(faction, region.getOwner());
         }
         ParsingUtil.sendMessage(sender, FMessage.CMD_CLAIM_SUCCESS.getMessage(), region);
     }

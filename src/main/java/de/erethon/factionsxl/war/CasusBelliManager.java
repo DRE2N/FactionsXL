@@ -17,15 +17,19 @@
 
 package de.erethon.factionsxl.war;
 
+import de.erethon.commons.chat.MessageUtil;
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.faction.Faction;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class CasusBelliManager {
 
-    public void addConquestOrSubjagation(Faction faction, Faction target) {
+    public void addClaimCB(Faction faction, Faction target) {
         int claims = 0;
         for (Region rg : target.getRegions()) {
             if (rg.getClaimFactions().containsKey(faction)) {
@@ -33,10 +37,37 @@ public class CasusBelliManager {
             }
         }
         if (claims > (target.getRegions().size() / 2)) {
-            faction.getCasusBelli().add(new CasusBelli( CasusBelli.Type.SUBJAGATION, target, new Date(System.currentTimeMillis() + FConfig.MONTH  )));
+            faction.getCasusBelli().add(new CasusBelli(CasusBelli.Type.SUBJAGATION, target, new Date(System.currentTimeMillis() + FConfig.MONTH)));
             faction.getCasusBelli().removeIf(cb -> (cb.getType().equals(CasusBelli.Type.CONQUEST)) && cb.getTarget().equals(target));
         } else {
-            faction.getCasusBelli().add(new CasusBelli( CasusBelli.Type.CONQUEST, target, new Date(System.currentTimeMillis() + FConfig.MONTH  )));
+            faction.getCasusBelli().add(new CasusBelli(CasusBelli.Type.CONQUEST, target, new Date(System.currentTimeMillis() + FConfig.MONTH)));
         }
+    }
+
+    public boolean hasCBAlready(Faction self, CasusBelli.Type type, Faction target) {
+        for (CasusBelli casusBelli  : self.getCasusBelli()) {
+            if (casusBelli.getTarget() == target && casusBelli.getType() == type) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void updateBorderFriction(Region region, Faction owner, Faction target) {
+        FactionsXL plugin = FactionsXL.getInstance();
+        if (plugin.getBoard().doShareBorder(owner, target)) {
+            return;
+        }
+        List<CasusBelli> toRemove = new ArrayList<>();
+        for (CasusBelli casusBelli : owner.getCasusBelli()) {
+            if (casusBelli.getTarget() == target && casusBelli.getType() == CasusBelli.Type.BORDER_FRICTION) {
+                if (plugin.getBoard().getBorderRegions(owner, target).isEmpty()) {
+                    MessageUtil.log("Removing CB " + casusBelli.toString() + " from " + owner.getName() + " as its no longer valid.");
+                    toRemove.add(casusBelli);
+                }
+            }
+        }
+        owner.getCasusBelli().removeAll(toRemove);
+
     }
 }
