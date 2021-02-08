@@ -231,6 +231,12 @@ public class Region {
     public void setOwner(Faction faction) {
         if (owner != null) {
             owner.getRegions().remove(this);
+            for (Region rg : this.getNeighbours()) {
+                if (rg.getOwner() != null) {
+                    plugin.getCBManager().updateBorderFriction(this, rg.getOwner(), owner);
+                    plugin.getCBManager().updateBorderFriction(this, owner, rg.getOwner());
+                }
+            }
         }
         owner = faction;
         if (owner != null) {
