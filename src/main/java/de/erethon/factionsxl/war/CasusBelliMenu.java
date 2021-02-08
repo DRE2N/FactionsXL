@@ -68,6 +68,9 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
         gui.addItem(raidItem);
         // Other CBs
         for (CasusBelli cb : faction.getCasusBelli()) {
+            if (cb.getTarget() != object) {
+                continue;
+            }
             ItemStack guiItem = new ItemStack(Material.BEDROCK);
             ItemMeta guiMeta = guiItem.getItemMeta();
             switch (cb.getType()) {
@@ -122,6 +125,10 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
                     guiItem.setAmount(1);
                     gui.addItem(guiItem);
             }
+        }
+        // Fix stacked CBs
+        for (ItemStack itemStack : gui.getContents()) {
+            itemStack.setAmount(1);
         }
         player.openInventory(gui);
     }
@@ -216,7 +223,7 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
                 }
             }
         }
-       else if (itemName.equalsIgnoreCase("Unterwerfung")) {
+       else if (itemName.equalsIgnoreCase(FMessage.WAR_CB_SUBJAGATION.getMessage())) {
             for (CasusBelli cb : faction.getCasusBelli()) {
                 if (cb.getType() == CasusBelli.Type.SUBJAGATION && cb.getTarget() == object) {
                     casus = cb;
