@@ -101,6 +101,7 @@ public enum FMessage implements Message {
     CMD_REGION_INFLUENCE("cmd.region.influence"),
     CMD_RELOAD_DONE("cmd.reload.done"),
     CMD_REQUESTS_TITLE("cmd.requests.title"),
+    CMD_SCOREBOARD("cmd.scoreboard"),
     CMD_SET_ANTHEM_SUCCESS("cmd.setAnthem.success"),
     CMD_SET_BANNER_SUCCESS("cmd.setBanner.success"),
     CMD_SET_CAPITAL_SUCCESS("cmd.setCapital.success"),

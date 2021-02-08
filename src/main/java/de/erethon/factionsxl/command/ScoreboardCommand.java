@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.command;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.player.FPermission;
@@ -56,6 +57,7 @@ public class ScoreboardCommand extends FCommand {
 
         board.setSidebarVisibility(!fPlayer.isScoreboardEnabled());
         fPlayer.setScoreboardEnabled(!fPlayer.isScoreboardEnabled());
+        MessageUtil.sendMessage(sender, FMessage.CMD_SCOREBOARD.getMessage());
     }
 
 }
