@@ -16,9 +16,15 @@
  */
 package de.erethon.factionsxl.config;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.Message;
 import de.erethon.commons.config.MessageHandler;
 import de.erethon.factionsxl.FactionsXL;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * An enumeration of all messages.
@@ -522,13 +528,15 @@ public enum FMessage implements Message {
     WAR_CB_BORDER("war.cb.border"),
     WAR_CB_BORDER_DESC("war.cb.borderDesc"),
     WAR_CB_CONQUEST("war.cb.conquest"),
-    WAR_CB_CONQUEST_DESC("war.cb.conquest.desc"),
+    WAR_CB_CONQUEST_DESC("war.cb.conquestDesc"),
     WAR_CB_INDEPENDENCE("war.cb.liberation"), // Independence and liberation are switched...
     WAR_CB_INDEPENDENCE_DESC("war.cb.liberationDesc"),
     WAR_CB_RESUBJAGATION("war.cb.resubjagation"),
     WAR_CB_RESUBJAGATION_DESC("war.cb.resubjagationDesc"),
     WAR_CB_RECONQUEST("war.cb.reconquest"),
     WAR_CB_RECONQUEST_DESC("war.cb.reconquestDesc"),
+    WAR_CB_SUBJAGATION("war.cb.subjagation"),
+    WAR_CB_SUBJAGATION_DESC("war.cb.subjagationDesc"),
     WAR_CB_INVALID("war.cb.invalid"),
     WAR_DECLARATION_ALLIES("war.declaration.allies"),
     WAR_DECLARATION_BROADCAST("war.declaration.broadcast"),
@@ -623,6 +631,27 @@ public enum FMessage implements Message {
             return "Invalid Message at " + getPath();
         }
         return this.getMessageHandler().getMessage(this, args);
+    }
+
+    // Allows use of <nl> for a new line
+    public List<String> getFormattedLore() {
+        String[] split = getMessage().split("<nl>");
+        List<String> list = new ArrayList<>();
+        for (String s : split) {
+            String replace = s.replaceAll("<nl>", "");
+            list.add(replace);
+        }
+        return list;
+    }
+
+    public List<String> getFormattedLore(String... args) {
+        String[] split = getMessage(args).split("<nl>");
+        List<String> list = new ArrayList<>();
+        for (String s : split) {
+            String replace = s.replaceAll("<nl>", "");
+            list.add(replace);
+        }
+        return list;
     }
 
     @Override

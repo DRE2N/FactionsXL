@@ -36,7 +36,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.checkerframework.checker.units.qual.C;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -61,18 +63,19 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
         ItemStack raidItem = new ItemStack(Material.GOLD_INGOT);
         ItemMeta raidMeta = raidItem.getItemMeta();
         raidMeta.setDisplayName(FMessage.WAR_CB_RAID.getMessage());
+        raidMeta.setLore(FMessage.WAR_CB_RAID_DESC.getFormattedLore());
         raidItem.setItemMeta(raidMeta);
         gui.addItem(raidItem);
         // Other CBs
         for (CasusBelli cb : faction.getCasusBelli()) {
             ItemStack guiItem = new ItemStack(Material.BEDROCK);
             ItemMeta guiMeta = guiItem.getItemMeta();
-            // TODO: Descriptions for the CBs. Already in FMessage.
             switch (cb.getType()) {
                 case CLAIM_ON_THRONE:
                     break;
                 case CONQUEST:
                     guiMeta.setDisplayName(FMessage.WAR_CB_CONQUEST.getMessage());
+                    guiMeta.setLore(FMessage.WAR_CB_CONQUEST_DESC.getFormattedLore());
                     guiItem.setType(Material.RED_BANNER);
                     guiItem.setItemMeta(guiMeta);
                     guiItem.setAmount(1);
@@ -81,6 +84,7 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
                     break;
                 case INDEPENDENCE:
                     guiMeta.setDisplayName(FMessage.WAR_CB_INDEPENDENCE.getMessage());
+                    guiMeta.setLore(FMessage.WAR_CB_INDEPENDENCE_DESC.getFormattedLore());
                     guiItem.setType(Material.LEAD);
                     guiItem.setItemMeta(guiMeta);
                     guiItem.setAmount(1);
@@ -89,6 +93,7 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
                     break;
                 case BORDER_FRICTION:
                     guiMeta.setDisplayName(FMessage.WAR_CB_BORDER.getMessage());
+                    guiMeta.setLore(FMessage.WAR_CB_BORDER_DESC.getFormattedLore());
                     guiItem.setType(Material.STICKY_PISTON);
                     guiItem.setItemMeta(guiMeta);
                     guiItem.setAmount(1);
@@ -97,18 +102,21 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
                     break;
                 case RECONQUEST:
                     guiMeta.setDisplayName(FMessage.WAR_CB_RECONQUEST.getMessage());
+                    guiMeta.setLore(FMessage.WAR_CB_RECONQUEST_DESC.getFormattedLore());
                     guiItem.setType(Material.GOLDEN_SWORD);
                     guiItem.setItemMeta(guiMeta);
                     guiItem.setAmount(1);
                     gui.addItem(guiItem);
                 case RESUBJAGATION:
                     guiMeta.setDisplayName(FMessage.WAR_CB_RESUBJAGATION.getMessage());
+                    guiMeta.setLore(FMessage.WAR_CB_RESUBJAGATION_DESC.getFormattedLore());
                     guiItem.setType(Material.BLUE_BANNER);
                     guiItem.setItemMeta(guiMeta);
                     guiItem.setAmount(1);
                     gui.addItem(guiItem);
                 case SUBJAGATION:
-                    guiMeta.setDisplayName("Unterwerfung");
+                    guiMeta.setDisplayName(FMessage.WAR_CB_SUBJAGATION.getMessage());
+                    guiMeta.setLore(FMessage.WAR_CB_SUBJAGATION_DESC.getFormattedLore());
                     guiItem.setType(Material.YELLOW_BANNER);
                     guiItem.setItemMeta(guiMeta);
                     guiItem.setAmount(1);
@@ -167,6 +175,14 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
         CasusBelli casus = null;
         if (itemName.equals(FMessage.WAR_CB_RAID.getMessage())) {
             casus = new CasusBelli(CasusBelli.Type.RAID, object, null);
+        }
+        else if (itemName.equalsIgnoreCase(FMessage.WAR_CB_BORDER.getMessage())) {
+            for (CasusBelli cb : faction.getCasusBelli()) {
+                if (cb.getType() == CasusBelli.Type.BORDER_FRICTION && cb.getTarget() == object) {
+                    casus = cb;
+                    break;
+                }
+            }
         }
         else if (itemName.equalsIgnoreCase(FMessage.WAR_CB_CONQUEST.getMessage())) {
             for (CasusBelli cb : faction.getCasusBelli()) {
