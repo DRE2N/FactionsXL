@@ -353,19 +353,13 @@ public class WarHandler {
 
     public boolean hasOccupiedAllBorderClaims(WarParty occupant, Faction target) {
         Faction leader = (Faction) occupant.getLeader();
-        Set<Region> claimed = new HashSet<>();
         Set<Region> occupied = new HashSet<>();
-        for (Region rg : plugin.getBoard().getBorderRegions(leader, target)) {
-            if (rg.getClaimFactions().containsKey(leader)) {
-                claimed.add(rg);
-            }
-        }
         for (Region rg : plugin.getBoard().getBorderRegions(leader, target)) {
             if (rg.getOwner() != null && occupant.getFactions().contains(rg.getOccupant())) {
                 occupied.add(rg);
             }
         }
-        return claimed.equals(occupied);
+        return plugin.getBoard().getBorderRegions(leader, target).equals(occupied);
     }
 
     public void relationFixer(War war) {
