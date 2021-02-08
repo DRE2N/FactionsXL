@@ -30,6 +30,7 @@ import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.Bukkit;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import static de.erethon.factionsxl.war.CasusBelli.Type.RAID;
@@ -58,15 +59,17 @@ public class WarHandler {
     }
     public void calculateWarStatus() {
         for (War war : plugin.getWarCache().getWars()) {
+            WarParty attacker = war.getAttacker();
+            WarParty defender = war.getDefender();
             //relationFixer(war); //temporary fix for wrong relations in wars.
             // Add exhaustion
-            for (Faction f : war.getAttacker().getFactions()) {
-                if (war.getAttacker().getPoints() < 0) {
+            for (Faction f : attacker.getFactions()) {
+                if (attacker.getPoints() < 0) {
                     f.setExhaustion(f.getExhaustion() + config.getExhaustionLoosing());
                 }
                 f.setExhaustion(f.getExhaustion() + config.getExhaustion());
             }
-            for (Faction f : war.getDefender().getFactions()) {
+            for (Faction f : defender.getFactions()) {
                 if ((war.getDefender().getPoints() < 0) || (war.getDefender().getKD() < 1)) {
                     f.setExhaustion(f.getExhaustion() + config.getExhaustionLoosing());
                     continue;
@@ -75,19 +78,58 @@ public class WarHandler {
             }
 
             // If the attacker wins, the war goals (depending on CB) get forced
-            if (war.getAttacker().getPoints() >= 100) {
-                forceWarGoal(war.getAttacker());
+            if (attacker.getPoints() >= 100) {
+                forceWarGoal(attacker);
                 return;
             }
 
             // If the defender wins, the war ends and cores/claims are given to the defender
-            if (war.getDefender().getPoints() >= 100) {
+            if (defender.getPoints() >= 100) {
                 defenderGoals(war.getDefender());
                 return;
             }
 
-            Faction aLeader = (Faction) war.getAttacker().getLeader();
-            Faction dLeader = (Faction) war.getDefender().getLeader();
+            Faction aLeader = (Faction) attacker.getLeader();
+            Faction dLeader = (Faction) defender.getLeader();
+
+            switch (war.getCasusBelli().getType()) {
+                case CLAIM_ON_THRONE:
+                case LIBERATION:
+                case IMPERIAL_BAN:
+                case RESTORATION_OF_UNION:
+                    // Not implemented yet
+                    break;
+
+                case BORDER_FRICTION:
+                    // If all border regions are occupied, attacker wins
+                    if (hasOccupiedAllBorderClaims(attacker, dLeader)) {
+                        forceWarGoal(attacker);
+                    }
+                    break;
+                case CONQUEST:
+                    // No Goals, only points
+                    break;
+                case INDEPENDENCE:
+                    // No Goals, only Points
+                    break;
+                case RAID:
+                    // No goals
+                    break;
+                case RECONQUEST:
+                    // If all cores are occupied, attacker wins
+                    if (hasOccupiedAlLCores(attacker, aLeader, dLeader)) {
+                        forceWarGoal(attacker);
+                    }
+                    break;
+                case SUBJAGATION:
+                case RESUBJAGATION:
+                    // If capital is occupied, attacker wins
+                    if (dLeader.getCapital().getOccupant() != null && attacker.getFactions().contains(dLeader.getCapital().getOccupant())) {
+                        forceWarGoal(attacker);
+                    }
+                    break;
+            }
+
             if (aLeader.getStability() <= 1) {
                 defenderGoals(war.getDefender());
                 return;
@@ -275,6 +317,55 @@ public class WarHandler {
         }
         long now = System.currentTimeMillis();
         return (time + (86400000 * days)) > now;
+    }
+
+    public Set<Region> getOccupied(WarParty occupant, Faction faction) {
+        Set<Region> occupiedRegions = new HashSet<>();
+        for (Region r : faction.getRegions()) {
+            if (r.getOccupant() != null && occupant.getFactions().contains(r.getOccupant())) {
+                occupiedRegions.add(r);
+            }
+        }
+        return occupiedRegions;
+    }
+
+    public boolean hasOccupiedAllClaims(WarParty occupant, Faction claimOwner, Faction target) {
+        Set<Region> claimedRegions = new HashSet<>();
+        Set<Region> occupiedRegions = getOccupied(occupant, target);
+        for (Region r : target.getRegions()) {
+            if (r.getClaimFactions().containsKey(claimOwner)) {
+                claimedRegions.add(r);
+            }
+        }
+        return claimedRegions.equals(occupiedRegions);
+    }
+
+    public boolean hasOccupiedAlLCores(WarParty occupant, Faction coreOwner, Faction target) {
+        Set<Region> cores = new HashSet<>();
+        Set<Region> occupiedRegions = getOccupied(occupant, target);
+        for (Region r : target.getRegions()) {
+            if (r.getCoreFactions().containsKey(coreOwner)) {
+                cores.add(r);
+            }
+        }
+        return cores.equals(occupiedRegions);
+    }
+
+    public boolean hasOccupiedAllBorderClaims(WarParty occupant, Faction target) {
+        Faction leader = (Faction) occupant.getLeader();
+        Set<Region> claimed = new HashSet<>();
+        Set<Region> occupied = new HashSet<>();
+        for (Region rg : plugin.getBoard().getBorderRegions(leader, target)) {
+            if (rg.getClaimFactions().containsKey(leader)) {
+                claimed.add(rg);
+            }
+        }
+        for (Region rg : plugin.getBoard().getBorderRegions(leader, target)) {
+            if (rg.getOwner() != null && occupant.getFactions().contains(rg.getOccupant())) {
+                occupied.add(rg);
+            }
+        }
+        return claimed.equals(occupied);
     }
 
     public void relationFixer(War war) {

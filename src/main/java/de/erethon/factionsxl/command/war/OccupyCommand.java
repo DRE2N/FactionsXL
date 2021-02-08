@@ -34,7 +34,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Set;
 
 import static de.erethon.factionsxl.war.CasusBelli.Type.*;
@@ -227,13 +226,7 @@ public class OccupyCommand extends FCommand {
                 WarRegionOccupiedEvent event = new WarRegionOccupiedEvent(factionWP, factionWP.getEnemy(), region, faction);
                 Bukkit.getPluginManager().callEvent(event);
 
-                if (war.getCasusBelli().getType() == CONQUEST || war.getCasusBelli().getType() == RECONQUEST) {
-                    if (hasOccupiedAllClaims(faction, (Faction) war.getDefender().getLeader())) {
-                        plugin.getWarHandler().forceWarGoal(factionWP);
-                    }
-                }
-
-
+                plugin.getWarHandler().calculateWarStatus();
 
             } else {
                 MessageUtil.sendMessage(player, FMessage.WAR_OCCUPY_INFLUENCE_TOO_HIGH.getMessage());
@@ -255,17 +248,4 @@ public class OccupyCommand extends FCommand {
         return occupiedRegions;
     }
 
-    public boolean hasOccupiedAllClaims(Faction occupant, Faction target) {
-        Set<Region> claimedRegions = new HashSet<>();
-        Set<Region> occupiedRegions = new HashSet<>();
-        for (Region r : target.getRegions()) {
-            if (r.getClaimFactions().containsKey(occupant)) {
-                claimedRegions.add(r);
-            }
-            if (r.getOccupant() != null && r.getOccupant().equals(occupant)) {
-                occupiedRegions.add(r);
-            }
-        }
-        return claimedRegions.equals(occupiedRegions);
-    }
 }
