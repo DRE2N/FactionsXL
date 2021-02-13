@@ -16,10 +16,12 @@
  */
 package de.erethon.factionsxl.command;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -59,6 +61,11 @@ public class ModCommand extends FCommand {
         OfflinePlayer player = Bukkit.getOfflinePlayer(args[i]);
         if (!player.hasPlayedBefore()) {
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NO_SUCH_PLAYER.getMessage(args[i]));
+            return;
+        }
+        FPlayer fPlayer = plugin.getFPlayerCache().getByPlayer(player);
+        if (!faction.getFPlayers().contains(fPlayer)) {
+            MessageUtil.sendMessage(sender, FMessage.ERROR_PLAYER_NOT_IN_FACTION.getMessage());
             return;
         }
 
