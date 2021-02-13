@@ -17,17 +17,16 @@
 
 package de.erethon.factionsxl.building;
 
-import com.destroystokyo.paper.MaterialSetTag;
-import com.destroystokyo.paper.MaterialTags;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Board;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.board.RegionType;
+import de.erethon.factionsxl.building.effects.SubEffect;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.FStorage;
 import de.erethon.factionsxl.economy.Resource;
-import de.erethon.factionsxl.economy.StatusEffect;
+import de.erethon.factionsxl.building.effects.StatusEffect;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.player.FPlayerCache;
@@ -476,6 +475,8 @@ public class Building {
         // Other
         effect.setDisplayName(section.getString("displayName"));
         effect.setChangeTypeTo(RegionType.valueOf(section.getString("type")));
+        effect.setMemberPermission(section.getString("permission"));
+        effect.setEffect(new SubEffect(config.getString("specialEffect")));
 
         // Lists
         if (section.contains("production")) {
