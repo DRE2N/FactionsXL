@@ -27,6 +27,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.board.dynmap.DynmapStyle;
 import de.erethon.factionsxl.building.BuildSite;
+import de.erethon.factionsxl.building.effects.StatusEffect;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.*;

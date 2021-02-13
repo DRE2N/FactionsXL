@@ -15,9 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.economy;
+package de.erethon.factionsxl.building.effects;
 
 import de.erethon.factionsxl.board.Region;
+import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.population.PopulationLevel;
 import org.bukkit.Effect;

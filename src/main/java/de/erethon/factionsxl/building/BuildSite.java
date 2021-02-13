@@ -24,8 +24,6 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.economy.Resource;
-import de.erethon.factionsxl.economy.StatusEffect;
 import de.erethon.factionsxl.player.FPlayer;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.math.IntRange;

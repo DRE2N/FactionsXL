@@ -37,7 +37,7 @@ import de.erethon.factionsxl.config.FData;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.config.FTranslation;
 import de.erethon.factionsxl.economy.IncomeTask;
-import de.erethon.factionsxl.economy.StatusEffect;
+import de.erethon.factionsxl.building.effects.StatusEffect;
 import de.erethon.factionsxl.economy.TechTreeMenu;
 import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.FBull;
@@ -779,6 +779,8 @@ public class FactionsXL extends DREPlugin {
     public void loadPopulationMessages() {
         populationMessages =  new PopulationMessage();
     }
+
+
 
     /**
      * start a new IncomeTask

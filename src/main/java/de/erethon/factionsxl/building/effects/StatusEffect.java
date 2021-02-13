@@ -15,16 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.erethon.factionsxl.economy;
+package de.erethon.factionsxl.building.effects;
 
 import de.erethon.factionsxl.board.RegionType;
 import de.erethon.factionsxl.building.BuildSite;
+import de.erethon.factionsxl.building.effects.special.DropModifier;
+import de.erethon.factionsxl.building.effects.special.MapMarker;
+import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.population.PopulationLevel;
 import org.bukkit.Effect;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Malfrador
@@ -57,6 +62,8 @@ public class StatusEffect implements ConfigurationSerializable  {
     private int transportShipLimit = 0;
     private int transportAirshipLimit = 0;
     private int transportCoachLimit = 0;
+    private String memberPermission;
+    private SubEffect effect;
 
     public StatusEffect(boolean isRegionModifier, long expiration) {
         this.isRegionModifier = isRegionModifier;
@@ -111,6 +118,8 @@ public class StatusEffect implements ConfigurationSerializable  {
         transportShipLimit = (int) args.get("transportShipLimit");
         transportCoachLimit = (int) args.get("transportCoachLimit");
         transportAirshipLimit = (int) args.get("transportAirshipLimit");
+        memberPermission = (String) args.get("permission");
+        effect = loadEffect((String) args.get("specialEffect"));
     }
 
     public BuildSite getOrigin() {
@@ -289,6 +298,33 @@ public class StatusEffect implements ConfigurationSerializable  {
         this.transportCoachLimit = transportCoachLimit;
     }
 
+    public String getMemberPermission() {
+        return memberPermission;
+    }
+
+    public void setMemberPermission(String memberPermission) {
+        this.memberPermission = memberPermission;
+    }
+
+    public SubEffect getEffect() {
+        return effect;
+    }
+
+    public void setEffect(SubEffect effect) {
+        this.effect = effect;
+    }
+
+    public SubEffect loadEffect(String data) {
+        String[] split = data.split(":");
+        switch (split[0]) {
+            case "map":
+                return new MapMarker(split[1]);
+            case "drop":
+                return new DropModifier(split[1]);
+        }
+        return null;
+    }
+
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> args = new HashMap<>();
@@ -326,6 +362,8 @@ public class StatusEffect implements ConfigurationSerializable  {
         args.put("transportShipLimit", transportShipLimit);
         args.put("transportCoachLimit", transportCoachLimit);
         args.put("transportAirshipLimit", transportAirshipLimit);
+        args.put("permission", memberPermission);
+        args.put("specialEffect", effect.save());
         return args;
     }
 }
