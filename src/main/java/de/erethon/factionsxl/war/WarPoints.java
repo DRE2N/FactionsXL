@@ -43,6 +43,7 @@ public class WarPoints {
                 }
             }
         }
+        // Having occupied more regions means that you will get a higher warscore.
         double mod = 1 + (occupied / regions);
         switch (warParty.getWar().getCasusBelli().getType()) {
             case RAID:
@@ -157,6 +158,12 @@ public class WarPoints {
                 break;
         }
     }
+
+    /**
+     * Sets the war score for a warparty and broadcasts messages about the change
+     * @param sc the score to add
+     * @param modifier the modifier. The modifier depends on war progress.
+     */
     public void setScore(WarParty wp, int sc, double modifier) {
         double finalScore = 0.00;
         finalScore = sc * modifier;

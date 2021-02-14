@@ -306,9 +306,7 @@ public class WarParty implements FEntity {
     public int getOnlinePlayers() {
         int count = 0;
         for (Faction faction : getFactions()) {
-            for (Player player : faction.getOnlineMembers()) {
-                count++;
-            }
+            count = count + faction.getOnlineMembers().size();
         }
         return count;
     }
