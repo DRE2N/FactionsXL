@@ -22,6 +22,7 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
+import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.protection.EntityProtectionListener;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -60,7 +61,14 @@ public class WarListener implements Listener {
         if (player1 == null) {
             return;
         }
-        plugin.getFPlayerCache().getByPlayer(player2).getLastDamagers().add(player1);
+        FPlayerCache cache = plugin.getFPlayerCache();
+        if (cache.getByPlayer(player2) == null) {
+            return;
+        }
+        if (cache.getByPlayer(player2).getLastDamagers() == null) {
+            cache.getByPlayer(player2).initLastDamagers();
+        }
+        cache.getByPlayer(player2).getLastDamagers().add(player1);
         Faction faction1 = factions.getByMember(player1);
         Faction faction2 = factions.getByMember(player2);
         if (faction1 == null || faction2 == null || !faction1.getRelation(faction2).equals(Relation.ENEMY)) {

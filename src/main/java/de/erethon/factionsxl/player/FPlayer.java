@@ -441,6 +441,10 @@ public class FPlayer implements FEntity, PlayerWrapper {
         return lastDamagers;
     }
 
+    public void initLastDamagers() {
+        lastDamagers = new CopyOnWriteArrayList<>();
+    }
+
     @Override
     public String toString() {
         return "FPlayer{name=" + getName() + "}";
