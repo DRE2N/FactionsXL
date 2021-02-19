@@ -16,8 +16,10 @@
  */
 package de.erethon.factionsxl.population;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.misc.ProgressBar;
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
@@ -52,14 +54,16 @@ public class PopulationMenu implements Listener {
     public static final ItemStack MILITARY = GUIButton.setDisplay(StandardizedGUI.GUI_SWORD, FMessage.POPULATION_MILITARY_BUTTON.getMessage());
 
     private Faction faction;
+    private Region region;
     private Inventory main;
     private Inventory demands;
     private DemandMenu demandResources;
     private MilitaryMenu military;
 
-    public PopulationMenu(Faction faction) {
+    public PopulationMenu(Faction faction, Region region) {
         this.faction = faction;
-        demandResources = new DemandMenu(faction);
+        this.region = region;
+        demandResources = new DemandMenu(faction, region);
         military = new MilitaryMenu(faction);
         setupGUI();
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -89,9 +93,9 @@ public class PopulationMenu implements Listener {
             HashMap<SaturationLevel, Integer> saturation = new HashMap<>();
             int percentage = 0;
             for (Resource resource : subcategory.getResources()) {
-                SaturationLevel level = faction.isResourceSaturated(resource, subcategory.isBasic());
+                SaturationLevel level = region.isResourceSaturated(resource, subcategory.isBasic());
                 saturation.put(level, (saturation.get(level) != null ? saturation.get(level) : 0) + 1);
-                percentage += faction.getSaturatedResources().get(resource);
+                percentage += region.getSaturatedResources().get(resource);
             }
             percentage = percentage / subcategory.getResources().length;
             ItemStack icon = subcategory.getIcon();

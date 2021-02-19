@@ -102,7 +102,7 @@ public class FConfig extends DREConfig {
     private double exportModifier = 0.5;
     private int requiredResourceUnitsPer1000Persons = 10;
     private Map<PopulationLevel, Map<String, Boolean>> populationBuildings = new HashMap<>();
-    private Map<PopulationLevel, Map<ResourceSubcategory, Integer>> populationLevelResources= new HashMap<PopulationLevel, Map<ResourceSubcategory, Integer>>() {
+    private Map<PopulationLevel, Map<ResourceSubcategory, Integer>> populationLevelResourcesRequired = new HashMap<PopulationLevel, Map<ResourceSubcategory, Integer>>() {
         final Map<ResourceSubcategory, Integer> basicResources = new HashMap<ResourceSubcategory, Integer>() {
             {
                 put(ResourceSubcategory.STONE, 10);
@@ -112,6 +112,26 @@ public class FConfig extends DREConfig {
                 put(ResourceSubcategory.STAPLES, 15);
             }
         };
+
+        {
+            put(PopulationLevel.PEASANT, basicResources);
+            put(PopulationLevel.CITIZEN, basicResources);
+            put(PopulationLevel.PATRICIAN, basicResources);
+            put(PopulationLevel.NOBLEMEN, basicResources);
+        }
+    };
+
+    private Map<PopulationLevel, Map<ResourceSubcategory, Integer>> resourceConsumption = new HashMap<PopulationLevel, Map<ResourceSubcategory, Integer>>() {
+        final Map<ResourceSubcategory, Integer> basicResources = new HashMap<ResourceSubcategory, Integer>() {
+            {
+                put(ResourceSubcategory.STONE, 10);
+                put(ResourceSubcategory.HEATING, 5);
+                put(ResourceSubcategory.WATER, 10);
+                put(ResourceSubcategory.ROADS, 5);
+                put(ResourceSubcategory.STAPLES, 15);
+            }
+        };
+
         {
             put(PopulationLevel.PEASANT, basicResources);
             put(PopulationLevel.CITIZEN, basicResources);
@@ -285,65 +305,58 @@ public class FConfig extends DREConfig {
     }
 
     /* Getters and setters */
+
     /**
-     * @return
-     * the language
+     * @return the language
      */
     public String getLanguage() {
         return language;
     }
 
     /**
-     * @return
-     * the auto save interval
+     * @return the auto save interval
      */
     public long getAutoSaveInterval() {
         return (long) (autoSaveInterval * MINUTE);
     }
 
     /**
-     * @return
-     * the time until taxes are collected
+     * @return the time until taxes are collected
      */
     public long getDayLength() {
         return (long) (dayLength * HOUR);
     }
 
     /**
-     * @return
-     * the maximum amount of idea groups that a faction can have
+     * @return the maximum amount of idea groups that a faction can have
      */
     public int getMaxIdeaGroups() {
         return maxIdeaGroups;
     }
 
     /**
-     * @return
-     * the time millis until a faction may move its capital again.
+     * @return the time millis until a faction may move its capital again.
      */
     public long getMoveCapitalCooldown() {
         return moveCapitalCooldown * DAY;
     }
 
     /**
-     * @return
-     * the default manpower modifier
+     * @return the default manpower modifier
      */
     public double getDefaultManpowerModifier() {
         return defaultManpowerModifier;
     }
 
     /**
-     * @return
-     * the saturation a faction can get / lose per day
+     * @return the saturation a faction can get / lose per day
      */
     public int getSaturationPerDay() {
         return saturationPerDay;
     }
 
     /**
-     * @return
-     * the influence a faction looses per region per day
+     * @return the influence a faction looses per region per day
      */
     public double getInfluencePerDay() {
         return influencePerDay;
@@ -358,24 +371,21 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * the coring progress (to 100) that is made per day
+     * @return the coring progress (to 100) that is made per day
      */
     public double getCoringPerDay() {
         return coringPerDay;
     }
 
     /**
-     * @return
-     * the time in days until a claim runs out
+     * @return the time in days until a claim runs out
      */
     public long getClaimTimeout() {
-        return (long) (claimTimeout * 86400000 );
+        return (long) (claimTimeout * 86400000);
     }
 
     /**
-     * @return
-     * true if economy features are enabled;
+     * @return true if economy features are enabled;
      * false if not or if Vault is not installed
      */
     public boolean isEconomyEnabled() {
@@ -383,66 +393,57 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * the price to create a faction
+     * @return the price to create a faction
      */
     public double getPriceCreate() {
         return priceCreate;
     }
 
     /**
-     * @return
-     * the price to create a vassal
+     * @return the price to create a vassal
      */
     public double getPriceCreateVassal() {
         return priceCreateVassal;
     }
 
     /**
-     * @return
-     * the price to warp to the faction home
+     * @return the price to warp to the faction home
      */
     public double getPriceHomeWarp() {
         return priceHomeWarp;
     }
 
     /**
-     * @return
-     * if per player homes (/f playerHome) are enabled
+     * @return if per player homes (/f playerHome) are enabled
      */
     public boolean arePlayerHomesEnabled() {
         return playerHomesEnabled;
     }
 
     /**
-     * @param relation
-     * the new relation
-     * @return
-     * the price to get the relation
+     * @param relation the new relation
+     * @return the price to get the relation
      */
     public double getPriceRelation(Relation relation) {
         return priceRelation.get(relation) != null ? priceRelation.get(relation) : 0;
     }
 
     /**
-     * @return
-     * the base price for claiming a region
+     * @return the base price for claiming a region
      */
     public double getPriceClaimBase() {
         return priceClaimBase;
     }
 
     /**
-     * @return
-     * the price per chunk for claiming a region
+     * @return the price per chunk for claiming a region
      */
     public double getPriceClaimPerChunk() {
         return priceClaimPerChunk;
     }
 
     /**
-     * @return
-     * the claiming price increase per region that the faction already owns
+     * @return the claiming price increase per region that the faction already owns
      */
     public double getPriceClaimIncrease() {
         return priceClaimIncrease;
@@ -453,58 +454,55 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * the value modifier for importing goods
+     * @return the value modifier for importing goods
      */
     public double getImportModifier() {
         return importModifier;
     }
 
     /**
-     * @return
-     * the modifier for exporting goods
+     * @return the modifier for exporting goods
      */
     public double getExportModifier() {
         return exportModifier;
     }
 
     /**
-     * @return
-     * the amount of units 1000 persons
+     * @return the amount of units 1000 persons
      */
     public int getRequiredResourceUnitsPer1000Persons() {
         return requiredResourceUnitsPer1000Persons;
     }
 
-    public Map<PopulationLevel, Map<ResourceSubcategory, Integer>> getPopulationLevelResources() {
-        return populationLevelResources;
+    public Map<PopulationLevel, Map<ResourceSubcategory, Integer>> getPopulationLevelResourcesRequired() {
+        return populationLevelResourcesRequired;
     }
 
     public Map<PopulationLevel, Map<String, Boolean>> getPopulationLevelBuildings() {
         return populationBuildings;
     }
 
+    public Map<PopulationLevel, Map<ResourceSubcategory, Integer>> getResourceConsumption() {
+        return resourceConsumption;
+    }
+
     /**
-     * @return
-     * if FXL should handle the public chat as well
+     * @return if FXL should handle the public chat as well
      */
     public boolean isPublicChatHandled() {
         return publicChatHandled;
     }
 
     /**
-     * @return
-     * the block range of the local chat
+     * @return the block range of the local chat
      */
     public int getLocalChatRange() {
         return localChatRange;
     }
 
     /**
-     * @param channel
-     * the chat channel
-     * @return
-     * the chat format
+     * @param channel the chat channel
+     * @return the chat format
      */
     public String getChatFormat(ChatChannel channel) {
         switch (channel) {
@@ -526,34 +524,29 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * if LWC protection shall be enabled
+     * @return if LWC protection shall be enabled
      */
     public boolean isLWCEnabled() {
         return lwcEnabled;
     }
 
     /**
-     * @return
-     * if wilderness chunks shall be protected
+     * @return if wilderness chunks shall be protected
      */
     public boolean isWildernessProtected() {
         return wildernessProtected;
     }
 
     /**
-     * @return
-     * a List of regex world names where faction mechanics don't apply
+     * @return a List of regex world names where faction mechanics don't apply
      */
     public List<String> getExcludedWorlds() {
         return excludedWorlds;
     }
 
     /**
-     * @param world
-     * the world to check
-     * @return
-     * if the world is excluded from faction mechanics
+     * @param world the world to check
+     * @return if the world is excluded from faction mechanics
      */
     public boolean isExcludedWorld(World world) {
         for (String regex : excludedWorlds) {
@@ -565,18 +558,15 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * a List of regex faction names that are not allowed in tags and long tags.
+     * @return a List of regex faction names that are not allowed in tags and long tags.
      */
     public List<String> getForbiddenNames() {
         return forbiddenNames;
     }
 
     /**
-     * @param s
-     * the name to check
-     * @return
-     * if this string matches a string in the list of forbidden faction names
+     * @param s the name to check
+     * @return if this string matches a string in the list of forbidden faction names
      */
     public boolean isNameForbidden(String s) {
         for (String regex : forbiddenNames) {
@@ -588,227 +578,197 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * if players shall be protected in their territory
+     * @return if players shall be protected in their territory
      */
     public boolean isTerritoryProtectionEnabled() {
         return territoryProtectionEnabled;
     }
 
     /**
-     * @return
-     * how much of the PVP damage in foreign territories shall be absorbed
+     * @return how much of the PVP damage in foreign territories shall be absorbed
      */
     public double getTerritoryShield() {
         return territoryShield;
     }
 
     /**
-     * @return
-     * if players shall only be protected in their capital province
+     * @return if players shall only be protected in their capital province
      */
     public boolean isCapitalProtectionEnabled() {
         return capitalProtectionEnabled;
     }
 
     /**
-     * @return
-     * the time until one block gets restored after being destroyed by TNT in war
+     * @return the time until one block gets restored after being destroyed by TNT in war
      */
     public long getWarExplosionTNTRestorationTime() {
         return (long) (warExplosionTNTRestorationTime * SECOND);
     }
 
     /**
-     * @return
-     * the time until one block gets restored after being destroyed by Siege in war
+     * @return the time until one block gets restored after being destroyed by Siege in war
      */
     public long getWarExplosionSiegeRestorationTime() {
         return (long) (warExplosionSiegeRestorationTime * SECOND);
     }
 
     /**
-     * @return
-     * the time in days until the CB liberation runs out
+     * @return the time in days until the CB liberation runs out
      */
     public long getCBLiberationExp() {
         return cbLiberationExp;
     }
 
     /**
-     * @return
-     * the time in hours until truce stops
+     * @return the time in hours until truce stops
      */
     public long getTruceTime() {
         return truceTime * 3600000;
     }
 
     /**
-     * @return
-     * how many points your WarParty can get from kills
+     * @return how many points your WarParty can get from kills
      */
     public int getMaximumKillPoints() {
         return maximumKillPoints;
     }
 
     /**
-     * @return
-     * the maximum power that a player may store
+     * @return the maximum power that a player may store
      */
     public int getMaxPower() {
         return maxPower;
     }
 
     /**
-     * @return
-     * the minimum power that a player may store
+     * @return the minimum power that a player may store
      */
     public int getMinPower() {
         return minPower;
     }
 
     /**
-     * @return
-     * the power update interval
+     * @return the power update interval
      */
     public long getPowerUpdateInterval() {
         return powerUpdateInterval;
     }
 
     /**
-     * @return
-     * the power increase rate
+     * @return the power increase rate
      */
     public double getPowerIncreaseRate() {
         return powerIncreaseRate;
     }
 
     /**
-     * @return
-     * the power decrease rate
+     * @return the power decrease rate
      */
     public double getPowerDecreaseRate() {
         return powerDecreaseRate;
     }
 
     /**
-     * @return
-     * the power death loss rate
+     * @return the power death loss rate
      */
     public double getPowerDeathLoss() {
         return powerDeathLoss;
     }
 
     /**
-     * @return
-     * the time in milliseconds until a player gets kicked from his faction
+     * @return the time in milliseconds until a player gets kicked from his faction
      */
     public long getAutoKickTime() {
         return (long) autoKickDays * 86400000;
     }
 
     /**
-     * @return
-     * stability needed to declare independence
+     * @return stability needed to declare independence
      */
     public int getStabilityIndependence() {
         return stabilityIndependence;
     }
 
     /**
-     * @return
-     * stability calculation exemption for region size
+     * @return stability calculation exemption for region size
      */
     public int getStabilityRegionExempt() {
         return stabilityRegionSizeExempt;
     }
 
     /**
-     * @return
-     * stability calculation modifier for region size
+     * @return stability calculation modifier for region size
      */
     public double getStabilityMemberPowerModifier() {
         return stabilityMemberPowerModifier;
     }
 
     /**
-     * @return
-     * power need per region
+     * @return power need per region
      */
     public double getPowerPerRegion() {
         return powerPerRegion;
     }
 
     /**
-     * @return
-     * war exhaustion per cycle
+     * @return war exhaustion per cycle
      */
     public double getExhaustion() {
         return exhaustionPerCycle;
     }
 
     /**
-     * @return
-     * war exhaustion per cycle when loosing the war
+     * @return war exhaustion per cycle when loosing the war
      */
     public double getExhaustionLoosing() {
         return exhaustionWhenLoosing;
     }
 
     /**
-     * @return
-     * stability needed to declare independence for vassals
+     * @return stability needed to declare independence for vassals
      */
     public int getStabilityIndependenceVassal() {
         return stabilityIndependenceVassal;
     }
 
     /**
-     * @return
-     * if its only possible to demand already occupied regions
+     * @return if its only possible to demand already occupied regions
      */
     public boolean isOnlyDemandOccupied() {
         return onlyDemandOccupied;
     }
 
     /**
-     * @return
-     * if all allies should get their war goals
+     * @return if all allies should get their war goals
      */
     public boolean isForceWarGoalsForAllWinners() {
         return forceWarGoalsForAllWinners;
     }
 
     /**
-     * @return
-     * if all allies should get their war goals
+     * @return if all allies should get their war goals
      */
     public boolean isDefenderRaidBounty() {
         return defenderRaidBounty;
     }
 
     /**
-     * @return
-     * same but for winning as a defender
+     * @return same but for winning as a defender
      */
     public boolean isForceWarGoalsForAllDefenders() {
         return forceWarGoalsForAllDefenders;
     }
 
     /**
-     * @return
-     * if killing in war should give you power back
+     * @return if killing in war should give you power back
      */
     public boolean isPowerGainInWar() {
         return powerGainInWar;
     }
 
 
-
-
     /**
-     * @return
-     * true if hologram features are enabled;
+     * @return true if hologram features are enabled;
      * false if not or if HolographicDisplays is not installed
      */
     public boolean areHologramsEnabled() {
@@ -816,104 +776,91 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * the home hologram text lines
+     * @return the home hologram text lines
      */
     public List<String> getHomeHologramText() {
         return homeHologramText;
     }
 
     /**
-     * @return
-     * the nametag prefix
+     * @return the nametag prefix
      */
     public String getNametagPrefix() {
         return nametagPrefix;
     }
 
     /**
-     * @return
-     * the time in ticks the scoreboard stays
+     * @return the time in ticks the scoreboard stays
      */
     public int getScoreboardExpiration() {
         return (int) (scoreboardExpiration * SECOND);
     }
 
     /**
-     * @return
-     * how often the scoreboard will be updated
+     * @return how often the scoreboard will be updated
      */
     public int getScoreboardUpdateInterval() {
         return (int) (scoreboardUpdateInterval * SECOND);
     }
 
     /**
-     * @return
-     * the default scoreboard prefixes
+     * @return the default scoreboard prefixes
      */
     public boolean getDefaultScoreboardPrefixes() {
         return defaultScoreboardPrefixes;
     }
 
     /**
-     * @return
-     * if the scoreboard pops up when the player joins
+     * @return if the scoreboard pops up when the player joins
      */
     public boolean isScoreboardEnabledByDefault() {
         return scoreboardEnabledByDefault;
     }
 
     /**
-     * @return
-     * if the scoreboard pops up when the player joins
+     * @return if the scoreboard pops up when the player joins
      */
     public boolean isScoreboardFactionlessEnabled() {
         return scoreboardFactionlessEnabled;
     }
 
     /**
-     * @return
-     * the default scoreboard title
+     * @return the default scoreboard title
      */
     public String getDefaultScoreboardTitle() {
         return defaultScoreboardTitle;
     }
 
     /**
-     * @return
-     * the information the scoreboard shows
+     * @return the information the scoreboard shows
      */
     public List<String> getScoreboardDefault() {
         return scoreboardDefault;
     }
 
     /**
-     * @return
-     * the information the scoreboard shows
+     * @return the information the scoreboard shows
      */
     public List<String> getScoreboardFactionInfo() {
         return scoreboardFactionInfo;
     }
 
     /**
-     * @return
-     * the information the scoreboard shows
+     * @return the information the scoreboard shows
      */
     public List<String> getScoreboardWarInfo() {
         return scoreboardWarInfo;
     }
 
     /**
-     * @return
-     * the information the scoreboard shows
+     * @return the information the scoreboard shows
      */
     public List<String> getScoreboardFactionless() {
         return scoreboardFactionless;
     }
 
     /**
-     * @return
-     * if Dynmap layers shall be enabled
+     * @return if Dynmap layers shall be enabled
      */
     public boolean isDynmapEnabled() {
         Plugin dynmap = Bukkit.getServer().getPluginManager().getPlugin("dynmap");
@@ -925,72 +872,63 @@ public class FConfig extends DREConfig {
     }
 
     /**
-     * @return
-     * the Dynmap faction description
+     * @return the Dynmap faction description
      */
     public String getDynmapDescriptionFaction() {
         return dynmapDescriptionFaction;
     }
 
     /**
-     * @return
-     * the Dynmap region description
+     * @return the Dynmap region description
      */
     public String getDynmapDescriptionRegion() {
         return dynmapDescriptionRegion;
     }
 
     /**
-     * @return
-     * the Dynmap update interval for factions
+     * @return the Dynmap update interval for factions
      */
     public long getDynmapUpdateIntervalFaction() {
         return (long) (dynmapUpdateIntervalFaction * SECOND);
     }
 
     /**
-     * @return
-     * the Dynmap update interval for regions
+     * @return the Dynmap update interval for regions
      */
     public long getDynmapUpdateIntervalRegion() {
         return (long) (dynmapUpdateIntervalRegion * SECOND);
     }
 
     /**
-     * @return
-     * the priority of the factions layer
+     * @return the priority of the factions layer
      */
     public int getDynmapLayerPriorityFaction() {
         return dynmapLayerPriorityFaction;
     }
 
     /**
-     * @return
-     * the priority of the regions layer
+     * @return the priority of the regions layer
      */
     public int getDynmapLayerPriorityRegion() {
         return dynmapLayerPriorityRegion;
     }
 
     /**
-     * @return
-     * the minimum zoom of FXL Dynmaps layers
+     * @return the minimum zoom of FXL Dynmaps layers
      */
     public int getDynmapLayerMinimumZoom() {
         return dynmapLayerMinimumZoom;
     }
 
     /**
-     * @return
-     * the worlds that are hidden at the dynamic map
+     * @return the worlds that are hidden at the dynamic map
      */
     public List<String> getDynmapHiddenWorlds() {
         return dynmapHiddenWorlds;
     }
 
     /**
-     * @return
-     * a map of all region type styles
+     * @return a map of all region type styles
      */
     public Map<RegionType, DynmapStyle> getDynmapRegionTypeStyles() {
         return dynmapRegionTypeStyles;
@@ -1148,10 +1086,20 @@ public class FConfig extends DREConfig {
 
         if (!config.contains("resourceNeeds")) {
             config.createSection("resourceNeeds");
-            for (Entry<PopulationLevel, Map<ResourceSubcategory, Integer>> entry : populationLevelResources.entrySet()) {
+            for (Entry<PopulationLevel, Map<ResourceSubcategory, Integer>> entry : populationLevelResourcesRequired.entrySet()) {
                 config.createSection("resourceNeeds." + entry.getKey());
                 for (Entry<ResourceSubcategory, Integer> subEntry : entry.getValue().entrySet()) {
                     config.set("resourceNeeds." + entry.getKey() + "." + subEntry.getKey(), subEntry.getValue());
+                }
+            }
+        }
+
+        if (!config.contains("resourceConsumptionPerDay")) {
+            config.createSection("resourceConsumptionPerDay");
+            for (Entry<PopulationLevel, Map<ResourceSubcategory, Integer>> entry : populationLevelResourcesRequired.entrySet()) {
+                config.createSection("resourceConsumptionPerDay." + entry.getKey());
+                for (Entry<ResourceSubcategory, Integer> subEntry : entry.getValue().entrySet()) {
+                    config.set("resourceConsumptionPerDay." + entry.getKey() + "." + subEntry.getKey(), subEntry.getValue());
                 }
             }
         }
@@ -1164,211 +1112,212 @@ public class FConfig extends DREConfig {
                     config.set("buildingNeeds." + entry.getKey() + "." + subEntry.getKey(), subEntry.getValue());
                 }
             }
-
-            if (!config.contains("chatFormat.ally")) {
-                config.set("chatFormat.ally", chatFormatAlly);
-            }
-
-            if (!config.contains("chatFormat.coalition")) {
-                config.set("chatFormat.coalition", chatFormatCoalition);
-            }
-
-            if (!config.contains("chatFormat.faction")) {
-                config.set("chatFormat.faction", chatFormatFaction);
-            }
-
-            if (!config.contains("chatFormat.local")) {
-                config.set("chatFormat.local", chatFormatLocal);
-            }
-
-            if (!config.contains("chatFormat.public")) {
-                config.set("chatFormat.public", chatFormatPublic);
-            }
-
-            if (!config.contains("chatFormat.handlePublic")) {
-                config.set("chatFormat.handlePublic", publicChatHandled);
-            }
-
-            if (!config.contains("lwcEnabled")) {
-                config.set("lwcEnabled", lwcEnabled);
-            }
-
-            if (!config.contains("wildernessProtected")) {
-                config.set("wildernessProtected", wildernessProtected);
-            }
-
-            if (!config.contains("territoryProtectionEnabled")) {
-                config.set("territoryProtectionEnabled", territoryProtectionEnabled);
-            }
-
-            if (!config.contains("territoryShield")) {
-                config.set("territoryShield", territoryShield);
-            }
-
-            if (!config.contains("capitalProtectionEnabled")) {
-                config.set("capitalProtectionEnabled", capitalProtectionEnabled);
-            }
-
-            if (!config.contains("war.warExplosionTNTRestorationTime")) {
-                config.set("war.warExplosionTNTRestorationTime", warExplosionTNTRestorationTime);
-            }
-
-            if (!config.contains("war.warExplosionSiegeRestorationTime")) {
-                config.set("war.warExplosionSiegeRestorationTime", warExplosionSiegeRestorationTime);
-            }
-
-            if (!config.contains("war.casusBelli.liberation")) {
-                config.set("war.casusBelli.liberation", cbLiberationExp);
-            }
-
-            if (!config.contains("war.powerGain")) {
-                config.set("war.powerGain", powerGainInWar);
-            }
-
-            if (!config.contains("stabilityRegionSizeModifier")) {
-                config.set("stabilityRegionSizeModifier", getStabilityRegionExempt());
-            }
-
-            if (!config.contains("stabilityMemberPowerModifier")) {
-                config.set("stabilityMemberPowerModifier", stabilityMemberPowerModifier);
-            }
-
-            if (!config.contains("powerNeededPerRegion")) {
-                config.set("powerNeededPerRegion", powerPerRegion);
-            }
-
-            if (!config.contains("maxPower")) {
-                config.set("maxPower", maxPower);
-            }
-
-            if (!config.contains("minPower")) {
-                config.set("minPower", minPower);
-            }
-
-            if (!config.contains("powerUpdateInterval")) {
-                config.set("powerUpdateInterval", powerUpdateInterval);
-            }
-
-            if (!config.contains("powerIncreaseRate")) {
-                config.set("powerIncreaseRate", powerIncreaseRate);
-            }
-
-            if (!config.contains("powerDecreaseRate")) {
-                config.set("powerDecreaseRate", powerDecreaseRate);
-            }
-
-            if (!config.contains("powerDeathLoss")) {
-                config.set("powerDeathLoss", powerDeathLoss);
-            }
-
-            if (!config.contains("autoKickDays")) {
-                config.set("autoKickDays", autoKickDays);
-            }
-
-            if (!config.contains("hologramsEnabled")) {
-                config.set("hologramsEnabled", hologramsEnabled);
-            }
-
-            if (!config.contains("homeHologramText")) {
-                config.set("homeHologramText", homeHologramText);
-            }
-
-            if (!config.contains("nametag.prefix")) {
-                config.set("nametag.prefix", nametagPrefix);
-            }
-
-            if (!config.contains("scoreboard.expiration")) {
-                config.set("scoreboard.expiration", scoreboardExpiration);
-            }
-
-            if (!config.contains("scoreboard.updateInterval")) {
-                config.set("scoreboard.updateInterval", scoreboardUpdateInterval);
-            }
-
-            if (!config.contains("scoreboard.defaultPrefixes")) {
-                config.set("scoreboard.defaultPrefixes", defaultScoreboardPrefixes);
-            }
-
-            if (!config.contains("scoreboard.enabledByDefault")) {
-                config.set("scoreboard.enabledByDefault", scoreboardEnabledByDefault);
-            }
-
-            if (!config.contains("scoreboard.factionlessEnabled")) {
-                config.set("scoreboard.factionlessEnabled", scoreboardFactionlessEnabled);
-            }
-
-            if (!config.contains("scoreboard.defaultTitle")) {
-                config.set("scoreboard.defaultTitle", defaultScoreboardTitle);
-            }
-
-            if (!config.contains("scoreboard.default")) {
-                config.set("scoreboard.default", scoreboardDefault);
-            }
-
-            if (!config.contains("scoreboard.factionInfo")) {
-                config.set("scoreboard.factionInfo", scoreboardFactionInfo);
-            }
-
-            if (!config.contains("scoreboard.warInfo")) {
-                config.set("scoreboard.warInfo", scoreboardWarInfo);
-            }
-
-            if (!config.contains("scoreboard.factionless")) {
-                config.set("scoreboard.factionless", scoreboardFactionless);
-            }
-
-            if (!config.contains("dynmap.enabled")) {
-                config.set("dynmap.enabled", dynmapEnabled);
-            }
-
-            if (!config.contains("dynmap.layer.priority.faction")) {
-                config.set("dynmap.layer.priority.faction", dynmapLayerPriorityFaction);
-            }
-
-            if (!config.contains("dynmap.layer.priority.region")) {
-                config.set("dynmap.layer.priority.region", dynmapLayerPriorityRegion);
-            }
-
-            if (!config.contains("dynmap.layer.minimumZoom")) {
-                config.set("dynmap.layer.minimumZoom", dynmapLayerMinimumZoom);
-            }
-
-            if (!config.contains("dynmap.description.faction")) {
-                config.set("dynmap.description.faction", dynmapDescriptionFaction);
-            }
-
-            if (!config.contains("dynmap.description.region")) {
-                config.set("dynmap.description.region", dynmapDescriptionRegion);
-            }
-
-            if (!config.contains("dynmap.updateInterval.faction")) {
-                config.set("dynmap.updateInterval.faction", dynmapUpdateIntervalFaction);
-            }
-
-            if (!config.contains("dynmap.updateInterval.region")) {
-                config.set("dynmap.updateInterval.region", dynmapUpdateIntervalRegion);
-            }
-
-            if (!config.contains("dynmap.hiddenWorlds")) {
-                config.set("dynmap.hiddenWorlds", dynmapHiddenWorlds);
-            }
-
-            if (!config.contains("dynmap.regionTypeStyles")) {
-                for (Entry<RegionType, DynmapStyle> entry : dynmapRegionTypeStyles.entrySet()) {
-                    config.set("dynmap.regionTypeStyles." + entry.getKey().toString(), entry.getValue().fillColor + "/" + entry.getValue().lineColor);
-                }
-            }
-
-            for (Resource resource : Resource.values()) {
-                config.set("resourcePrices." + resource.toString(), resource.getValue());
-                config.set("requiredAmountModifiers." + resource.toString(), resource.getRequiredAmountModifier());
-            }
-
-            config.createSection("regionIncome");
-
-            save();
         }
+
+        if (!config.contains("chatFormat.ally")) {
+            config.set("chatFormat.ally", chatFormatAlly);
+        }
+
+        if (!config.contains("chatFormat.coalition")) {
+            config.set("chatFormat.coalition", chatFormatCoalition);
+        }
+
+        if (!config.contains("chatFormat.faction")) {
+            config.set("chatFormat.faction", chatFormatFaction);
+        }
+
+        if (!config.contains("chatFormat.local")) {
+            config.set("chatFormat.local", chatFormatLocal);
+        }
+
+        if (!config.contains("chatFormat.public")) {
+            config.set("chatFormat.public", chatFormatPublic);
+        }
+
+        if (!config.contains("chatFormat.handlePublic")) {
+            config.set("chatFormat.handlePublic", publicChatHandled);
+        }
+
+        if (!config.contains("lwcEnabled")) {
+            config.set("lwcEnabled", lwcEnabled);
+        }
+
+        if (!config.contains("wildernessProtected")) {
+            config.set("wildernessProtected", wildernessProtected);
+        }
+
+        if (!config.contains("territoryProtectionEnabled")) {
+            config.set("territoryProtectionEnabled", territoryProtectionEnabled);
+        }
+
+        if (!config.contains("territoryShield")) {
+            config.set("territoryShield", territoryShield);
+        }
+
+        if (!config.contains("capitalProtectionEnabled")) {
+            config.set("capitalProtectionEnabled", capitalProtectionEnabled);
+        }
+
+        if (!config.contains("war.warExplosionTNTRestorationTime")) {
+            config.set("war.warExplosionTNTRestorationTime", warExplosionTNTRestorationTime);
+        }
+
+        if (!config.contains("war.warExplosionSiegeRestorationTime")) {
+            config.set("war.warExplosionSiegeRestorationTime", warExplosionSiegeRestorationTime);
+        }
+
+        if (!config.contains("war.casusBelli.liberation")) {
+            config.set("war.casusBelli.liberation", cbLiberationExp);
+        }
+
+        if (!config.contains("war.powerGain")) {
+            config.set("war.powerGain", powerGainInWar);
+        }
+
+        if (!config.contains("stabilityRegionSizeModifier")) {
+            config.set("stabilityRegionSizeModifier", getStabilityRegionExempt());
+        }
+
+        if (!config.contains("stabilityMemberPowerModifier")) {
+            config.set("stabilityMemberPowerModifier", stabilityMemberPowerModifier);
+        }
+
+        if (!config.contains("powerNeededPerRegion")) {
+            config.set("powerNeededPerRegion", powerPerRegion);
+        }
+
+        if (!config.contains("maxPower")) {
+            config.set("maxPower", maxPower);
+        }
+
+        if (!config.contains("minPower")) {
+            config.set("minPower", minPower);
+        }
+
+        if (!config.contains("powerUpdateInterval")) {
+            config.set("powerUpdateInterval", powerUpdateInterval);
+        }
+
+        if (!config.contains("powerIncreaseRate")) {
+            config.set("powerIncreaseRate", powerIncreaseRate);
+        }
+
+        if (!config.contains("powerDecreaseRate")) {
+            config.set("powerDecreaseRate", powerDecreaseRate);
+        }
+
+        if (!config.contains("powerDeathLoss")) {
+            config.set("powerDeathLoss", powerDeathLoss);
+        }
+
+        if (!config.contains("autoKickDays")) {
+            config.set("autoKickDays", autoKickDays);
+        }
+
+        if (!config.contains("hologramsEnabled")) {
+            config.set("hologramsEnabled", hologramsEnabled);
+        }
+
+        if (!config.contains("homeHologramText")) {
+            config.set("homeHologramText", homeHologramText);
+        }
+
+        if (!config.contains("nametag.prefix")) {
+            config.set("nametag.prefix", nametagPrefix);
+        }
+
+        if (!config.contains("scoreboard.expiration")) {
+            config.set("scoreboard.expiration", scoreboardExpiration);
+        }
+
+        if (!config.contains("scoreboard.updateInterval")) {
+            config.set("scoreboard.updateInterval", scoreboardUpdateInterval);
+        }
+
+        if (!config.contains("scoreboard.defaultPrefixes")) {
+            config.set("scoreboard.defaultPrefixes", defaultScoreboardPrefixes);
+        }
+
+        if (!config.contains("scoreboard.enabledByDefault")) {
+            config.set("scoreboard.enabledByDefault", scoreboardEnabledByDefault);
+        }
+
+        if (!config.contains("scoreboard.factionlessEnabled")) {
+            config.set("scoreboard.factionlessEnabled", scoreboardFactionlessEnabled);
+        }
+
+        if (!config.contains("scoreboard.defaultTitle")) {
+            config.set("scoreboard.defaultTitle", defaultScoreboardTitle);
+        }
+
+        if (!config.contains("scoreboard.default")) {
+            config.set("scoreboard.default", scoreboardDefault);
+        }
+
+        if (!config.contains("scoreboard.factionInfo")) {
+            config.set("scoreboard.factionInfo", scoreboardFactionInfo);
+        }
+
+        if (!config.contains("scoreboard.warInfo")) {
+            config.set("scoreboard.warInfo", scoreboardWarInfo);
+        }
+
+        if (!config.contains("scoreboard.factionless")) {
+            config.set("scoreboard.factionless", scoreboardFactionless);
+        }
+
+        if (!config.contains("dynmap.enabled")) {
+            config.set("dynmap.enabled", dynmapEnabled);
+        }
+
+        if (!config.contains("dynmap.layer.priority.faction")) {
+            config.set("dynmap.layer.priority.faction", dynmapLayerPriorityFaction);
+        }
+
+        if (!config.contains("dynmap.layer.priority.region")) {
+            config.set("dynmap.layer.priority.region", dynmapLayerPriorityRegion);
+        }
+
+        if (!config.contains("dynmap.layer.minimumZoom")) {
+            config.set("dynmap.layer.minimumZoom", dynmapLayerMinimumZoom);
+        }
+
+        if (!config.contains("dynmap.description.faction")) {
+            config.set("dynmap.description.faction", dynmapDescriptionFaction);
+        }
+
+        if (!config.contains("dynmap.description.region")) {
+            config.set("dynmap.description.region", dynmapDescriptionRegion);
+        }
+
+        if (!config.contains("dynmap.updateInterval.faction")) {
+            config.set("dynmap.updateInterval.faction", dynmapUpdateIntervalFaction);
+        }
+
+        if (!config.contains("dynmap.updateInterval.region")) {
+            config.set("dynmap.updateInterval.region", dynmapUpdateIntervalRegion);
+        }
+
+        if (!config.contains("dynmap.hiddenWorlds")) {
+            config.set("dynmap.hiddenWorlds", dynmapHiddenWorlds);
+        }
+
+        if (!config.contains("dynmap.regionTypeStyles")) {
+            for (Entry<RegionType, DynmapStyle> entry : dynmapRegionTypeStyles.entrySet()) {
+                config.set("dynmap.regionTypeStyles." + entry.getKey().toString(), entry.getValue().fillColor + "/" + entry.getValue().lineColor);
+            }
+        }
+
+        for (Resource resource : Resource.values()) {
+            config.set("resourcePrices." + resource.toString(), resource.getValue());
+            config.set("requiredAmountModifiers." + resource.toString(), resource.getRequiredAmountModifier());
+        }
+
+        config.createSection("regionIncome");
+
+        save();
     }
+
 
     @Override
     public void load() {
@@ -1469,7 +1418,18 @@ public class FConfig extends DREConfig {
                 for(Entry<String, Object> subEntry : ConfigUtil.getMap(config, "resourceNeeds." + level.toString()).entrySet()) {
                     resources.put(ResourceSubcategory.valueOf(subEntry.getKey()), (int) subEntry.getValue());
                 }
-                populationLevelResources.put(level, resources);
+                populationLevelResourcesRequired.put(level, resources);
+            }
+        }
+
+        if (config.contains("resourceConsumptionPerDay")) {
+            for (Entry<String, Object> entry : ConfigUtil.getMap(config, "resourceConsumptionPerDay").entrySet()) {
+                PopulationLevel level = PopulationLevel.valueOf(entry.getKey());
+                Map<ResourceSubcategory, Integer> resources = new HashMap<>();
+                for(Entry<String, Object> subEntry : ConfigUtil.getMap(config, "resourceConsumptionPerDay." + level.toString()).entrySet()) {
+                    resources.put(ResourceSubcategory.valueOf(subEntry.getKey()), (int) subEntry.getValue());
+                }
+                resourceConsumption.put(level, resources);
             }
         }
 

@@ -104,7 +104,7 @@ public class RegionCommand extends FCommand {
             component.setHoverEvent(tagHover);
         }
         MessageUtil.sendCenteredMessage(sender, id);
-        MessageUtil.sendCenteredMessage(sender, "&6____________________________________________________");
+        MessageUtil.sendCenteredMessage(sender, "&6____________________________________________________" + region.getId());
         MessageUtil.sendMessage(sender, FMessage.CMD_REGION_OWNER.getMessage() + c + (faction != null ? faction.getLongName() : "None"));
         if (region.isNeutral()) {
             Faction senderFaction = sender instanceof Player ? factions.getByMember((Player) sender) : null;
@@ -147,7 +147,20 @@ public class RegionCommand extends FCommand {
         BaseComponent[] income = (BaseComponent[]) ArrayUtils.addAll(income1, income2);
         MessageUtil.sendMessage(sender, income);
 
-        MessageUtil.sendMessage(sender, FMessage.CMD_REGION_POPULATION.getMessage() + c + region.getTotalPopulation() + "/" + region.getType().getMaxPopulation(region.getLevel()));
+        BaseComponent[] pop = TextComponent.fromLegacyText(FMessage.CMD_REGION_POPULATION.getMessage() + c + region.getTotalPopulation() + "/" + region.getType().getMaxPopulation(region.getLevel()));;
+        BaseComponent[] popHover = new BaseComponent[]{};
+        boolean firstPop = true;
+        for (PopulationLevel level : PopulationLevel.values()) {
+            String legacy = c + level.toString().toUpperCase() + ": " + region.getPopulation(level);
+            popHover = (BaseComponent[]) ArrayUtils.addAll(popHover, TextComponent.fromLegacyText((firstPop ? new String() : "\n") + legacy));
+            firstPop = false;
+        }
+        HoverEvent popHoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, popHover);
+        for (BaseComponent comp : pop) {
+            comp.setHoverEvent(popHoverEvent);
+        }
+        MessageUtil.sendMessage(sender, pop);
+
 
         if (sender instanceof Player) {
             ArrayList<BaseComponent> cores = new ArrayList<>(Arrays.asList(TextComponent.fromLegacyText(FMessage.CMD_REGION_CORES.getMessage())));

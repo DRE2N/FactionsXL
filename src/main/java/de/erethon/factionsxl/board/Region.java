@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.board;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
@@ -26,9 +27,12 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.building.effects.StatusEffect;
 import de.erethon.factionsxl.building.effects.StatusEffectTools;
+import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.population.HappinessLevel;
 import de.erethon.factionsxl.population.PopulationLevel;
+import de.erethon.factionsxl.population.PopulationMenu;
+import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.Bukkit;
@@ -62,10 +66,16 @@ public class Region {
     private String name;
     private RegionType type;
     private int level;
+
     private Map<PopulationLevel, Integer> population = new HashMap<>();
     private Map<PopulationLevel, HappinessLevel> populationHappiness = new HashMap<>();
     private Set<StatusEffect> effects = new HashSet<>();
     private Set<BuildSite> buildings = new HashSet<>();
+    Map<Resource, Integer> consumableResources = new HashMap<>();
+    Map<Resource, Integer> saturatedResources = new HashMap<>();
+    Map<ResourceSubcategory, Integer> saturatedSubcategories = new HashMap<>();
+    PopulationMenu populationMenu;
+
     private int influence = 100;
     private Faction owner;
     private Faction occupant;
@@ -182,6 +192,9 @@ public class Region {
     public Map<Resource, Integer> getResources() {
         Map<Resource, Integer> resourceMap = new HashMap<>(type.getResources(level));
         Map<Resource, Integer> buff = StatusEffectTools.getTotalResourceProductionBuff(this);
+        if (buff == null) {
+            return resourceMap;
+        }
         resourceMap.replaceAll((k, v) -> v + buff.get(k));
         return resourceMap;
     }
@@ -218,6 +231,9 @@ public class Region {
      * @return the population for a specific pop level
      */
     public int getPopulation(PopulationLevel level) {
+        if (population.get(level) == null) {
+            return 0;
+        }
         return population.get(level);
     }
 
@@ -540,6 +556,83 @@ public class Region {
         return effects;
     }
 
+    public Map<Resource, Integer> getConsumableResources() {
+        return consumableResources;
+    }
+
+    public Map<Resource, Integer> getSaturatedResources() {
+        return saturatedResources;
+    }
+
+    public Map<ResourceSubcategory, Integer> getSaturatedSubcategories() {
+        return saturatedSubcategories;
+    }
+
+    /**
+     * @param resource
+     * the resource to check
+     * @return
+     * how much of a resource is needed to saturate a resource at 100%
+     */
+    public int getDemand(Resource resource, PopulationLevel level) {
+        return (int) (SaturationLevel.getRequiredResourceUnits(getPopulation(level)) * resource.getRequiredAmountModifier());
+    }
+
+    /**
+     * Ensures that the Map of saturated subcategories matchs the Map of saturated resources
+     */
+    public void updateSaturatedSubcategories() {
+        for (ResourceSubcategory category : ResourceSubcategory.values()) {
+            int percentage = 0;
+            for (Resource resource : category.getResources()) {
+                percentage += saturatedResources.get(resource);
+            }
+            percentage = percentage / category.getResources().length;
+            saturatedSubcategories.put(category, percentage);
+        }
+        saturatedSubcategories.clear();
+    }
+
+    /**
+     * @return
+     * the population menu
+     */
+    public PopulationMenu getPopulationMenu() {
+        return populationMenu;
+    }
+
+
+
+    /**
+     * @param resource
+     * @param basic
+     * if the resource subcategory is a basic need
+     * @return if the resource is saturated
+     */
+    public SaturationLevel isResourceSaturated(Resource resource, boolean basic) {
+        int value = saturatedResources.get(resource) != null ? saturatedResources.get(resource) : 0;
+        return SaturationLevel.getByPercentage(value, basic);
+    }
+
+    /**
+     * @param resource
+     * @return if the resource is saturated
+     */
+    public SaturationLevel isResourceSaturated(Resource resource) {
+        return isResourceSaturated(resource, false);
+    }
+
+
+    /**
+     * @param subcategory
+     * @return if the resource is saturated
+     */
+    public SaturationLevel isSubcategorySaturated(ResourceSubcategory subcategory) {
+        int value = saturatedSubcategories.get(subcategory) != null ? saturatedSubcategories.get(subcategory) : 0;
+        return SaturationLevel.getByPercentage(value, subcategory.isBasic());
+    }
+
+
     /* Serialization */
     public void load() {
         ConfigurationSection config = this.config != null ? this.config : load;
@@ -547,10 +640,13 @@ public class Region {
         String typeString = config.getString("type");
         type = EnumUtil.isValidEnum(RegionType.class, typeString) ? RegionType.valueOf(typeString) : RegionType.BARREN;
         level = config.getInt("level");
-        for (Entry<String, Object> entry : ConfigUtil.getMap(config, "populationLevels").entrySet()) {
-            PopulationLevel level = PopulationLevel.valueOf(PopulationLevel.class, entry.getKey());
-            int value = (int) entry.getValue();
-            population.put(level, value);
+        if (config.contains("populationLevels")) {
+            for (Entry<String, Object> entry : ConfigUtil.getMap(config, "populationLevels").entrySet()) {
+                PopulationLevel level = PopulationLevel.valueOf(PopulationLevel.class, entry.getKey());
+                int value = 0;
+                value = (int) entry.getValue();
+                population.put(level, value);
+            }
         }
         world = Bukkit.getWorld(config.getString("world") != null ? config.getString("world") : "Saragandes");
         if (config.contains("owner")) {
@@ -582,6 +678,27 @@ public class Region {
             Date date = new Date((long) entry.getValue());
             claims.put(faction, date);
         }
+        for (Entry<String, Object> entry : ConfigUtil.getMap(config, "consumableResources").entrySet()) {
+            if (EnumUtil.isValidEnum(Resource.class, entry.getKey())) {
+                consumableResources.put(Resource.valueOf(entry.getKey()), (int) entry.getValue());
+            }
+        }
+        for (Resource resource : Resource.values()) {
+            if (!consumableResources.containsKey(resource)) {
+                consumableResources.put(resource, 0);
+            }
+        }
+        for (Entry<String, Object> entry : ConfigUtil.getMap(config, "saturatedResources").entrySet()) {
+            if (EnumUtil.isValidEnum(Resource.class, entry.getKey())) {
+                saturatedResources.put(Resource.valueOf(entry.getKey()), (int) entry.getValue());
+            }
+        }
+        for (Resource resource : Resource.values()) {
+            if (!saturatedResources.containsKey(resource)) {
+                saturatedResources.put(resource, 0);
+            }
+        }
+
         mapFillColor = config.getString("mapFillColor");
         mapLineColor = config.getString("mapLineColor");
         unclaimable = config.getBoolean("unclaimable", false);
@@ -604,6 +721,9 @@ public class Region {
 
         if (this.config == null) {
             this.config = YamlConfiguration.loadConfiguration(file);
+        }
+        if (owner != null) {
+           // populationMenu = new PopulationMenu(owner, this);
         }
         FactionsXL.debug("Loaded " + this + " with " + chunks.size() + " chunks.");
     }
@@ -668,6 +788,23 @@ public class Region {
         for (BuildSite e : buildings) {
             config.set("buildings." + i, e.serialize());
             i++;
+        }
+
+        for (Entry<Resource, Integer> entry : consumableResources.entrySet()) {
+            config.set("consumableResources." + entry.getKey(), entry.getValue());
+        }
+        for (Resource resource : Resource.values()) {
+            if (!config.contains("consumableResources." + resource)) {
+                config.set("consumableResources." + resource, 0);
+            }
+        }
+        for (Entry<Resource, Integer> entry : saturatedResources.entrySet()) {
+            config.set("saturatedResources." + entry.getKey(), entry.getValue());
+        }
+        for (Resource resource : Resource.values()) {
+            if (!config.contains("saturatedResources." + resource)) {
+                config.set("saturatedResources." + resource, 0);
+            }
         }
 
         try {

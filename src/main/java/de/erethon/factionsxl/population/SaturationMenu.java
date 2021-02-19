@@ -17,6 +17,7 @@
 package de.erethon.factionsxl.population;
 
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
@@ -63,10 +64,12 @@ public class SaturationMenu implements Listener, InventoryHolder {
         DENY_BUTTON_ZERO.setItemMeta(zMeta);
     }
 
+    private Region region;
     private Faction faction;
     private Inventory gui;
 
-    public SaturationMenu(Faction faction) {
+    public SaturationMenu(Faction faction, Region region) {
+        this.region = region;
         this.faction = faction;
         setupGUI();
         update(Resource.WATER);
@@ -74,7 +77,7 @@ public class SaturationMenu implements Listener, InventoryHolder {
     }
 
     private void setupGUI() {
-        gui = Bukkit.createInventory(this, 27, FMessage.POPULATION_ADJUST_CONSUME.getMessage(faction.getName()));
+        gui = Bukkit.createInventory(this, 27, FMessage.POPULATION_ADJUST_CONSUME.getMessage(region.getName()));
         ItemStack banner = faction.getBannerStack();
         ItemMeta meta = banner.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + faction.getName());
@@ -97,8 +100,8 @@ public class SaturationMenu implements Listener, InventoryHolder {
     }
 
     public void update(Resource resource) {
-        gui.setItem(4, DemandMenu.formButton(faction, resource));
-        if (faction.getConsumableResources().get(resource) > 0) {
+        gui.setItem(4, DemandMenu.formButton(faction, region, resource));
+        if (region.getConsumableResources().get(resource) > 0) {
             gui.setItem(22, DENY_BUTTON);
         } else {
             gui.setItem(22, DENY_BUTTON_ZERO);
@@ -120,14 +123,14 @@ public class SaturationMenu implements Listener, InventoryHolder {
             return;
         }
         Resource resource = getResource(gui);
-        int current = faction.getConsumableResources().get(resource);
+        int current = region.getConsumableResources().get(resource);
         if (button.equals(GUIButton.BACK)) {
-            faction.getPopulationMenu().openDemands(player);
+            new PopulationMenu(faction, region).openDemands(player);
             return;
         } else if (button.equals(DENY_BUTTON)) {
-            faction.getConsumableResources().put(resource, current - 1);
+            region.getConsumableResources().put(resource, current - 1);
         } else if (button.equals(GRANT_BUTTON)) {
-            faction.getConsumableResources().put(resource, current + 1);
+            region.getConsumableResources().put(resource, current + 1);
         }
         update(resource);
     }

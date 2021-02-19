@@ -17,6 +17,7 @@
 package de.erethon.factionsxl.population;
 
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
@@ -46,13 +47,15 @@ public class DemandMenu implements Listener, InventoryHolder {
     FactionsXL plugin = FactionsXL.getInstance();
 
     private Faction faction;
+    private Region region;
     private Inventory gui;
     private SaturationMenu saturationMenu;
 
-    public DemandMenu(Faction faction) {
+    public DemandMenu(Faction faction, Region region) {
         this.faction = faction;
+        this.region = region;
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        saturationMenu = new SaturationMenu(faction);
+        saturationMenu = new SaturationMenu(faction, region);
     }
 
     public void update(ResourceSubcategory category) {
@@ -60,15 +63,15 @@ public class DemandMenu implements Listener, InventoryHolder {
         StandardizedGUI.addHeader(gui);
 
         for (Resource resource : category.getResources()) {
-            gui.addItem(formButton(faction, resource));
+            gui.addItem(formButton(faction, region, resource));
         }
     }
 
     // TODO: Needs updating for PopulationLevels
-    public static ItemStack formButton(Faction faction, Resource resource) {
+    public static ItemStack formButton(Faction faction, Region region, Resource resource) {
         ItemStack icon = resource.getIcon();
         ItemMeta meta = icon.getItemMeta();
-        SaturationLevel level = faction.isResourceSaturated(resource);
+        SaturationLevel level = region.isResourceSaturated(resource);
         if (level == SaturationLevel.SURPLUS) {
             meta.addEnchant(Enchantment.LUCK, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
@@ -76,12 +79,12 @@ public class DemandMenu implements Listener, InventoryHolder {
         meta.setDisplayName(level.getColor() + resource.getName());
         ArrayList<String> lore = new ArrayList<>();
         //lore.add(ProgressBar.getBar((double) faction.getSaturatedResources().get(resource)));
-        lore.add(level.getColor().toString() + faction.getSaturatedResources().get(resource) + "%");
+        lore.add(level.getColor().toString() + region.getSaturatedResources().get(resource) + "%");
         String population = String.valueOf(faction.getPopulation());
-        String units = String.valueOf(faction.getDemand(resource, PopulationLevel.PEASANT));
+        String units = String.valueOf(region.getDemand(resource, PopulationLevel.PEASANT));
         lore.add(FMessage.POPULATION_REQUIRED.getMessage(population, units, resource.getName()));
         lore.add(FMessage.POPULATION_GRANTING1.getMessage());
-        lore.add(FMessage.POPULATION_GRANTING2.getMessage(String.valueOf(faction.getConsumableResources().get(resource)), resource.getName()));
+        lore.add(FMessage.POPULATION_GRANTING2.getMessage(String.valueOf(region.getConsumableResources().get(resource)), resource.getName()));
         meta.setLore(lore);
         icon.setItemMeta(meta);
         return icon;
@@ -103,7 +106,7 @@ public class DemandMenu implements Listener, InventoryHolder {
         PageGUI.playSound(event);
         ItemStack button = event.getCurrentItem();
         if (GUIButton.BACK.equals(button)) {
-            faction.getPopulationMenu().openDemands(player);
+            new PopulationMenu(faction, region).openDemands(player);
             return;
         }
         Resource resource = Resource.getByIcon(button);

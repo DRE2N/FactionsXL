@@ -28,93 +28,162 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Malfrador
+ */
 public class StatusEffectTools {
 
     public static double getTotalMemberModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getMemberModifier();
     }
 
     public static double getTotalRegionModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getRegionModifier();
     }
 
     public static double getTotalManpowerModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getManpowerModifier();
     }
 
     public static double getTotalStabilityModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getStabilityModifier();
     }
 
     public static double getTotalExhaustionModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getExhaustionModifier();
     }
 
     public static double getTotalDamageModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getAttackDamageModifier();
     }
 
     public static double getTotalDamageModifier(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getAttackDamageModifier();
     }
 
     public static double getTotalShieldModifier(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getShieldModifier();
     }
 
     public static double getTotalShieldModifier(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 1.00;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getShieldModifier();
     }
 
     public static int getTotalPrestige(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getPrestige();
     }
 
     public static int getTotalAllianceLimitBuff(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getAllianceLimitBuff();
     }
 
     public static int getTotalShipLimitBuff(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getTransportShipLimit();
     }
 
     public static int getTotalShipLimitBuff(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getTransportShipLimit();
     }
 
     public static int getTotalCoachLimitBuff(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getTransportCoachLimit();
     }
 
     public static int getTotalCoachLimitBuff(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getTransportCoachLimit();
     }
 
     public static int getTotalAirshipLimitBuff(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) faction.getEffects().toArray()).getTransportAirshipLimit();
     }
 
     public static int getTotalAirshipLimitBuff(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 0;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getTransportAirshipLimit();
     }
 
     public static Map<Resource, Double> getTotalResourceConsumption(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return null;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getConsumptionModifier();
     }
 
     public static Map<Resource, Double> getTotalResourceProduction(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return null;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getProductionModifier();
     }
 
     public static Map<Resource, Integer> getTotalResourceProductionBuff(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return null;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getProductionBuff();
     }
 
     public static Map<PopulationLevel, Integer> getTotalHappinessBuff(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return null;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getHappinessBuff();
     }
 
     public static Map<Effect, Integer> getTotalMinecraftEffects(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return null;
+        }
         return combine((StatusEffect[]) region.getEffects().toArray()).getMinecraftEffects();
     }
 
@@ -123,7 +192,7 @@ public class StatusEffectTools {
      * @param args an array of StatusEffects
      * @return the combined StatusEffect of all those effects
      */
-    public static StatusEffect combine(StatusEffect... args) {
+    public static StatusEffect combine(StatusEffect[] args) {
         List<StatusEffect> effects = Arrays.asList(args);
         StatusEffect result = new StatusEffect(effects.get(0).getOrigin(), effects.get(0).isRegionModifier(), effects.get(0).getExpiration());
         for (StatusEffect effect : effects) {

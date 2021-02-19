@@ -95,7 +95,6 @@ public enum RegionType {
             MessageUtil.log("Got resources");
             return resources.get(level - 1);
         } else {
-            MessageUtil.log("Empty resources");
             return new HashMap<>();
         }
     }

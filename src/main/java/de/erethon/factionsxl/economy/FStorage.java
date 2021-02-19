@@ -114,44 +114,50 @@ public class FStorage {
         }
 
         // Consume
-        faction.updateSaturatedSubcategories();
-        Set<String> tooMany = new HashSet<>();
-        Set<String> tooFew = new HashSet<>();
-        for (PopulationLevel level : PopulationLevel.values()) {
-            for (Resource resource : Resource.values()) {
-                int saturation = faction.getSaturatedResources().get(resource);
-                int demand = faction.getDemand(resource, level);
-                int max = demand != 0 ? SaturationLevel.getByPercentage(saturation / demand * 100).getMinPercentage() : 100;
-                int daily = FactionsXL.getInstance().getFConfig().getSaturationPerDay();
-                int consume = faction.getConsumableResources().get(resource);
-                if (demand > consume) {
-                    tooFew.add(ChatColor.GOLD + resource.getName());
-                } else if (demand < consume) {
-                    tooMany.add(ChatColor.GOLD + resource.getName());
+        for (Region region : faction.getRegions()) {
+            Set<String> tooMany = new HashSet<>();
+            Set<String> tooFew = new HashSet<>();
+            region.updateSaturatedSubcategories();
+            for (PopulationLevel level : PopulationLevel.values()) {
+                if (region.getPopulation(level) == 0) {
+                    continue;
                 }
-                double change = daily;
-                if (consume != 0 && demand != 0) {
-                    change = consume >= daily ? daily : -10 * (double) consume / demand;
-                } else if (consume == 0 && demand != 0) {
-                    change = -1 * daily;
-                }
-                if (faction.chargeResource(resource, consume)) {
-                    int newSaturation = Math.min((saturation + (int) change), max);
-                    if (newSaturation < 0) {
-                        newSaturation = 0;
+                for (Resource resource : Resource.values()) {
+                    int saturation = region.getSaturatedResources().get(resource);
+                    int demand = region.getDemand(resource, level);
+                    int max = demand != 0 ? SaturationLevel.getByPercentage(saturation / demand * 100).getMinPercentage() : 100;
+                    int daily = FactionsXL.getInstance().getFConfig().getSaturationPerDay();
+                    int consume = region.getConsumableResources().get(resource);
+                    if (demand > consume) {
+                        tooFew.add(ChatColor.GOLD + resource.getName());
+                    } else if (demand < consume) {
+                        tooMany.add(ChatColor.GOLD + resource.getName());
                     }
-                    faction.getSaturatedResources().put(resource, newSaturation);
-                } else {
-                    faction.getSaturatedResources().put(resource, Math.max(saturation - daily, 0));
+                    double change = daily;
+                    if (consume != 0 && demand != 0) {
+                        change = consume >= daily ? daily : -10 * (double) consume / demand;
+                    } else if (consume == 0 && demand != 0) {
+                        change = -1 * daily;
+                    }
+                    MessageUtil.log("Consuming " + consume + " of " + resource.getName() + " in " + region + " by " + level.toString());
+                    if (faction.chargeResource(resource, consume)) {
+                        int newSaturation = Math.min((saturation + (int) change), max);
+                        if (newSaturation < 0) {
+                            newSaturation = 0;
+                        }
+                        region.getSaturatedResources().put(resource, newSaturation);
+                    } else {
+                        region.getSaturatedResources().put(resource, Math.max(saturation - daily, 0));
+                    }
+                    if (!tooMany.isEmpty()) {
+                        faction.sendMessage(FMessage.POPULATION_WARNING_TOO_MANY_RESOURCES_GRANTED.getMessage(level.toString(), region.getName()));
+                        faction.sendMessage(ParsingUtil.collectionToString(tooMany, ChatColor.DARK_RED));
+                    }
+                    if (!tooFew.isEmpty()) {
+                        faction.sendMessage(FMessage.POPULATION_WARNING_NOT_ENOUGH_RESOURCES_GRANTED.getMessage(region.getName()));
+                        faction.sendMessage(ParsingUtil.collectionToString(tooFew, ChatColor.DARK_RED));
+                    }
                 }
-            }
-            if (!tooMany.isEmpty()) {
-                faction.sendMessage(FMessage.POPULATION_WARNING_TOO_MANY_RESOURCES_GRANTED.getMessage());
-                faction.sendMessage(ParsingUtil.collectionToString(tooMany, ChatColor.DARK_RED));
-            }
-            if (!tooFew.isEmpty()) {
-                faction.sendMessage(FMessage.POPULATION_WARNING_NOT_ENOUGH_RESOURCES_GRANTED.getMessage());
-                faction.sendMessage(ParsingUtil.collectionToString(tooFew, ChatColor.DARK_RED));
             }
         }
 
@@ -192,20 +198,29 @@ public class FStorage {
         return serialized;
     }
 
-    public void updatePopulation() {
-        Set<PopulationLevel> populationLevels = new HashSet<>();
-        // Only update the levels we need
-        for (PopulationLevel level : PopulationLevel.values()) {
-            if (faction.getPopulation(level) > 0) {
-                populationLevels.add(level);
+    /*public void updatePopulation() {
+        for (Region rg : faction.getRegions()) {
+            Set<PopulationLevel> populationLevels = new HashSet<>();
+            // Only update the levels we need
+            for (PopulationLevel level : PopulationLevel.values()) {
+                if (faction.getPopulation(level) > 0) {
+                    populationLevels.add(level);
+                }
+            }
+            FStorage storage = faction.getStorage();
+            for (PopulationLevel level : populationLevels) {
+                for (ResourceSubcategory subcategory : level.getConsumption().keySet()) {
+                    List<Resource> availableSubcategoryResources = new ArrayList<>();
+                    for (Resource factionresource : storage.getGoods().keySet()) {
+                        if (storage.getGoods().get(factionresource) > 1)
+                    }
+                    for (Resource resource : subcategory.getResources()) {
+                        faction.getStorage().goods.put(resource, faction.getStorage().goods.get(resource) - )
+                    }
+                }
             }
         }
-        for (PopulationLevel level : populationLevels) {
-            for (ResourceSubcategory resource : level.getRequiredResources().keySet()) {
-
-            }
-        }
-    }
+    }*/
 
     public void update() {
         gui = new PageGUI(FMessage.STORAGE_TITLE.getMessage(faction.getName()));

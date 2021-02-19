@@ -21,6 +21,7 @@ import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.building.Building;
+import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
 import org.bukkit.ChatColor;
@@ -40,9 +41,15 @@ public enum PopulationLevel {
     PopulationLevel() {
     }
 
-    public Map<ResourceSubcategory, Integer> getRequiredResources() {
+    public Map<ResourceSubcategory, Integer> getConsumption() {
         FactionsXL plugin = FactionsXL.getInstance();
-        Map<PopulationLevel, Map<ResourceSubcategory, Integer>> required = plugin.getFConfig().getPopulationLevelResources();
+        Map<PopulationLevel, Map<ResourceSubcategory, Integer>> required = plugin.getFConfig().getResourceConsumption();
+        return required.get(this);
+    }
+
+    public Map<ResourceSubcategory, Integer> getRequiredResourcesForLevelUp() {
+        FactionsXL plugin = FactionsXL.getInstance();
+        Map<PopulationLevel, Map<ResourceSubcategory, Integer>> required = plugin.getFConfig().getPopulationLevelResourcesRequired();
         return required.get(this);
     }
 
@@ -97,10 +104,10 @@ public enum PopulationLevel {
     public boolean canLevelUp(Region rg, PopulationLevel level) {
         FactionsXL plugin = FactionsXL.getInstance();
         Faction faction = rg.getOwner();
-        faction.updateSaturatedSubcategories();
+        rg.updateSaturatedSubcategories();
         boolean happy = true;
-        Map<ResourceSubcategory, Integer> saturated = faction.getSaturatedSubcategories();
-        for (ResourceSubcategory subcategory : getRequiredResources().keySet()) {
+        Map<ResourceSubcategory, Integer> saturated = rg.getSaturatedSubcategories();
+        for (ResourceSubcategory subcategory : getRequiredResourcesForLevelUp().keySet()) {
             //faction.getDemand();
             }
 

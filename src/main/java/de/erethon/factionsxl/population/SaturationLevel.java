@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.population;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import org.bukkit.ChatColor;

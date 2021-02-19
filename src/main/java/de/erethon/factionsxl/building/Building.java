@@ -476,7 +476,6 @@ public class Building {
         effect.setDisplayName(section.getString("displayName"));
         effect.setChangeTypeTo(RegionType.valueOf(section.getString("type")));
         effect.setMemberPermission(section.getString("permission"));
-        effect.setEffect(new SubEffect(config.getString("specialEffect")));
 
         // Lists
         if (section.contains("production")) {

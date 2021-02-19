@@ -17,7 +17,10 @@
 package de.erethon.factionsxl.faction;
 
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.population.PopulationMenu;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -103,6 +106,8 @@ public class FMob implements Listener {
     public void onInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getRightClicked();
+        FPlayer fPlayer = FactionsXL.getInstance().getFPlayerCache().getByPlayer(player);
+        Region rg = FactionsXL.getInstance().getBoard().getByChunk(entity.getChunk(), fPlayer.getLastRegion());
         if (!(entity.getType().equals(EntityType.VILLAGER))) {
             return;
         }
@@ -112,7 +117,7 @@ public class FMob implements Listener {
         }
         if (isVillager(entity)) {
             event.setCancelled(true);
-            faction.getPopulationMenu().openMain(player);
+            new PopulationMenu(rg.getOwner(), rg).openMain(player);
         } else if (isTrader(entity)) {
             event.setCancelled(true);
             faction.getEconomyMenu().open(player);

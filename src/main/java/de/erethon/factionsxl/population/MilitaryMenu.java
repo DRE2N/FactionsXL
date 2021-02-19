@@ -22,7 +22,9 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.gui.StandardizedGUI;
 import de.erethon.factionsxl.legacygui.GUIButton;
 import de.erethon.factionsxl.legacygui.PageGUI;
+import de.erethon.factionsxl.player.FPlayer;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -67,6 +69,7 @@ public class MilitaryMenu implements Listener, InventoryHolder {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         HumanEntity player = event.getWhoClicked();
+        FPlayer fPlayer = plugin.getFPlayerCache().getByPlayer((OfflinePlayer) player);
         Inventory inventory = event.getClickedInventory();
         if (inventory == null || gui == null || !gui.equals(inventory)) {
             return;
@@ -75,7 +78,7 @@ public class MilitaryMenu implements Listener, InventoryHolder {
         PageGUI.playSound(event);
         ItemStack button = event.getCurrentItem();
         if (GUIButton.BACK.equals(button)) {
-            faction.getPopulationMenu().openMain(player);
+            fPlayer.getLastRegion().getPopulationMenu().openMain(player);
         }
     }
 

@@ -82,7 +82,7 @@ public class TradeMenu implements Listener {
         ItemMeta meta = icon.getItemMeta();
         ArrayList<String> lore = new ArrayList<>();
 
-        int consume = faction.getConsumableResources().get(resource);
+        int consume = faction.getTotalConsumableResources().get(resource);
         int income = faction.getImportValue(resource);
         if (consume != 0) {
             lore.add(FMessage.TRADE_CONSUME.getMessage("-" + consume));
