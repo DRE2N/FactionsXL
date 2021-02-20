@@ -127,9 +127,6 @@ public class CasusBelliMenu implements Listener, InventoryHolder {
             }
         }
         // Fix stacked CBs
-        for (ItemStack itemStack : gui.getContents()) {
-            itemStack.setAmount(1);
-        }
         player.openInventory(gui);
     }
     @EventHandler
