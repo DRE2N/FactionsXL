@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.board;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
@@ -578,63 +579,67 @@ public class Region {
     }
 
     public void save() {
-        config.set("name", name);
-        config.set("type", type.toString());
-        config.set("level", level);
-        if (owner != null) {
-            config.set("population", population);
-        } else {
-            config.set("population", 0);
-        }
-        config.set("world", world.getName());
-        config.set("owner", owner != null ? owner.getId() : null);
-        config.set("occupant", occupant != null ? occupant.getId() : null);
-
-        List<String> serializedChunks = new ArrayList<>();
-        for (LazyChunk chunk : chunks) {
-            serializedChunks.add(chunk.toString());
-        }
-        config.set("chunks", serializedChunks);
-
-
-        Map<Integer, Long> serializedCores = new HashMap<>();
-        for (Entry<Faction, Date> entry : cores.entrySet()) {
-            serializedCores.put(entry.getKey().getId(), entry.getValue().getTime());
-        }
-        config.set("cores", serializedCores);
-
-        Map<Integer, Integer> serializedProgress = new HashMap<>();
-        for (Entry<Faction, Integer> entry : coringProgress.entrySet()) {
-            serializedProgress.put(entry.getKey().getId(), entry.getValue());
-        }
-        config.set("coringProgress", serializedProgress);
-
-        Map<Integer, Long> serializedClaims = new HashMap<>();
-        for (Entry<Faction, Date> entry : claims.entrySet()) {
-            serializedClaims.put(entry.getKey().getId(), entry.getValue().getTime());
-        }
-        config.set("claims", serializedClaims);
-
-        List<Integer>serializedRegions = new ArrayList<>();
-        for (Region rg : adjacentRegions) {
-            if (!(adjacentRegions.isEmpty()) && !(rg.getName() == null)) {
-                serializedRegions.add(rg.getId());
-            }
-        }
-        config.set("neighbours", serializedRegions);
-
-        config.set("mapFillColor", mapFillColor);
-        config.set("mapLineColor", mapLineColor);
-        config.set("unclaimable", unclaimable);
-        config.set("isAttacked", isAttacked);
-        config.set("attackStartTime", attackStartTime);
-        config.set("lastDefendedTime", lastDefendedTime);
-        config.set("influence", influence);
-
         try {
-            config.save(file);
-        } catch (IOException exception) {
-            exception.printStackTrace();
+            config.set("name", name);
+            config.set("type", type.toString());
+            config.set("level", level);
+            if (owner != null) {
+                config.set("population", population);
+            } else {
+                config.set("population", 0);
+            }
+            config.set("world", world.getName());
+            config.set("owner", owner != null ? owner.getId() : null);
+            config.set("occupant", occupant != null ? occupant.getId() : null);
+
+            List<String> serializedChunks = new ArrayList<>();
+            for (LazyChunk chunk : chunks) {
+                serializedChunks.add(chunk.toString());
+            }
+            config.set("chunks", serializedChunks);
+
+
+            Map<Integer, Long> serializedCores = new HashMap<>();
+            for (Entry<Faction, Date> entry : cores.entrySet()) {
+                serializedCores.put(entry.getKey().getId(), entry.getValue().getTime());
+            }
+            config.set("cores", serializedCores);
+
+            Map<Integer, Integer> serializedProgress = new HashMap<>();
+            for (Entry<Faction, Integer> entry : coringProgress.entrySet()) {
+                serializedProgress.put(entry.getKey().getId(), entry.getValue());
+            }
+            config.set("coringProgress", serializedProgress);
+
+            Map<Integer, Long> serializedClaims = new HashMap<>();
+            for (Entry<Faction, Date> entry : claims.entrySet()) {
+                serializedClaims.put(entry.getKey().getId(), entry.getValue().getTime());
+            }
+            config.set("claims", serializedClaims);
+
+            List<Integer> serializedRegions = new ArrayList<>();
+            for (Region rg : adjacentRegions) {
+                if (!(adjacentRegions.isEmpty()) && !(rg.getName() == null)) {
+                    serializedRegions.add(rg.getId());
+                }
+            }
+            config.set("neighbours", serializedRegions);
+
+            config.set("mapFillColor", mapFillColor);
+            config.set("mapLineColor", mapLineColor);
+            config.set("unclaimable", unclaimable);
+            config.set("isAttacked", isAttacked);
+            config.set("attackStartTime", attackStartTime);
+            config.set("lastDefendedTime", lastDefendedTime);
+            config.set("influence", influence);
+
+            try {
+                config.save(file);
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        } catch (Exception exception) {
+            MessageUtil.log("Failed to save region " + id + " (" + name + ") " + exception.getMessage());
         }
     }
 

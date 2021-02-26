@@ -32,6 +32,7 @@ public enum ChatChannel {
     FACTION(ChatColor.GREEN, Relation.ALLIANCE_2),
     LOCAL(ChatColor.GRAY, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY),
     PUBLIC(ChatColor.WHITE, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY),
+    TEAM(ChatColor.RED, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY),
     ROLEPLAY(ChatColor.GRAY, Relation.ALLIANCE, Relation.COALITION, Relation.PEACE, Relation.ENEMY);
 
     private ChatColor color;
@@ -86,6 +87,11 @@ public enum ChatChannel {
             case "h":
             case "here":
                 return LOCAL;
+            case "team":
+            case "tc":
+            case "teamchat":
+            case "t":
+                return TEAM;
             default:
                 return PUBLIC;
         }

@@ -85,6 +85,14 @@ public class ChatListener implements Listener {
                 };
                 chatTask.runTask(plugin);
             }
+            else if (channel == ChatChannel.TEAM) {
+                for (Player receiver : Bukkit.getOnlinePlayers()) {
+                    String format = ParsingUtil.replaceChatPlaceholders(fConfig.getChatFormat(channel), fPlayer, fPlayers.getByPlayer(receiver));
+                    if (receiver.hasPermission("fxl.teamchat")) {
+                        MessageUtil.sendMessage(receiver, format + event.getMessage());
+                    }
+                }
+            }
             else {
                 for (Relation relation : channel.getRelations()) {
                     for (Player receiver : fPlayer.getFaction().getOnlineByRelation(relation)) {
@@ -94,7 +102,7 @@ public class ChatListener implements Listener {
                 }
             }
             MessageUtil.log("[FXL-Chat] [" + channel + "] " + player.getName() + ": " + event.getMessage());
-            if (channel != ChatChannel.PUBLIC) {
+            if (channel != ChatChannel.PUBLIC || channel != ChatChannel.TEAM) {
                 for (Player team : Bukkit.getOnlinePlayers()) {
                     if (plugin.getFPlayerCache().getByPlayer(team).getData().getChatSpy()) {
                         MessageUtil.sendMessage(team, ChatColor.DARK_GRAY + "[" + ChatColor.YELLOW + channel + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + player.getName() + ": " + event.getMessage());

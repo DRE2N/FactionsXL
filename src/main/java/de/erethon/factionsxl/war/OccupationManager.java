@@ -229,7 +229,7 @@ public class OccupationManager {
             return true;
         }
         if (defenderParticipation <= 1.00) {
-            MessageUtil.log("Defender has no participation. Cancelling... ");
+            MessageUtil.log("Defender has no participation (" + defenderParticipation + "). Cancelling... ");
             return false;
         }
         MessageUtil.log("Participation: Defender: " + attackerParticipation + " / Attacker: " + defenderParticipation);
