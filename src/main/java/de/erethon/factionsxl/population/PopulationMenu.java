@@ -14,135 +14,95 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package de.erethon.factionsxl.population;
 
-import de.erethon.commons.chat.MessageUtil;
-import de.erethon.commons.misc.ProgressBar;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
-import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
-import de.erethon.factionsxl.gui.StandardizedGUI;
-import de.erethon.factionsxl.legacygui.GUIButton;
 import de.erethon.factionsxl.legacygui.PageGUI;
+import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Daniel Saukel
- */
-public class PopulationMenu implements Listener {
+public class PopulationMenu implements Listener, InventoryHolder {
 
     FactionsXL plugin = FactionsXL.getInstance();
 
-    public static final ItemStack DEMANDS = GUIButton.setDisplay(new ItemStack(Material.BREAD), FMessage.POPULATION_DEMANDS_BUTTON.getMessage());
-    public static final ItemStack MILITARY = GUIButton.setDisplay(StandardizedGUI.GUI_SWORD, FMessage.POPULATION_MILITARY_BUTTON.getMessage());
-
-    private Faction faction;
-    private Region region;
-    private Inventory main;
-    private Inventory demands;
-    private DemandMenu demandResources;
-    private MilitaryMenu military;
+    private final Faction faction;
+    private final Region region;
+    private Inventory inv;
 
     public PopulationMenu(Faction faction, Region region) {
         this.faction = faction;
         this.region = region;
-        demandResources = new DemandMenu(faction, region);
-        military = new MilitaryMenu(faction);
         setupGUI();
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     private void setupGUI() {
-        main = Bukkit.createInventory(null, 9, FMessage.POPULATION_TITLE.getMessage(faction.getName()));
-        main.setItem(3, DEMANDS);
-        main.setItem(5, MILITARY);
-        demands = Bukkit.createInventory(null, 27, FMessage.POPULATION_DEMANDS_TITLE.getMessage(faction.getName()));
-        StandardizedGUI.addHeader(demands);
-        update();
-    }
-
-    public void openMain(HumanEntity player) {
-        player.openInventory(main);
-    }
-
-    public void openDemands(HumanEntity player) {
-        update();
-        player.openInventory(demands);
-    }
-
-    public void update() {
-        StandardizedGUI.clearHeader(demands);
-        for (ResourceSubcategory subcategory : ResourceSubcategory.values()) {
-            HashMap<SaturationLevel, Integer> saturation = new HashMap<>();
-            int percentage = 0;
-            for (Resource resource : subcategory.getResources()) {
-                SaturationLevel level = region.isResourceSaturated(resource, subcategory.isBasic());
-                saturation.put(level, (saturation.get(level) != null ? saturation.get(level) : 0) + 1);
-                percentage += region.getSaturatedResources().get(resource);
+        inv = Bukkit.createInventory(this, 9, FMessage.POPULATION_TITLE.getMessage(faction.getName()));
+        for (PopulationLevel level : PopulationLevel.values()) {
+            if (!region.getPopulationHappiness().containsKey(level)) {
+                continue;
             }
-            percentage = percentage / subcategory.getResources().length;
-            ItemStack icon = subcategory.getIcon();
+            ItemStack icon = new ItemStack(Material.PLAYER_HEAD);
             ItemMeta meta = icon.getItemMeta();
-            int max = subcategory.getResources().length;
+            meta.setDisplayName(level.name());
             List<String> lore = new ArrayList<>();
-            lore.add(ProgressBar.BAR);
-            SaturationLevel level = SaturationLevel.getByPercentage(percentage, subcategory.isBasic());
-            lore.add(level.getColor().toString() + percentage + "%");
-            for (SaturationLevel sLevel : SaturationLevel.values()) {
-                if (!(subcategory.isBasic() & sLevel == SaturationLevel.NOT_SATURATED || !subcategory.isBasic() & sLevel == SaturationLevel.NOT_SATURATED_BASIC)) {
-                    lore.add(sLevel.getColor() + sLevel.getName() + ": " + (saturation.get(sLevel) != null ? saturation.get(sLevel) : 0) + "/" + max);
-                }
+            lore.add("Pop: " + region.getPopulation().get(level));
+            lore.add("Happy: " + region.getPopulationHappiness().get(level).name());
+            List<String> catsNeeded = new ArrayList<>();
+            for (ResourceSubcategory subcategory : plugin.getFConfig().getResourceConsumption().get(level).keySet()) {
+                catsNeeded.add(subcategory.getName());
             }
+            lore.add("Cats needed: " + ParsingUtil.collectionToString(catsNeeded));
             meta.setLore(lore);
-            if (level == SaturationLevel.SURPLUS) {
-                meta.addEnchant(Enchantment.LUCK, 1, true);
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            }
-            meta.setDisplayName(level.getColor() + subcategory.getName());
             icon.setItemMeta(meta);
-            demands.addItem(icon);
+            inv.addItem(icon);
         }
+    }
+
+    public void open(Player player) {
+        player.openInventory(inv);
+    }
+
+    public Inventory getInventory() {
+        return inv;
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Inventory inventory = event.getClickedInventory();
         HumanEntity player = event.getWhoClicked();
-        if (inventory == null || !main.equals(inventory) & !demands.equals(inventory)) {
+        if (inventory == null || inventory.getHolder() != this) {
             return;
         }
         event.setCancelled(true);
-        PageGUI.playSound(event);
-        ItemStack button = event.getCurrentItem();
-        if (GUIButton.BACK.equals(button)) {
-            openMain(player);
-        } else if (DEMANDS.equals(button)) {
-            openDemands(player);
-        } else if (MILITARY.equals(button)) {
-            military.open(player);
-        } else {
-            ResourceSubcategory category = ResourceSubcategory.getByIcon(button);
-            if (category != null) {
-                demandResources.open(player, category);
-            }
+        if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null) {
+            return;
         }
-    }
+        PageGUI.playSound(event);
+        String buttonName = event.getCurrentItem().getItemMeta().getDisplayName();
+        PopulationLevel level = PopulationLevel.valueOf(buttonName);
+        new PopulationSubMenu(faction, region, level).openMain(player);
 
+
+    }
 }

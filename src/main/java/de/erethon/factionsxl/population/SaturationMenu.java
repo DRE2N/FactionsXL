@@ -66,11 +66,13 @@ public class SaturationMenu implements Listener, InventoryHolder {
 
     private Region region;
     private Faction faction;
+    private PopulationLevel level;
     private Inventory gui;
 
-    public SaturationMenu(Faction faction, Region region) {
+    public SaturationMenu(Faction faction, Region region, PopulationLevel level) {
         this.region = region;
         this.faction = faction;
+        this.level = level;
         setupGUI();
         update(Resource.WATER);
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -100,7 +102,7 @@ public class SaturationMenu implements Listener, InventoryHolder {
     }
 
     public void update(Resource resource) {
-        gui.setItem(4, DemandMenu.formButton(faction, region, resource));
+        gui.setItem(4, DemandMenu.formButton(faction, region, resource, level));
         if (region.getConsumableResources().get(resource) > 0) {
             gui.setItem(22, DENY_BUTTON);
         } else {
@@ -125,7 +127,7 @@ public class SaturationMenu implements Listener, InventoryHolder {
         Resource resource = getResource(gui);
         int current = region.getConsumableResources().get(resource);
         if (button.equals(GUIButton.BACK)) {
-            new PopulationMenu(faction, region).openDemands(player);
+            new PopulationSubMenu(faction, region, level).openDemands(player);
             return;
         } else if (button.equals(DENY_BUTTON)) {
             region.getConsumableResources().put(resource, current - 1);

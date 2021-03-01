@@ -62,6 +62,8 @@ public class StatusEffect implements ConfigurationSerializable  {
     private int transportShipLimit = 0;
     private int transportAirshipLimit = 0;
     private int transportCoachLimit = 0;
+    private int importDailyLimit = 0;
+    private int exportDailyLimit = 0;
     private String memberPermission;
     private SubEffect effect;
 
@@ -118,6 +120,8 @@ public class StatusEffect implements ConfigurationSerializable  {
         transportShipLimit = (int) args.get("transportShipLimit");
         transportCoachLimit = (int) args.get("transportCoachLimit");
         transportAirshipLimit = (int) args.get("transportAirshipLimit");
+        importDailyLimit = (int) args.get("importLimit");
+        exportDailyLimit = (int) args.get("exportLimit");
         memberPermission = (String) args.get("permission");
         effect = loadEffect((String) args.get("specialEffect"));
     }
@@ -298,6 +302,22 @@ public class StatusEffect implements ConfigurationSerializable  {
         this.transportCoachLimit = transportCoachLimit;
     }
 
+    public int getImportDailyLimit() {
+        return importDailyLimit;
+    }
+
+    public void setImportDailyLimit(int importDailyLimit) {
+        this.importDailyLimit = importDailyLimit;
+    }
+
+    public int getExportDailyLimit() {
+        return exportDailyLimit;
+    }
+
+    public void setExportDailyLimit(int exportDailyLimit) {
+        this.exportDailyLimit = exportDailyLimit;
+    }
+
     public String getMemberPermission() {
         return memberPermission;
     }
@@ -363,6 +383,8 @@ public class StatusEffect implements ConfigurationSerializable  {
         args.put("transportCoachLimit", transportCoachLimit);
         args.put("transportAirshipLimit", transportAirshipLimit);
         args.put("permission", memberPermission);
+        args.put("importLimit", importDailyLimit);
+        args.put("exportLimit", exportDailyLimit);
         args.put("specialEffect", effect.save());
         return args;
     }

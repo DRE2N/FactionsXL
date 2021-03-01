@@ -41,8 +41,6 @@ import de.erethon.factionsxl.player.Dynasty;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.population.PopulationLevel;
-import de.erethon.factionsxl.population.PopulationMenu;
-import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.scoreboard.FTeamWrapper;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;

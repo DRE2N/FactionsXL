@@ -17,9 +17,14 @@
 package de.erethon.factionsxl.economy;
 
 import de.erethon.factionsxl.config.FMessage;
+import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.legacygui.GUIButton;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static de.erethon.factionsxl.economy.Resource.*;
 
@@ -76,6 +81,43 @@ public enum ResourceSubcategory {
 
     public Resource[] getResources() {
         return resources;
+    }
+
+    /**
+     * @return how many resources this category contains
+     */
+    public int getDiffAmount() {
+        return resources.length;
+    }
+
+    /**
+     * @return how many resources of this category are available in storage
+     */
+    public int getDiffAmountInStorage(Faction faction) {
+        int i = 0;
+        List<Resource> resourceList = new ArrayList<>();
+        for (Resource res : faction.getStorage().getGoods().keySet()) {
+            if(Arrays.asList(resources).contains(res) && faction.getStorage().getGoods().get(res) >= 1) {
+                resourceList.add(res);
+            }
+        }
+        i = resourceList.size();
+        return i;
+    }
+
+    /**
+     * @return how many resources of this category are in a given list
+     */
+    public int getDiffAmountInList(List<Resource> list) {
+        int i = 0;
+        List<Resource> resourceList = new ArrayList<>();
+        for (Resource res : list) {
+            if(Arrays.asList(resources).contains(res)) {
+                resourceList.add(res);
+            }
+        }
+        i = resourceList.size();
+        return i;
     }
 
     /**

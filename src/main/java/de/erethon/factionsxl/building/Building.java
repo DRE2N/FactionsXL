@@ -471,6 +471,8 @@ public class Building {
         effect.setTransportCoachLimit(section.getInt("transportShipLimit", 0));
         effect.setTransportAirshipLimit(section.getInt("transportAirshipLimit",0));
         effect.setAllianceLimitBuff(section.getInt("allianceLimit", 0));
+        effect.setImportDailyLimit(section.getInt("importLimit", 0));
+        effect.setExportDailyLimit(section.getInt("exportLimit", 0));
         effect.setPrestige(section.getInt("prestige", 0));
         // Other
         effect.setDisplayName(section.getString("displayName"));

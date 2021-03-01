@@ -50,12 +50,14 @@ public class DemandMenu implements Listener, InventoryHolder {
     private Region region;
     private Inventory gui;
     private SaturationMenu saturationMenu;
+    private PopulationLevel poplevel;
 
-    public DemandMenu(Faction faction, Region region) {
+    public DemandMenu(Faction faction, Region region, PopulationLevel level) {
         this.faction = faction;
         this.region = region;
+        this.poplevel = level;
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        saturationMenu = new SaturationMenu(faction, region);
+        saturationMenu = new SaturationMenu(faction, region, level);
     }
 
     public void update(ResourceSubcategory category) {
@@ -63,12 +65,12 @@ public class DemandMenu implements Listener, InventoryHolder {
         StandardizedGUI.addHeader(gui);
 
         for (Resource resource : category.getResources()) {
-            gui.addItem(formButton(faction, region, resource));
+            gui.addItem(formButton(faction, region, resource, poplevel));
         }
     }
 
     // TODO: Needs updating for PopulationLevels
-    public static ItemStack formButton(Faction faction, Region region, Resource resource) {
+    public static ItemStack formButton(Faction faction, Region region, Resource resource, PopulationLevel poplevel) {
         ItemStack icon = resource.getIcon();
         ItemMeta meta = icon.getItemMeta();
         SaturationLevel level = region.isResourceSaturated(resource);
@@ -80,8 +82,8 @@ public class DemandMenu implements Listener, InventoryHolder {
         ArrayList<String> lore = new ArrayList<>();
         //lore.add(ProgressBar.getBar((double) faction.getSaturatedResources().get(resource)));
         lore.add(level.getColor().toString() + region.getSaturatedResources().get(resource) + "%");
-        String population = String.valueOf(faction.getPopulation());
-        String units = String.valueOf(region.getDemand(resource, PopulationLevel.PEASANT));
+        String population = String.valueOf(region.getPopulation(poplevel));
+        String units = String.valueOf(region.getDemand(resource, poplevel));
         lore.add(FMessage.POPULATION_REQUIRED.getMessage(population, units, resource.getName()));
         lore.add(FMessage.POPULATION_GRANTING1.getMessage());
         lore.add(FMessage.POPULATION_GRANTING2.getMessage(String.valueOf(region.getConsumableResources().get(resource)), resource.getName()));
@@ -106,7 +108,7 @@ public class DemandMenu implements Listener, InventoryHolder {
         PageGUI.playSound(event);
         ItemStack button = event.getCurrentItem();
         if (GUIButton.BACK.equals(button)) {
-            new PopulationMenu(faction, region).openDemands(player);
+            new PopulationSubMenu(faction, region, poplevel).openDemands(player);
             return;
         }
         Resource resource = Resource.getByIcon(button);

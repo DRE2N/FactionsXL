@@ -20,7 +20,9 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.population.PopulationLevel;
 import de.erethon.factionsxl.population.PopulationMenu;
+import de.erethon.factionsxl.population.PopulationSubMenu;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -117,7 +119,7 @@ public class FMob implements Listener {
         }
         if (isVillager(entity)) {
             event.setCancelled(true);
-            new PopulationMenu(rg.getOwner(), rg).openMain(player);
+            new PopulationMenu(rg.getOwner(), rg).open(player);
         } else if (isTrader(entity)) {
             event.setCancelled(true);
             faction.getEconomyMenu().open(player);

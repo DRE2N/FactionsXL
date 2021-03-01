@@ -16,6 +16,7 @@
  */
 package de.erethon.factionsxl.config;
 
+import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.config.DREConfig;
 import de.erethon.commons.misc.EnumUtil;
@@ -1441,6 +1442,7 @@ public class FConfig extends DREConfig {
                     buildingEntry.put(subEntry.getKey(), (boolean) subEntry.getValue());
                 }
                 populationBuildings.put(level, buildingEntry);
+                MessageUtil.log("Loaded " + buildingEntry + " for " + level.toString());
             }
         }
 

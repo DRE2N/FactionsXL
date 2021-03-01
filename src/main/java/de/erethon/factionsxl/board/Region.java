@@ -16,7 +16,6 @@
  */
 package de.erethon.factionsxl.board;
 
-import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.misc.EnumUtil;
 import de.erethon.commons.misc.NumberUtil;
@@ -31,7 +30,7 @@ import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.population.HappinessLevel;
 import de.erethon.factionsxl.population.PopulationLevel;
-import de.erethon.factionsxl.population.PopulationMenu;
+import de.erethon.factionsxl.population.PopulationSubMenu;
 import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.war.WarParty;
@@ -74,7 +73,8 @@ public class Region {
     Map<Resource, Integer> consumableResources = new HashMap<>();
     Map<Resource, Integer> saturatedResources = new HashMap<>();
     Map<ResourceSubcategory, Integer> saturatedSubcategories = new HashMap<>();
-    PopulationMenu populationMenu;
+    List<PopulationLevel> uprankBlocked = new ArrayList<>();
+    PopulationSubMenu populationMenu;
 
     private int influence = 100;
     private Faction owner;
@@ -597,7 +597,7 @@ public class Region {
      * @return
      * the population menu
      */
-    public PopulationMenu getPopulationMenu() {
+    public PopulationSubMenu getPopulationMenu() {
         return populationMenu;
     }
 
@@ -632,6 +632,9 @@ public class Region {
         return SaturationLevel.getByPercentage(value, subcategory.isBasic());
     }
 
+    public List<PopulationLevel> getUprankBlocked() {
+        return uprankBlocked;
+    }
 
     /* Serialization */
     public void load() {
@@ -717,6 +720,10 @@ public class Region {
             for (String b : cbs.getKeys(false)) {
                 buildings.add(new BuildSite(config.getConfigurationSection("buildings." + b)));
             }
+        }
+
+        for (String entry : config.getStringList("uprankBlocked")) {
+            uprankBlocked.add(PopulationLevel.valueOf(entry));
         }
 
         if (this.config == null) {
@@ -806,6 +813,8 @@ public class Region {
                 config.set("saturatedResources." + resource, 0);
             }
         }
+
+        config.set("uprankBlocked", uprankBlocked);
 
         try {
             config.save(file);

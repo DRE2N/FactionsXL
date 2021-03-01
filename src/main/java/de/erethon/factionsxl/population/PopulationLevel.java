@@ -22,13 +22,12 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.building.Building;
 import de.erethon.factionsxl.economy.Resource;
+import de.erethon.factionsxl.economy.ResourceCategory;
 import de.erethon.factionsxl.economy.ResourceSubcategory;
 import de.erethon.factionsxl.faction.Faction;
 import org.bukkit.ChatColor;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public enum PopulationLevel {
 
@@ -56,6 +55,9 @@ public enum PopulationLevel {
     public Set<Building> getRequiredRegionBuildings() {
         FactionsXL plugin = FactionsXL.getInstance();
         Map<String, Boolean> buildingMap = plugin.getFConfig().getPopulationLevelBuildings().get(this);
+        if (buildingMap == null) {
+            return new HashSet<>();
+        }
         Set<Building> buildings = new HashSet<>();
         for (String id : buildingMap.keySet()) {
             if (!buildingMap.get(id)) {
@@ -73,6 +75,9 @@ public enum PopulationLevel {
     public Set<Building> getRequiredFactionBuildings() {
         FactionsXL plugin = FactionsXL.getInstance();
         Map<String, Boolean> buildingMap = plugin.getFConfig().getPopulationLevelBuildings().get(this);
+        if (buildingMap == null) {
+            return new HashSet<>();
+        }
         Set<Building> buildings = new HashSet<>();
         for (String id : buildingMap.keySet()) {
             if (buildingMap.get(id)) {
@@ -112,5 +117,32 @@ public enum PopulationLevel {
             }
 
         return true;
+    }
+
+    public Set<ResourceCategory> getCategoriesNeeded() {
+        Set<ResourceCategory> result = new HashSet<>();
+        for (ResourceCategory category : ResourceCategory.values()) {
+            if (!Collections.disjoint(Arrays.asList(category.getSubcategories()), getRequiredResourcesForLevelUp().keySet())) {
+                result.add(category);
+            }
+        }
+        return result;
+    }
+
+    public PopulationLevel getAbove() {
+        int current = ordinal();
+        int length = values().length;
+        if ((current + 1) > (length - 1)) {
+            current = length - 1;
+        }
+        return values()[current + 1];
+    }
+
+    public PopulationLevel getBelow() {
+        int current = ordinal();
+        if ((current - 1) < 0) {
+            current = 1;
+        }
+        return values()[current - 1];
     }
 }

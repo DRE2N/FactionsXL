@@ -17,10 +17,38 @@
 
 package de.erethon.factionsxl.population;
 
+import de.erethon.factionsxl.config.FMessage;
+
 public enum HappinessLevel {
-    EUPHORIC,
-    HAPPY,
-    CONTENT,
-    UNHAPPY,
-    ANGRY;
+    ANGRY(FMessage.ERROR_NAME_IN_USE),
+    UNHAPPY(FMessage.ERROR_NAME_IN_USE),
+    CONTENT(FMessage.ERROR_NAME_IN_USE),
+    HAPPY(FMessage.ERROR_NAME_IN_USE),
+    EUPHORIC(FMessage.ERROR_NAME_IN_USE);
+
+    private FMessage name;
+
+    HappinessLevel(FMessage name) {
+        this.name = name;
+    }
+
+
+    public HappinessLevel getAbove() {
+        int current = ordinal();
+        current = current + 1;
+        int length = values().length;
+        if ((current + 1) > (length - 1)) {
+            current = length - 1;
+        }
+        return values()[current];
+    }
+
+    public HappinessLevel getBelow() {
+        int current = ordinal();
+        current = current - 1;
+        if ((current - 1) < 0) {
+            current = 1;
+        }
+        return values()[current];
+    }
 }

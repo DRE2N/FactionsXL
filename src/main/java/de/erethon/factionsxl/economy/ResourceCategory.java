@@ -41,4 +41,8 @@ public enum ResourceCategory {
         return subcategories;
     }
 
+    public int size() {
+        return subcategories.length;
+    }
+
 }

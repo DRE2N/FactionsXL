@@ -152,6 +152,34 @@ public class StatusEffectTools {
         return combine((StatusEffect[]) region.getEffects().toArray()).getTransportAirshipLimit();
     }
 
+    public static int getTotalImportLimit(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getImportDailyLimit();
+    }
+
+    public static int getTotalImportLimit(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 0;
+        }
+        return combine((StatusEffect[]) region.getEffects().toArray()).getImportDailyLimit();
+    }
+
+    public static int getTotalExportLimit(Faction faction) {
+        if (faction.getEffects() == null || faction.getEffects().isEmpty()) {
+            return 0;
+        }
+        return combine((StatusEffect[]) faction.getEffects().toArray()).getExportDailyLimit();
+    }
+
+    public static int getTotalExportLimit(Region region) {
+        if (region.getEffects() == null || region.getEffects().isEmpty()) {
+            return 0;
+        }
+        return combine((StatusEffect[]) region.getEffects().toArray()).getExportDailyLimit();
+    }
+
     public static Map<Resource, Double> getTotalResourceConsumption(Region region) {
         if (region.getEffects() == null || region.getEffects().isEmpty()) {
             return null;
@@ -217,6 +245,8 @@ public class StatusEffectTools {
         int ships = one.getTransportShipLimit() + two.getTransportShipLimit();
         int coaches = one.getTransportCoachLimit() + two.getTransportCoachLimit();
         int airships = one.getTransportAirshipLimit() + two.getTransportAirshipLimit();
+        int importLimit = one.getImportDailyLimit() + two.getImportDailyLimit();
+        int exportLimit = one.getExportDailyLimit() + two.getExportDailyLimit();
 
         Map<Resource, Double> consumption = new HashMap<>(one.getConsumptionModifier());
         for (Map.Entry<Resource, Double> entry : two.getConsumptionModifier().entrySet()) {
@@ -255,6 +285,8 @@ public class StatusEffectTools {
         result.setTransportShipLimit(ships);
         result.setTransportCoachLimit(coaches);
         result.setTransportAirshipLimit(airships);
+        result.setImportDailyLimit(importLimit);
+        result.setExportDailyLimit(exportLimit);
         result.setConsumptionModifier(consumption);
         result.setProductionModifier(production);
         result.setProductionBuff(productionBuff);
