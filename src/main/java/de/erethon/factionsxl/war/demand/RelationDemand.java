@@ -75,6 +75,7 @@ public class RelationDemand implements WarDemand, Listener, InventoryHolder {
             @Override
             public void run() {
                 new RelationRequest(Bukkit.getConsoleSender(), (Faction) wp.getLeader(), (Faction) wp2.getLeader(), Relation.VASSAL).confirm();
+                vassal.setAllod(true);
             }
         }, 5);
         // TODO: Might break after government update
@@ -86,6 +87,7 @@ public class RelationDemand implements WarDemand, Listener, InventoryHolder {
             @Override
             public void run() {
                 new RelationRequest(Bukkit.getConsoleSender(), f2, f, Relation.VASSAL).confirm();
+                vassal.setAllod(true);
             }
         }, 5);
     }
