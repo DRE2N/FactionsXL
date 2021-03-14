@@ -22,6 +22,7 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -74,7 +75,7 @@ public class SetCapitalCommand extends FCommand {
             return;
         }
         long moveAllowedTime = faction.getTimeLastCapitalMove() + plugin.getFConfig().getMoveCapitalCooldown();
-        FactionsXL.debug("setCapitalCommand: timeLastCapitalMove=" + SimpleDateUtil.ddMMyyyyhhmm(faction.getTimeLastCapitalMove())
+        FactionsXL.debug(FDebugLevel.INFO, "setCapitalCommand: timeLastCapitalMove=" + SimpleDateUtil.ddMMyyyyhhmm(faction.getTimeLastCapitalMove())
                 + "; moveAllowedTime=" + SimpleDateUtil.ddMMyyyyhhmm(moveAllowedTime) + "; system=" + SimpleDateUtil.ddMMyyyyhhmm(System.currentTimeMillis()));
         if (moveAllowedTime > System.currentTimeMillis()) {
             ParsingUtil.sendMessage(player, FMessage.ERROR_CAPITAL_MOVE_COOLDOWN.getMessage(), SimpleDateUtil.ddMMyyyyhhmm(moveAllowedTime));

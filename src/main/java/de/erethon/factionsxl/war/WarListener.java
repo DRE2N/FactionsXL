@@ -24,6 +24,7 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.protection.EntityProtectionListener;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -74,7 +75,7 @@ public class WarListener implements Listener {
         if (faction1 == null || faction2 == null || !faction1.getRelation(faction2).equals(Relation.ENEMY)) {
             return;
         }
-        MessageUtil.log("Player1: " + player1.toString() + " player2: " + player2.toString() + " faction1: " + faction1.getName() + " faction2: " + faction2.getName());
+        FactionsXL.debug(FDebugLevel.PVP,"Player1: " + player1.toString() + " player2: " + player2.toString() + " faction1: " + faction1.getName() + " faction2: " + faction2.getName());
         plugin.getFPlayerCache().getByPlayer(player2).getLastDamagers().add(player1);
         Battle takesPart = null;
         for (Battle battle : battleCache) {
@@ -85,7 +86,7 @@ public class WarListener implements Listener {
         }
         if (takesPart == null) {
             takesPart = new Battle(player1, player2);
-            MessageUtil.log("Created  battle: " + takesPart.toString());
+            FactionsXL.debug(FDebugLevel.PVP,"Created  battle: " + takesPart.toString());
             battleCache.add(takesPart);
             new Expiration(takesPart).runTaskTimer(plugin, 0L, FConfig.SECOND);
         } else {
@@ -105,7 +106,7 @@ public class WarListener implements Listener {
         }
         for (Battle battle : battleCache) {
             if (battle.takesPart(player2)) {
-                MessageUtil.log("Removed battle: " + battle.toString());
+                FactionsXL.debug(FDebugLevel.PVP,"Removed battle: " + battle.toString());
                 if (player1 != null && battle.takesPart(player1)) {
                     battle.win(player1, player2);
                 }

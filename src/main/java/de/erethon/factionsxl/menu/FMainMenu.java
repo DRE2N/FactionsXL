@@ -31,7 +31,7 @@ public class FMainMenu extends FMenu {
     // TODO: Should be configurable
     private InventoryButton websiteButton = new InventoryButtonBuilder()
             .icon(Material.BOOK)
-            .title(ChatColor.GOLD + "Website")
+            .title(ChatColor.GOLD + "\\\\uF808")
             .onInteract(e -> plugin.getServer().dispatchCommand(e.getPlayer(), "website"))
             .build();
     private InventoryButton mapButton = new InventoryButtonBuilder()

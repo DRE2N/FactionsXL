@@ -25,6 +25,7 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.player.FPlayerCache;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.entity.Player;
 
 import java.util.Set;
@@ -94,7 +95,7 @@ public class Battle {
             owner = r.getOccupant();
         }
 
-        MessageUtil.log("Battle won: " + this.toString());
+        FactionsXL.debug(FDebugLevel.PVP,"Battle won: " + this.toString());
 
         winnerFP.getData().addKill();
         looserFP.getData().addDeath();

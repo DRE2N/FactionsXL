@@ -22,6 +22,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -170,7 +171,7 @@ public class WarPoints {
         int score =  (int)Math.round(finalScore);
         wp.addPoints(score);
         wp.getEnemy().removePoints(score);
-        MessageUtil.log("Score change: " + wp.getName() + " Score: " + score + " Mod: " + String.valueOf(modifier));
+        FactionsXL.debug(FDebugLevel.WAR,"Score change: " + wp.getName() + " Score: " + score + " Mod: " + String.valueOf(modifier));
 
         for (Faction f : wp.getFactions()) {
             for (Player player : f.getOnlineMembers()) {
@@ -188,7 +189,7 @@ public class WarPoints {
             Bukkit.getScheduler().runTaskLater(plugin, new BukkitRunnable() {
                 @Override
                 public void run() {
-                    MessageUtil.log("100 Points reached. Ending the war...");
+                    FactionsXL.debug(FDebugLevel.WAR,"100 Points reached. Ending the war...");
                     plugin.getWarHandler().calculateWarStatus();
                 }
             }, 40);

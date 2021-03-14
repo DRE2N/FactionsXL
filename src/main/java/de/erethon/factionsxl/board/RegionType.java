@@ -19,8 +19,10 @@ package de.erethon.factionsxl.board;
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.commons.config.ConfigUtil;
 import de.erethon.commons.misc.EnumUtil;
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.economy.Resource;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -92,7 +94,6 @@ public enum RegionType {
      */
     public Map<Resource, Integer> getResources(int level) {
         if (level > 0 && resources.size() > level) {
-            MessageUtil.log("Got resources");
             return resources.get(level - 1);
         } else {
             MessageUtil.log("Empty resources");
@@ -141,7 +142,7 @@ public enum RegionType {
                     map.put(Resource.valueOf((String) rEntry.getKey()), (Integer) rEntry.getValue());
                 }
                 valueOf(entry.getKey()).resources.add(map);
-                MessageUtil.log("Added: " + map.toString());
+                FactionsXL.debug(FDebugLevel.DATA, "Added: " + map.toString());
                 resources.add(map);
             }
         }

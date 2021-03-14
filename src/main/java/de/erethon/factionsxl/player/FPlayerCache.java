@@ -20,6 +20,7 @@ import de.erethon.commons.player.PlayerUtil;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -167,7 +168,7 @@ public class FPlayerCache {
         for (Faction faction : FactionsXL.getInstance().getFactionCache().getActive()) {
             for (OfflinePlayer player : faction.getMembers().getOfflinePlayers()) {
                 if ((System.currentTimeMillis() > (player.getLastPlayed() + FactionsXL.getInstance().getFConfig().getAutoKickTime())) && !player.isOnline()) {
-                    FactionsXL.debug("Kicking " + player + " / Last played: " + new java.util.Date(player.getLastPlayed()));
+                    FactionsXL.debug(FDebugLevel.INFO, "Kicking " + player + " / Last played: " + new java.util.Date(player.getLastPlayed()));
                     faction.kick(player);
                     FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(player), faction);
                     Bukkit.getPluginManager().callEvent(event);
@@ -175,7 +176,7 @@ public class FPlayerCache {
             }
             OfflinePlayer admin = faction.getAdmin();
             if ((System.currentTimeMillis() > (admin.getLastPlayed() + FactionsXL.getInstance().getFConfig().getAutoKickTime())) && !admin.isOnline()) {
-                FactionsXL.debug("Starting succession for " + admin + " / Last played: " + new java.util.Date(admin.getLastPlayed()));
+                FactionsXL.debug(FDebugLevel.INFO, "Starting succession for " + admin + " / Last played: " + new java.util.Date(admin.getLastPlayed()));
                 successions.add(faction);
             }
         }

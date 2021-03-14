@@ -41,6 +41,7 @@ import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.population.PopulationMenu;
 import de.erethon.factionsxl.population.SaturationLevel;
 import de.erethon.factionsxl.scoreboard.FTeamWrapper;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.CasusBelli;
@@ -1491,7 +1492,7 @@ public class Faction extends LegalEntity {
         }
         allod = config.getBoolean("isAllod", true);
         requests = (List<Request>) config.getList("requests", new ArrayList<>());
-        FactionsXL.debug("Loaded " + this);
+        FactionsXL.debug(FDebugLevel.FACTION, "Loaded " + this);
     }
 
     public void save() {

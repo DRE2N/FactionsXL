@@ -19,6 +19,7 @@ package de.erethon.factionsxl.war.peaceoffer;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.entity.Request;
 import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.demand.*;
 import org.bukkit.Material;
@@ -90,7 +91,7 @@ public abstract class PeaceOffer extends Request {
         try {
             return (ItemStack) types.get(type)[0].invoke(null);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
-            FactionsXL.debug("[Warning] The demand type " + type.getName() + " lacks a GUI button.");
+            FactionsXL.debug(FDebugLevel.INFO, "[Warning] The demand type " + type.getName() + " lacks a GUI button.");
             return GUIButton.setDisplay(new ItemStack(Material.ANVIL), type.getSimpleName());
         }
     }
@@ -105,7 +106,7 @@ public abstract class PeaceOffer extends Request {
         try {
             types.get(type)[1].invoke(null, player);
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
-            FactionsXL.debug("[Warning] The demand type " + type.getName() + " lacks a setup GUI.");
+            FactionsXL.debug(FDebugLevel.INFO, "[Warning] The demand type " + type.getName() + " lacks a setup GUI.");
         }
     }
 

@@ -19,6 +19,7 @@ package de.erethon.factionsxl.config;
 
 import de.erethon.commons.chat.MessageUtil;
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -52,7 +53,7 @@ public class FTranslation  {
                 copyFile(jarURL, new File(plugin.getDataFolder() + "/languages/items.yml"));
 
             } catch (Exception e) {
-                MessageUtil.log(e.toString());
+                FactionsXL.debug(FDebugLevel.ERROR, e.toString());
             }
         }
         messages = YamlConfiguration.loadConfiguration(languageFile);

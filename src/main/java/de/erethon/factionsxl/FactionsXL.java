@@ -46,6 +46,7 @@ import de.erethon.factionsxl.protection.LWCIntegration;
 import de.erethon.factionsxl.protection.LandProtectionListener;
 import de.erethon.factionsxl.util.BalanceCache;
 import de.erethon.factionsxl.util.CoringHandler;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.war.*;
 import de.erethon.factionsxl.war.demand.ItemDemand;
 import de.erethon.factionsxl.war.demand.MoneyDemand;
@@ -54,7 +55,9 @@ import de.erethon.factionsxl.war.demand.RelationDemand;
 import de.erethon.factionsxl.war.peaceoffer.PeaceOffer;
 import de.erethon.factionsxl.war.peaceoffer.SeparatePeaceOffer;
 import de.erethon.vignette.api.VignetteAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -65,6 +68,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The main class of FactionsXL.
@@ -111,6 +116,7 @@ public class FactionsXL extends DREPlugin {
     private BukkitTask powerTask;
     private BalanceCache balanceCache;
     private boolean debugEnabled = true;
+    private List<FDebugLevel> debugLevels = new ArrayList<>();
     private PrintWriter out;
     private CannonsAPI cannonsAPI;
 
@@ -138,12 +144,13 @@ public class FactionsXL extends DREPlugin {
         initFolders();
         debugToFile("Enabling...");
         if (!compat.isSpigot() || !settings.getInternals().contains(compat.getInternals())) {
-            MessageUtil.log(this, "&4This plugin requires Spigot 1.14.4-1.16.2 to work. It is not compatible with CraftBukkit and older versions.");
+            MessageUtil.log(this, "&4This plugin requires Spigot 1.14.4-1.16.5 to work. It is not compatible with CraftBukkit and older versions.");
         }
         if (!compat.isPaper()) {
             MessageUtil.log(this, "Some features of FXL require Paper. Paper is a drop-in replacement for Spigot. Download it at papermc.io/downloads");
         }
         instance = this;
+        debugLevels.add(FDebugLevel.ERROR);
 
         FPermission.register();
         VignetteAPI.init(this);
@@ -746,9 +753,26 @@ public class FactionsXL extends DREPlugin {
         }
     }
 
-    public static void debug(String message) {
-        instance.debugToFile(message);
-        System.out.println(message);
+    public void addDebugLevel(FDebugLevel level) {
+        debugLevels.add(level);
+    }
+
+    public void removeDebugLevel(FDebugLevel level) {
+        debugLevels.remove(level);
+    }
+
+    public List<FDebugLevel> getDebugLevels() {
+        return debugLevels;
+    }
+
+    public static void debug(FDebugLevel level, String message) {
+        instance.debugToFile("[" + level.toString() + "] " + message);
+        if (instance.getDebugLevels().contains(level)) {
+            System.out.println("[" + level.toString() + "] " + message);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                MessageUtil.sendMessage(player, "&8[&cDebug &8|&6 " + level + "&8] &7" + message);
+            }
+        }
     }
 
 }

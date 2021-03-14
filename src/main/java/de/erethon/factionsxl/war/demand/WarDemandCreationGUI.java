@@ -24,6 +24,7 @@ import de.erethon.factionsxl.gui.StandardizedGUI;
 import de.erethon.factionsxl.legacygui.GUIButton;
 import de.erethon.factionsxl.legacygui.PageGUI;
 import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.war.WarParty;
 import de.erethon.factionsxl.war.peaceoffer.PeaceOffer;
 import org.bukkit.Bukkit;
@@ -79,7 +80,7 @@ public class WarDemandCreationGUI implements Listener, StandardizedGUI, Inventor
             try {
                 gui.addItem((ItemStack) t.getDeclaredMethod("getGUIButton").invoke(null));
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
-                FactionsXL.debug("[Warning] The demand type " + t.getName() + " lacks a GUI button.");
+                FactionsXL.debug(FDebugLevel.INFO, "[Warning] The demand type " + t.getName() + " lacks a GUI button.");
                 gui.addItem(GUIButton.setDisplay(new ItemStack(Material.ANVIL), t.getSimpleName()));
             }
         });

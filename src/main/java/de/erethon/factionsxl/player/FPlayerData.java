@@ -21,6 +21,7 @@ import de.erethon.commons.config.DREConfig;
 import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Request;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.Location;
 
 import java.io.File;
@@ -273,7 +274,7 @@ public class FPlayerData extends DREConfig {
             factionsCreated = config.getInt("stats.createdFactions", factionsCreated);
             moneyDeposited = config.getDouble("stats.moneyDeposited", moneyDeposited);
         }
-        FactionsXL.debug("Loaded " + this);
+        FactionsXL.debug(FDebugLevel.DATA, "Loaded " + this);
     }
 
     @Override

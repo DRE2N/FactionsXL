@@ -21,6 +21,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.gui.StandardizedGUI;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -125,9 +126,9 @@ public class TradeOffer {
     }
 
     public boolean check(CommandSender sender) {
-        MessageUtil.log(importer.getName());
-        MessageUtil.log(String.valueOf(price));
-        MessageUtil.log(String.valueOf(importer.getAccount().toString()));
+        FactionsXL.debug(FDebugLevel.ECONOMY, importer.getName());
+        FactionsXL.debug(FDebugLevel.ECONOMY, String.valueOf(price));
+        FactionsXL.debug(FDebugLevel.ECONOMY, String.valueOf(importer.getAccount().toString()));
         if (importer.getAccount().getBalance() < price + getFee()) {
             String formatted = econ.format(price + getFee());
             ParsingUtil.sendMessage(sender, FMessage.ERROR_NOT_ENOUGH_MONEY_FACTION.getMessage(), importer, formatted);

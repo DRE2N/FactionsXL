@@ -34,6 +34,8 @@ public class FCommandCache extends DRECommandCache {
 
     DREPlugin plugin;
 
+    public DebugCommand debug = new DebugCommand();
+
     public AddCasusBelliCommand addCasusBelli = new AddCasusBelliCommand();
     public AdminCommand admin = new AdminCommand();
     public CasusBelliCommand casusBelli = new CasusBelliCommand();
@@ -112,6 +114,8 @@ public class FCommandCache extends DRECommandCache {
     public FCommandCache(DREPlugin plugin) {
         super(LABEL, plugin);
         this.plugin = plugin;
+        addCommand(debug);
+
         addCommand(addCasusBelli);
         addCommand(admin);
         addCommand(casusBelli);
@@ -183,7 +187,6 @@ public class FCommandCache extends DRECommandCache {
 
         addCommand(menuCommand);
 
-        // debug/Workaround
         addCommand(warInviteCommand);
         addCommand(editWar);
 

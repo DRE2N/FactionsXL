@@ -18,6 +18,8 @@
 package de.erethon.factionsxl.menu;
 
 import de.erethon.commons.chat.MessageUtil;
+import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.vignette.api.component.InventoryButton;
 import org.bukkit.entity.Player;
 
@@ -68,7 +70,7 @@ public class FNumberInputMenu extends FMenu {
             }
             InventoryButton button = FMenuButton.DOWN_ARROW.getButton();
             int finalP = p;
-            MessageUtil.log("Decr listener " + p);
+            FactionsXL.debug(FDebugLevel.ECONOMY,"Decr listener " + p);
             button.setInteractionListener(listener -> decrement(finalP));
             numbers[p] = button;
             set(i, button);

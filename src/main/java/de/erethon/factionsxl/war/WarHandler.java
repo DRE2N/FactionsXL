@@ -26,6 +26,7 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.event.WarTruceEndEvent;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.Bukkit;
 
@@ -152,7 +153,7 @@ public class WarHandler {
 
     public void forceWarGoal(WarParty warParty) {
         warParty.getWar().cleanup();
-        MessageUtil.log("Ending war " + warParty.getWar().toString());
+        FactionsXL.debug(FDebugLevel.WAR,"Ending war " + warParty.getWar().toString());
         WarParty enemy = warParty.getEnemy();
         Faction leader = (Faction) warParty.getLeader();
         Faction enemyLeader = (Faction) enemy.getLeader();
@@ -384,7 +385,7 @@ public class WarHandler {
                 if (attacker != defender) { // To prevent self-declaration, for example for vassals
                     if (attacker.getRelation(defender) != Relation.ENEMY) {
                         new RelationRequest(Bukkit.getConsoleSender(), attacker, defender, Relation.ENEMY).confirm();
-                        MessageUtil.log("Relation fixer found a wrong relation: " + attacker.getName() + " & " + defender.getName());
+                        FactionsXL.debug(FDebugLevel.WAR,"Relation fixer found a wrong relation: " + attacker.getName() + " & " + defender.getName());
                     }
                 }
             }

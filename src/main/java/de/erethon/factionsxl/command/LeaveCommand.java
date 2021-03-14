@@ -63,7 +63,6 @@ public class LeaveCommand extends FCommand {
 
         FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(player), faction);
         Bukkit.getPluginManager().callEvent(event);
-        MessageUtil.log("event");
 
     }
 
