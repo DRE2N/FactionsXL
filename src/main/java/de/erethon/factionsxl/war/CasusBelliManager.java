@@ -22,6 +22,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.util.FDebugLevel;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,7 +63,7 @@ public class CasusBelliManager {
         for (CasusBelli casusBelli : owner.getCasusBelli()) {
             if (casusBelli.getTarget() == target && casusBelli.getType() == CasusBelli.Type.BORDER_FRICTION) {
                 if (plugin.getBoard().getBorderRegions(owner, target).isEmpty()) {
-                    MessageUtil.log("Removing CB " + casusBelli.toString() + " from " + owner.getName() + " as its no longer valid.");
+                    FactionsXL.debug(FDebugLevel.WAR, "Removing CB " + casusBelli.toString() + " from " + owner.getName() + " as its no longer valid.");
                     toRemove.add(casusBelli);
                 }
             }

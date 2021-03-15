@@ -22,6 +22,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.war.CasusBelli;
 import org.bukkit.Chunk;
@@ -330,7 +331,7 @@ public class Board {
         for (Region region : regions) {
             region.load();
         }
-        FactionsXL.debug("Loaded board with " + regions.size() + " regions.");
+        FactionsXL.debug(FDebugLevel.DATA, "Loaded board with " + regions.size() + " regions.");
     }
 
     public class CacheCleanTask extends BukkitRunnable {
@@ -376,7 +377,7 @@ public class Board {
                         }
                         CasusBelli toAdd = new CasusBelli(CasusBelli.Type.BORDER_FRICTION, faction2, null);
                         faction.getCasusBelli().add(toAdd);
-                        MessageUtil.log("Added missing BorderFriction CB to " + faction + " (" + toAdd.toString() + ")");
+                        FactionsXL.debug(FDebugLevel.BOARD, "Added missing BorderFriction CB to " + faction + " (" + toAdd.toString() + ")");
                     }
                 }
             }
@@ -390,7 +391,7 @@ public class Board {
         public void run() {
             for (Region region : regions) {
                 if (region.getOwner() != null && !region.getOwner().isActive()) {
-                    FactionsXL.debug("Cleaned " + region + ". It was owned by " + region.getOwner());
+                    FactionsXL.debug(FDebugLevel.BOARD, "Cleaned " + region + ". It was owned by " + region.getOwner());
                     region.setOwner(null);
                 }
             }

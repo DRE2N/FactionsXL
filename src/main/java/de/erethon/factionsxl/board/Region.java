@@ -25,6 +25,7 @@ import de.erethon.factionsxl.board.dynmap.DynmapStyle;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.economy.Resource;
 import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.Bukkit;
@@ -575,7 +576,7 @@ public class Region {
         if (this.config == null) {
             this.config = YamlConfiguration.loadConfiguration(file);
         }
-        FactionsXL.debug("Loaded " + this + " with " + chunks.size() + " chunks.");
+        FactionsXL.debug(FDebugLevel.DATA, "Loaded " + this + " with " + chunks.size() + " chunks.");
     }
 
     public void save() {
@@ -639,7 +640,7 @@ public class Region {
                 exception.printStackTrace();
             }
         } catch (Exception exception) {
-            MessageUtil.log("Failed to save region " + id + " (" + name + ") " + exception.getMessage());
+            FactionsXL.debug(FDebugLevel.DATA,"Failed to save region " + id + " (" + name + ") " + exception.getMessage());
         }
     }
 

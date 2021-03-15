@@ -25,6 +25,7 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.FactionCache;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.WarParty;
 import org.bukkit.command.CommandSender;
@@ -104,7 +105,7 @@ public class RelationNeutralCommand extends FCommand {
                             sWP.leaveWar(subject);
                         }
                     }
-                    MessageUtil.log("Removed " + subject.getName() + " from WarParty of " + object.getName() + " because alliance ended.");
+                    FactionsXL.debug(FDebugLevel.WAR, "Removed " + subject.getName() + " from WarParty of " + object.getName() + " because alliance ended.");
                     ParsingUtil.broadcastMessage(FMessage.WAR_ALLY_ABANDONED.getMessage(), subject);
                 }
                 ParsingUtil.broadcastMessage(FMessage.RELATION_CONFIRMED.getMessage(), subject, object, Relation.PEACE.getName());

@@ -768,7 +768,7 @@ public class FactionsXL extends DREPlugin {
     public static void debug(FDebugLevel level, String message) {
         instance.debugToFile("[" + level.toString() + "] " + message);
         if (instance.getDebugLevels().contains(level)) {
-            System.out.println("[" + level.toString() + "] " + message);
+            System.out.println("[FXL | " + level.toString() + "] " + message);
             for (Player player : Bukkit.getOnlinePlayers()) {
                 MessageUtil.sendMessage(player, "&8[&cDebug &8|&6 " + level + "&8] &7" + message);
             }

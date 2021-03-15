@@ -25,6 +25,7 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.LazyChunk;
 import de.erethon.factionsxl.util.ParsingUtil;
 import net.md_5.bungee.api.ChatColor;
@@ -93,7 +94,7 @@ public class FactionCache {
 
         try {
             file.createNewFile();
-            MessageUtil.log(plugin, FMessage.LOG_NEW_FACTION_DATA.getMessage(file.getName()));
+            FactionsXL.debug(FDebugLevel.DATA, FMessage.LOG_NEW_FACTION_DATA.getMessage(file.getName()));
         } catch (IOException exception) {
         }
 

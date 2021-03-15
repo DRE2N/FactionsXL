@@ -22,6 +22,7 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.legacygui.PageGUI;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -184,7 +185,7 @@ public class CallToArmsMenu implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        MessageUtil.log("Closing CallToArmsMenu...");
+        FactionsXL.debug(FDebugLevel.WAR,"Closing CallToArmsMenu...");
         if (event.getPlayer() != cachedViewer || !(event.getPlayer() instanceof Player)) {
             return;
         }

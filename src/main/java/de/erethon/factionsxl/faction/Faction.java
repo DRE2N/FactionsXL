@@ -1589,7 +1589,7 @@ public class Faction extends LegalEntity {
 
             config.save(file);
         } catch (Exception exception) {
-            MessageUtil.log(plugin, "An error occured while saving " + this);
+            FactionsXL.debug(FDebugLevel.DATA, "An error occured while saving " + this);
             exception.printStackTrace();
         }
     }

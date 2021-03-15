@@ -24,6 +24,7 @@ import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarParty;
@@ -134,7 +135,7 @@ public class RelationCommand extends FCommand {
                 WarParty WarParty = null;
                 for (WarParty wp : subjectFaction.getWarParties()) {
                     if (wp.getLeader() == subjectFaction) {
-                        MessageUtil.log("Relation subject is in war against: " + wp.getName() + " -> adding them to the WarParty.");
+                        FactionsXL.debug(FDebugLevel.WAR,"Relation subject is in war against: " + wp.getName() + " -> adding them to the WarParty.");
                         leader = (Faction) wp.getLeader();
                         warFaction = objectFaction;
                         WarParty = wp;
@@ -143,7 +144,7 @@ public class RelationCommand extends FCommand {
                 }
                 for (WarParty wp : objectFaction.getWarParties()) {
                     if (wp.getLeader() == objectFaction) {
-                        MessageUtil.log("Relation object is in war against: " + wp.getName() + " -> adding them to the WarParty.");
+                        FactionsXL.debug(FDebugLevel.WAR, "Relation object is in war against: " + wp.getName() + " -> adding them to the WarParty.");
                         leader = (Faction) wp.getLeader();
                         warFaction = subjectFaction;
                         WarParty = wp;
@@ -156,7 +157,7 @@ public class RelationCommand extends FCommand {
                 }
                 if (WarParty != null && WarParty.getFactions().contains(warFaction)) {
                     WarParty.leaveWar(warFaction);
-                    MessageUtil.log("Removed " + warFaction.getName() + " from WarParty " + WarParty.getName() + " because alliance ended.");
+                    FactionsXL.debug(FDebugLevel.WAR, "Removed " + warFaction.getName() + " from WarParty " + WarParty.getName() + " because alliance ended.");
                     ParsingUtil.broadcastMessage(FMessage.WAR_ALLY_ABANDONED.getMessage(), warFaction);
                 }
 

@@ -24,6 +24,7 @@ import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.player.FPlayerCache;
+import de.erethon.factionsxl.util.FDebugLevel;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -206,7 +207,7 @@ public class OccupationManager {
             return false;
         }
         if ((rg.getAttackStartTime() + 1200000) < now) {
-            MessageUtil.log("Preparation for " + rg.getName() + " is over. Starting attack.");
+            FactionsXL.debug(FDebugLevel.WAR, "Preparation for " + rg.getName() + " is over. Starting attack.");
             return true;
         }
         return false;
@@ -221,18 +222,18 @@ public class OccupationManager {
         long now = System.currentTimeMillis();
         // If the attacker is weaker they should still be able to attack
         if (attackerParticipation < defenderParticipation) {
-            MessageUtil.log("Attacker is weaker than defender. Can start attack. ");
+            FactionsXL.debug(FDebugLevel.WAR,"Attacker is weaker than defender. Can start attack. ");
             return true;
         }
         if (defenderParticipation <= 1.00 && defenderPlayers >= 1 && attacker.getPoints() <= 10) {
-            MessageUtil.log("Defender has no participation, but is online and attacker has less than 10 points. Can start attack");
+            FactionsXL.debug(FDebugLevel.WAR,"Defender has no participation, but is online and attacker has less than 10 points. Can start attack");
             return true;
         }
         if (defenderParticipation <= 1.00) {
-            MessageUtil.log("Defender has no participation (" + defenderParticipation + "). Cancelling... ");
+            FactionsXL.debug(FDebugLevel.WAR,"Defender has no participation (" + defenderParticipation + "). Cancelling... ");
             return false;
         }
-        MessageUtil.log("Participation: Defender: " + attackerParticipation + " / Attacker: " + defenderParticipation);
+        FactionsXL.debug(FDebugLevel.WAR,"Participation: Defender: " + attackerParticipation + " / Attacker: " + defenderParticipation);
         return Math.abs(attackerParticipation - defenderParticipation) < 10;
     }
 

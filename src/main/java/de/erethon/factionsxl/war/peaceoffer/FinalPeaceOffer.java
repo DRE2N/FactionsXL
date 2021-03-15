@@ -21,6 +21,7 @@ import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.legacygui.GUIButton;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarParty;
@@ -122,7 +123,7 @@ public class FinalPeaceOffer extends PeaceOffer {
 
     @Override
     public void send() {
-        MessageUtil.log("Starting to send FinalPeaceOffer...");
+        FactionsXL.debug(FDebugLevel.WAR,"Starting to send FinalPeaceOffer...");
         if (!isOffer) {
             if (getCost() > getSubject().getPoints()) {
                 for (Player player : subject.getRequestAuthorizedPlayers(getClass()).getOnlinePlayers()) {
@@ -148,28 +149,28 @@ public class FinalPeaceOffer extends PeaceOffer {
 
         boolean add = true;
         if (getObject().getRequests() == null) {
-            MessageUtil.log("WarParty Requests are null. Initializing...");
+            FactionsXL.debug(FDebugLevel.WAR,"WarParty Requests are null. Initializing...");
             getObject().initRequests();
         }
-        MessageUtil.log("Checking existing requests for " + getObject().toString());
+        FactionsXL.debug(FDebugLevel.WAR,"Checking existing requests for " + getObject().toString());
         for (PeaceOffer check : getObject().getRequests(PeaceOffer.class)) {
-            MessageUtil.log("Req (" + getObject() + "): " + check.toString());
+            FactionsXL.debug(FDebugLevel.WAR,"Req (" + getObject() + "): " + check.toString());
             if (check.getSubject() == subject && check.getObject() == object) {
-                MessageUtil.log("Same object/subject: " + check.toString());
+                FactionsXL.debug(FDebugLevel.WAR,"Same object/subject: " + check.toString());
                 add = false;
                 break;
             }
         }
         if (!add) {
-            MessageUtil.log("Found existing request with the same subject/object. Aborting...");
+            FactionsXL.debug(FDebugLevel.WAR,"Found existing request with the same subject/object. Aborting...");
             for (Player player : object.getRequestAuthorizedPlayers(getClass()).getOnlinePlayers()) {
                 MessageUtil.sendMessage(player, FMessage.WAR_DEMAND_REQUEST_ALREADY_SENT.getMessage());
             }
         }
         if (add) {
-            MessageUtil.log("Added new FinalPeaceOffer to " + getObject().toString());
+            FactionsXL.debug(FDebugLevel.WAR,"Added new FinalPeaceOffer to " + getObject().toString());
             getObject().getRequests().add(this);
-            MessageUtil.log("Reqs: " + getObject().getRequests().toString());
+            FactionsXL.debug(FDebugLevel.WAR,"Reqs: " + getObject().getRequests().toString());
         }
 
         sendSubjectMessage();

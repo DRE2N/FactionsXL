@@ -72,7 +72,7 @@ public class FTranslation  {
             return messages.getString(key);
         }
         else {
-            MessageUtil.log("The item/block " + key + " is missing a translation. Please update your items.yml");
+            FactionsXL.debug(FDebugLevel.DATA,"The item/block " + key + " is missing a translation. Please update your items.yml");
             return key;
         }
     }

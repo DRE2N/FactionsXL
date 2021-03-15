@@ -96,7 +96,6 @@ public enum RegionType {
         if (level > 0 && resources.size() > level) {
             return resources.get(level - 1);
         } else {
-            MessageUtil.log("Empty resources");
             return new HashMap<>();
         }
     }
@@ -122,20 +121,20 @@ public enum RegionType {
      */
     public static void loadResources(Map<String, Object> rs) {
         for (Entry<String, Object> entry : rs.entrySet()) {
-            MessageUtil.log(entry.toString());
+            FactionsXL.debug(FDebugLevel.DATA, entry.toString());
             if (!EnumUtil.isValidEnum(RegionType.class, entry.getKey()) || !(entry.getValue() instanceof ConfigurationSection)) {
                 continue;
             }
             Map<?, ?> levelMap = (Map<?, ?>) ConfigUtil.getMap((ConfigurationSection) entry.getValue(), new String());
             for (Entry<?, ?> lEntry : levelMap.entrySet()) {
-                MessageUtil.log(lEntry.toString());
+                FactionsXL.debug(FDebugLevel.DATA, lEntry.toString());
                 if (!(lEntry.getValue() instanceof ConfigurationSection)) {
                     continue;
                 }
                 Map<Resource, Integer> map = new HashMap<>();
                 Map<?, ?> resourceMap = (Map<?, ?>) ConfigUtil.getMap((ConfigurationSection) lEntry.getValue(), new String());
                 for (Entry<?, ?> rEntry : resourceMap.entrySet()) {
-                    MessageUtil.log(rEntry.toString());
+                    FactionsXL.debug(FDebugLevel.DATA, rEntry.toString());
                     if (!(rEntry.getKey() instanceof String) || !EnumUtil.isValidEnum(Resource.class, (String) rEntry.getKey()) || !(rEntry.getValue() instanceof Integer)) {
                         continue;
                     }

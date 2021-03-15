@@ -24,6 +24,7 @@ import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.scoreboard.FScoreboard;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.War;
 import de.erethon.factionsxl.war.WarCache;
@@ -88,8 +89,8 @@ public class ConfirmPeaceRequestCommand extends FCommand {
                 return;
             }
             Collection<SeparatePeaceOffer> requests = objectFaction.getRequests(SeparatePeaceOffer.class);
-            MessageUtil.log(requests.toString());
-            MessageUtil.log(objectFaction.getRequests(SeparatePeaceOffer.class).toString());
+            FactionsXL.debug(FDebugLevel.WAR, requests.toString());
+            FactionsXL.debug(FDebugLevel.WAR, objectFaction.getRequests(SeparatePeaceOffer.class).toString());
 
             SeparatePeaceOffer matching = null;
             for (SeparatePeaceOffer request : requests) {
@@ -133,29 +134,29 @@ public class ConfirmPeaceRequestCommand extends FCommand {
             }
             Collection<FinalPeaceOffer> requests = null;
             try {
-                MessageUtil.log("Getting final peace offers for " + wp.getName() + " (Leader: " + wp.getLeader().getName() + ")");
-                MessageUtil.log("RequestCollection: " + wp.getRequests().toString());
+                FactionsXL.debug(FDebugLevel.WAR,"Getting final peace offers for " + wp.getName() + " (Leader: " + wp.getLeader().getName() + ")");
+                FactionsXL.debug(FDebugLevel.WAR,"RequestCollection: " + wp.getRequests().toString());
                 requests = wp.getRequests(FinalPeaceOffer.class);
-                MessageUtil.log("RequestCollection (FinalPeaceOffer): " + requests.toString());
+                FactionsXL.debug(FDebugLevel.WAR,"RequestCollection (FinalPeaceOffer): " + requests.toString());
             } catch (NullPointerException e) {
-                MessageUtil.log("Error: NPE while looking for FinalPeaceOffers  for " + wp.getName() + " found!");
+                FactionsXL.debug(FDebugLevel.WAR,"Error: NPE while looking for FinalPeaceOffers  for " + wp.getName() + " found!");
                 e.printStackTrace();
                 MessageUtil.sendMessage(player, FMessage.CMD_PEACE_CONFIRM_EMPTY.getMessage());
             }
             if (requests == null) {
-                MessageUtil.log("Requests are empty.");
+                FactionsXL.debug(FDebugLevel.WAR,"Requests are empty.");
                 return;
             }
             FinalPeaceOffer peace = null;
             for (FinalPeaceOffer p : requests) {
-                MessageUtil.log("Checking offer: " + p.toString() + " - (War: " + p.getWar().toString() + ")");
+                FactionsXL.debug(FDebugLevel.WAR,"Checking offer: " + p.toString() + " - (War: " + p.getWar().toString() + ")");
                 if (p.getWar() == war) {
                     peace = p;
                     break;
                 }
             }
             if (peace == null) {
-                MessageUtil.log("Error: No FinalPeaceOffers  for " + wp.getName() + " found!");
+                FactionsXL.debug(FDebugLevel.WAR,"Error: No FinalPeaceOffers  for " + wp.getName() + " found!");
                 return;
             }
             if (wp.getEnemy().getPoints() >= 50) { // Auto confirm if enemy has over 50 score
@@ -187,7 +188,7 @@ public class ConfirmPeaceRequestCommand extends FCommand {
 
         }
         else {
-            MessageUtil.log("Invalid argument. This should never happen.");
+            FactionsXL.debug(FDebugLevel.WAR,"Invalid argument. This should never happen.");
         }
     }
 }
