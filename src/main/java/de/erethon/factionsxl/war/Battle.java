@@ -51,6 +51,26 @@ public class Battle {
         this.player2 = player2;
         start = System.currentTimeMillis();
         expiration = System.currentTimeMillis() * 1000 * 60;
+        addInitialParticipation();
+    }
+
+    public void addInitialParticipation() {
+        FPlayer fPlayer1 = fplayers.getByPlayer(player1);
+        FPlayer fPlayer2 = fplayers.getByPlayer(player2);
+        Faction faction1 = fPlayer1.getFaction();
+        Faction faction2 = fPlayer2.getFaction();
+        for (War war : warCache.getWars()) {
+            if (faction1 != null && (war.getAttacker().getFactions().contains(faction1) || war.getDefender().getFactions().contains(faction1))) {
+                if (war.getPlayerParticipation(player1) <= 1.00) {
+                    war.addPlayerParticipation(player1, WarPlayerAction.KILL);
+                }
+            }
+            if(faction2 != null && (war.getAttacker().getFactions().contains(faction2) || war.getDefender().getFactions().contains(faction2))) {
+                if (war.getPlayerParticipation(player2) <= 1.00) {
+                    war.addPlayerParticipation(player2, WarPlayerAction.KILL);
+                }
+            }
+        }
     }
 
     public Player getPlayer1() {
