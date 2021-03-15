@@ -49,7 +49,8 @@ public class OccupationManager {
                             MessageUtil.log("Region " + rg.getName() + " is now attacked.");
                             f.sendMessage("&aEure Region &6" + rg.getName() + "&a verliert nun minütlich Einfluss. Verteidigt sie!");
                         }
-                        if (rg.isAttacked() && isInRegion(war.getDefender(), rg, false) && rg.getInfluence() > 0) {
+                        if (rg.isAttacked()  && rg.getInfluence() > 0) {
+                            FactionsXL.debug(FDebugLevel.WAR, "Checking influence for " + rg.getName());
                             reduceInfluence(war.getDefender(), war.getAttacker(), rg);
                         }
                         if (rg.isAttacked() && (rg.getAttackStartTime() + 7200000) < now) {
@@ -71,7 +72,8 @@ public class OccupationManager {
                             MessageUtil.log("Region " + rg.getName() + " is now attacked.");
                             f.sendMessage("&aEure Region &6" + rg.getName() + "&a verliert nun minütlich Einfluss. Verteidigt sie!");
                         }
-                        if (rg.isAttacked() && isInRegion(war.getAttacker(), rg, false) && rg.getInfluence() > 0) {
+                        if (rg.isAttacked() && rg.getInfluence() > 0) {
+                            FactionsXL.debug(FDebugLevel.WAR, "Checking influence for " + rg.getName());
                             reduceInfluence(war.getAttacker(), war.getDefender(), rg);
                         }
                         if (rg.isAttacked() && (rg.getAttackStartTime() + 7200000) <  now) {
@@ -89,29 +91,39 @@ public class OccupationManager {
     }
 
     public void reduceInfluence(WarParty attacker, WarParty defender, Region rg) {
+        FactionsXL.debug(FDebugLevel.WAR, "Checking influence in " + rg.getName() + " for attacker " + attacker.getName() + " and defender " + defender.getName());
         if (rg.getCoreFactions().containsKey(rg.getOwner()) && isInRegion(defender, rg, true) && rg.getInfluence() <= 50) {
+            FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": Influence not reduced: defender in region (Offline prot.) & influence < 50 (Core)");
             return;
         }
         if (isInRegion(defender, rg, true) && rg.getInfluence() <= 25) {
+            FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": Influence not reduced: defender in region (Offline prot.) & influence < 25 (non Core)");
             return;
         }
         if (rg.getOccupant() != null && attacker.getFactions().contains(rg.getOccupant())) {
+            FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": Attacker contains occupant");
             return;
         }
         if (isInRegion(attacker, rg, false) && !isInRegion(defender, rg, false)) {
             rg.setInfluence(rg.getInfluence() - 5);
+            FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": Attacker in region & defender not ( no Offline prot.) Influence: " + rg.getInfluence());
+            return;
         }
         if (isInRegion(attacker, rg, false)) {
             rg.setInfluence(rg.getInfluence() - 1);
+            FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": Attacker in region & defender ( no Offline prot.) Influence: " + rg.getInfluence());
+
         }
     }
 
     // Checks if a player of WarParty wp is in Region rg.
     public boolean isInRegion(WarParty wp, Region rg, boolean offlineProtection) {
+        FactionsXL.debug(FDebugLevel.WAR, "WarParty: " + wp.getName());
         long now = System.currentTimeMillis();
         int online = getActivePlayers(wp);
         if (online == 0 && offlineProtection) {
             // Offline factions are always defended
+            FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": isInRegion: true - Offline protection");
             return true;
         }
 
@@ -122,15 +134,19 @@ public class OccupationManager {
             // Invisible players do not count
             PotionEffect potionEffect = fp.getPlayer().getPotionEffect(PotionEffectType.INVISIBILITY);
             if (potionEffect != null) {
+                FactionsXL.debug(FDebugLevel.WAR, fp.getName() + " is invisible - skipped");
                 continue;
             }
             if (fp.getLastRegion() == null) {
+                FactionsXL.debug(FDebugLevel.WAR, fp.getName() + " has no lastRegion - skipped");
                 continue;
             }
             if (fp.getFaction().getWarParties().contains(wp) && fp.getLastRegion().equals(rg)) {
+                FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": isInRegion: true - WarParty: " + wp.getName() + " Player: " + fp.getName());
                 return true;
             }
         }
+        FactionsXL.debug(FDebugLevel.WAR, "Region: " + rg.getName() + ": No players for " + wp.getName() + " in region.");
         return false;
         }
 

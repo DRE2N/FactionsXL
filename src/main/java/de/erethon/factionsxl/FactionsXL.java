@@ -770,7 +770,9 @@ public class FactionsXL extends DREPlugin {
         if (instance.getDebugLevels().contains(level)) {
             System.out.println("[FXL | " + level.toString() + "] " + message);
             for (Player player : Bukkit.getOnlinePlayers()) {
-                MessageUtil.sendMessage(player, "&8[&cDebug &8|&6 " + level + "&8] &7" + message);
+                if (player.hasPermission("fxl.debug")) {
+                    MessageUtil.sendMessage(player, "&8[&cDebug &8|&6 " + level + "&8] &7" + message);
+                }
             }
         }
     }
