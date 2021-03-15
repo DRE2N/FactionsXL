@@ -51,7 +51,12 @@ public class OccupationManager {
                         }
                         if (rg.isAttacked()  && rg.getInfluence() > 0) {
                             FactionsXL.debug(FDebugLevel.WAR, "Checking influence for " + rg.getName());
-                            reduceInfluence(war.getDefender(), war.getAttacker(), rg);
+                            // If the region is occupied by the defender wp, the attacker wp should attack the region
+                            if (rg.getOccupant() != null && war.getDefender().getFactions().contains(rg.getOccupant())) {
+                                reduceInfluence(war.getAttacker(), war.getDefender(), rg);
+                            } else {
+                                reduceInfluence(war.getDefender(), war.getAttacker(), rg);
+                            }
                         }
                         if (rg.isAttacked() && (rg.getAttackStartTime() + 7200000) < now) {
                             rg.setAttacked(false);
@@ -73,8 +78,13 @@ public class OccupationManager {
                             f.sendMessage("&aEure Region &6" + rg.getName() + "&a verliert nun minütlich Einfluss. Verteidigt sie!");
                         }
                         if (rg.isAttacked() && rg.getInfluence() > 0) {
+                            // If the region is occupied by the attacker wp, the defender wp should attack the region
                             FactionsXL.debug(FDebugLevel.WAR, "Checking influence for " + rg.getName());
-                            reduceInfluence(war.getAttacker(), war.getDefender(), rg);
+                            if (rg.getOccupant() != null && war.getAttacker().getFactions().contains(rg.getOccupant())) {
+                                reduceInfluence(war.getDefender(), war.getAttacker(), rg);
+                            } else {
+                                reduceInfluence(war.getAttacker(), war.getDefender(), rg);
+                            }
                         }
                         if (rg.isAttacked() && (rg.getAttackStartTime() + 7200000) <  now) {
                             rg.setAttacked(false);
