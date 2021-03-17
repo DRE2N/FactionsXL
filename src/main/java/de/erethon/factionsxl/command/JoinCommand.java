@@ -65,6 +65,10 @@ public class JoinCommand extends FCommand {
 
         if (player.hasPermission("fxl.bypass") && args.length == 2) {
             faction.getMembers().add(player);
+
+            FPlayerFactionJoinEvent event = new FPlayerFactionJoinEvent(fPlayer, faction);
+            Bukkit.getPluginManager().callEvent(event);
+
             fPlayer.getData().setLastJoinedFaction(now);
             faction.sendMessage(FMessage.FACTION_JOIN_ACCEPT.getMessage(), player);
             FTeamWrapper.updatePrefixes(faction);

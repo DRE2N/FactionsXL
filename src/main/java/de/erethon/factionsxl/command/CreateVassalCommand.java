@@ -116,14 +116,18 @@ public class CreateVassalCommand extends FCommand {
 
         mother.getMods().remove(leader);
         mother.getMembers().remove(leader);
+
+        FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(leader.getUniqueId(), mother);
+        Bukkit.getPluginManager().callEvent(event);
+
         if (leader.isOnline()) {
             mother.getOnlineMods().remove(leader.getPlayer());
             mother.getOnlineMembers().remove(leader.getPlayer());
         }
         FTeamWrapper.updatePrefixes(mother);
 
-        FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(leader), mother);
-        Bukkit.getPluginManager().callEvent(event);
+        FPlayerFactionLeaveEvent leaveEvent = new FPlayerFactionLeaveEvent(plugin.getFPlayerCache().getByPlayer(leader), mother);
+        Bukkit.getPluginManager().callEvent(leaveEvent);
 
         Faction vassal = plugin.getFactionCache().create(leader, location, args[1]);
         mother.getRelations().put(vassal, Relation.VASSAL);

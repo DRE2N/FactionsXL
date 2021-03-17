@@ -17,10 +17,13 @@
 
 package de.erethon.factionsxl.event;
 
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+
+import java.util.UUID;
 
 /**
  * Gets called when a player leaves a faction, was kicked from it or left the faction to create a vassal (via independence or command).
@@ -35,6 +38,11 @@ public class FPlayerFactionLeaveEvent extends Event {
 
     public FPlayerFactionLeaveEvent(FPlayer fp, Faction f) {
         fPlayer = fp;
+        faction = f;
+    }
+
+    public FPlayerFactionLeaveEvent(UUID fp, Faction f) {
+        fPlayer = FactionsXL.getInstance().getFPlayerCache().getByUniqueId(fp);
         faction = f;
     }
 

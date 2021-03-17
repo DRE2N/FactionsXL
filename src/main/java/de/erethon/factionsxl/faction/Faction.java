@@ -32,6 +32,7 @@ import de.erethon.factionsxl.economy.*;
 import de.erethon.factionsxl.entity.FEntity;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.entity.Request;
+import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
 import de.erethon.factionsxl.idea.Idea;
 import de.erethon.factionsxl.idea.IdeaGroup;
 import de.erethon.factionsxl.idea.IdeaMenu;
@@ -1161,6 +1162,8 @@ public class Faction extends LegalEntity {
      */
     public void kick(CommandSender kicker, OfflinePlayer member) {
         sendMessage(FMessage.FACTION_PLAYER_KICKED.getMessage(), member, kicker);
+        FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(member.getUniqueId(), this);
+        Bukkit.getPluginManager().callEvent(event);
         members.remove(member.getUniqueId());
         mods.remove(member.getUniqueId());
     }
@@ -1173,6 +1176,8 @@ public class Faction extends LegalEntity {
      */
     public void kick(OfflinePlayer member) {
         sendMessage(FMessage.FACTION_PLAYER_KICKED_AUTO.getMessage(), member);
+        FPlayerFactionLeaveEvent event = new FPlayerFactionLeaveEvent(member.getUniqueId(), this);
+        Bukkit.getPluginManager().callEvent(event);
         members.remove(member.getUniqueId());
         mods.remove(member.getUniqueId());
     }
@@ -1334,7 +1339,13 @@ public class Faction extends LegalEntity {
         }
         formerAdmins.add(admin);
         setAdmin(null);
+        FPlayerFactionLeaveEvent adminLeaveEvent = new FPlayerFactionLeaveEvent(admin, this);
+        Bukkit.getPluginManager().callEvent(adminLeaveEvent);
         mods.clear();
+        for (UUID member : members) {
+            FPlayerFactionLeaveEvent leaveEvent = new FPlayerFactionLeaveEvent(member, this);
+            Bukkit.getPluginManager().callEvent(leaveEvent);
+        }
         members.clear();
         invited.clear();
         chunks.clear();

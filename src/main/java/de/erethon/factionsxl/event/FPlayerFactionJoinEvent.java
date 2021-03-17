@@ -17,10 +17,13 @@
 
 package de.erethon.factionsxl.event;
 
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+
+import java.util.UUID;
 
 /**
  * Gets called when a player joins a faction
@@ -34,6 +37,11 @@ public class FPlayerFactionJoinEvent extends Event {
 
     public FPlayerFactionJoinEvent(FPlayer fp, Faction f) {
         fPlayer = fp;
+        faction = f;
+    }
+
+    public FPlayerFactionJoinEvent(UUID uuid, Faction f) {
+        fPlayer = FactionsXL.getInstance().getFPlayerCache().getByUniqueId(uuid);
         faction = f;
     }
 

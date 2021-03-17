@@ -24,6 +24,7 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FConfig;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
+import de.erethon.factionsxl.event.FPlayerFactionJoinEvent;
 import de.erethon.factionsxl.player.FPlayer;
 import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.LazyChunk;
@@ -112,6 +113,10 @@ public class FactionCache {
         faction.capital.setOwner(faction);
         faction.capital.getCoreFactions().put(faction, Calendar.getInstance().getTime());
         faction.members.add(player);
+
+        FPlayerFactionJoinEvent event = new FPlayerFactionJoinEvent(player.getUniqueId(), faction);
+        Bukkit.getPluginManager().callEvent(event);
+
         faction.manpowerModifier = plugin.getFConfig().getDefaultManpowerModifier();
         faction.save();
         faction.load();
@@ -196,6 +201,10 @@ public class FactionCache {
         union.mods.addAll(faction2.mods);
         union.members = new PlayerCollection(faction1.members.getUniqueIds());
         union.members.addAll(faction2.members);
+        for (UUID member : union.members) {
+            FPlayerFactionJoinEvent event = new FPlayerFactionJoinEvent(member, union);
+            Bukkit.getPluginManager().callEvent(event);
+        }
         union.invited = new PlayerCollection(faction1.invited.getUniqueIds());
         union.invited.addAll(faction2.invited);
         for (Entry<Faction, Relation> entry : faction1.relations.entrySet()) {
@@ -244,6 +253,8 @@ public class FactionCache {
         }
         for (UUID uuid : integrated.members.getUniqueIds()) {
             integrating.members.add(uuid);
+            FPlayerFactionJoinEvent event = new FPlayerFactionJoinEvent(uuid, integrating);
+            Bukkit.getPluginManager().callEvent(event);
         }
         if (plugin.getFConfig().isEconomyEnabled()) {
             integrating.account.deposit(integrated.account.getBalance());
