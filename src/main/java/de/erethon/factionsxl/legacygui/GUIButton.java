@@ -21,10 +21,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.Arrays;
 
 /**
- * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette
  * @author Daniel Saukel
  */
-@Deprecated
 public class GUIButton {
 
     /* Raw ItemStacks*/

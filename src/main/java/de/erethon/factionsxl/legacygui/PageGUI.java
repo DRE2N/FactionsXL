@@ -30,10 +30,8 @@ import java.util.Stack;
 import static de.erethon.factionsxl.legacygui.GUIButton.*;
 
 /**
- * @deprecated taken from an older version of the DRECommons library; supposed to replaced by Vignette. Legacy support for 1.14+ still working
  * @author Daniel Saukel
  */
-@Deprecated
 public class PageGUI implements InventoryHolder {
 
     private String title;
