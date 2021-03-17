@@ -26,6 +26,7 @@ import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -80,12 +81,15 @@ public class LWCIntegration extends JavaModule {
         }
         Faction faction = region.getOwner();
         if (faction.isInWar(plugin.getFactionCache().getByMember(player)) && block.getType() == Material.FURNACE && region.getInfluence() <= 30) {
+            FactionsXL.debug(FDebugLevel.PROTECTION, "Bypassing chest for player  " + player.getName() + " (Furnace & Influence below 30)");
             return true;
         }
         Faction playerFaction = plugin.getFPlayerCache().getByPlayer(player).getFaction();
         if (region.getOccupant() != null && playerFaction != null && playerFaction.equals(region.getOccupant())) {
+            FactionsXL.debug(FDebugLevel.PROTECTION, "Bypassing chest for player  " + player.getName() + " (Occupied)");
             return true;
         }
+        FactionsXL.debug(FDebugLevel.PROTECTION, "Bypassing chest for player  " + player.getName() + " (isAdmin: " + faction.isAdmin(player) + ")");
         return faction.isAdmin(player);
     }
 
