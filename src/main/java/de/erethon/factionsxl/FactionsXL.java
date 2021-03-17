@@ -37,12 +37,13 @@ import de.erethon.factionsxl.entity.RelationRequest;
 import de.erethon.factionsxl.faction.FBull;
 import de.erethon.factionsxl.faction.FMob;
 import de.erethon.factionsxl.faction.FactionCache;
+import de.erethon.factionsxl.integrations.LuckPermsIntegration;
 import de.erethon.factionsxl.player.AsyncPowerTask;
 import de.erethon.factionsxl.player.FPermission;
 import de.erethon.factionsxl.player.FPlayerCache;
 import de.erethon.factionsxl.player.PlayerListener;
 import de.erethon.factionsxl.protection.EntityProtectionListener;
-import de.erethon.factionsxl.protection.LWCIntegration;
+import de.erethon.factionsxl.integrations.LWCIntegration;
 import de.erethon.factionsxl.protection.LandProtectionListener;
 import de.erethon.factionsxl.util.BalanceCache;
 import de.erethon.factionsxl.util.CoringHandler;
@@ -106,6 +107,7 @@ public class FactionsXL extends DREPlugin {
     private EntityProtectionListener entityProtectionListener;
     private LandProtectionListener landProtectionListener;
     private LWCIntegration lwcIntegration;
+    private LuckPermsIntegration luckPermsIntegration;
     private WarTNT warTNT;
     private WarHandler warHandler;
     private WarPoints warPoints;
@@ -126,6 +128,7 @@ public class FactionsXL extends DREPlugin {
                 .paper(true)
                 .economy(true)
                 .metrics(true)
+                .permissions(true)
                 .internals(Internals.v1_14_R1, Internals.v1_15_R1, Internals.v1_16_R1)
                 .build();
     }
@@ -288,6 +291,12 @@ public class FactionsXL extends DREPlugin {
         manager.registerEvents(new FBull(), this);
         manager.registerEvents(new FMob(), this);
         manager.registerEvents(new WarListener(), this);
+        luckPermsIntegration = new LuckPermsIntegration();
+        if (getPermissionProvider() == null) {
+            MessageUtil.log("No permission provider found. Integration with other plugins might not work");
+        } else {
+            manager.registerEvents(luckPermsIntegration, this);
+        }
         getCommand("factionsxl").setTabCompleter(new FCommandCompleter());
 
         new BukkitRunnable() {

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.erethon.factionsxl.protection;
+package de.erethon.factionsxl.integrations;
 
 import com.griefcraft.lwc.LWC;
 import com.griefcraft.scripting.JavaModule;
