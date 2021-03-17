@@ -108,6 +108,7 @@ public class FConfig extends DREConfig {
     private String chatFormatAlly = "&d[" + RELATION_COLOR + FACTION_TAG + "&d] " + RELATION_COLOR + PLAYER_PREFIX + "&d" + PLAYER_NAME + ": ";
     private String chatFormatCoalition = "&c[" + RELATION_COLOR + FACTION_TAG + "&c] " + RELATION_COLOR + PLAYER_PREFIX + "&c" + PLAYER_NAME + ": ";
     private String chatFormatFaction = RELATION_COLOR.getPlaceholder() + PLAYER_PREFIX + "&a" + PLAYER_TITLE + " " + PLAYER_NAME + ": ";
+    private String chatFormatTeam = "&8[&cTeam&8] &6" + PLAYER_NAME + "&8:&c";
     private String chatFormatRoleplay = "&8[&6RP&8]" + PLAYER_DYNASTY + "&8: &7";
 
     // Protection
@@ -492,6 +493,8 @@ public class FConfig extends DREConfig {
                 return chatFormatPublic;
             case ROLEPLAY:
                 return chatFormatRoleplay;
+            case TEAM:
+                return chatFormatTeam;
             default:
                 return null;
         }
@@ -1138,6 +1141,10 @@ public class FConfig extends DREConfig {
             config.set("chatFormat.public", chatFormatPublic);
         }
 
+        if (!config.contains("chatFormat.team")) {
+            config.set("chatFormat.team", chatFormatTeam);
+        }
+
         if (!config.contains("chatFormat.handlePublic")) {
             config.set("chatFormat.handlePublic", publicChatHandled);
         }
@@ -1428,6 +1435,10 @@ public class FConfig extends DREConfig {
 
         if (config.contains("chatFormat.public")) {
             chatFormatPublic = config.getString("chatFormat.public");
+        }
+
+        if (config.contains("chatFormat.team")) {
+            chatFormatTeam = config.getString("chatFormat.team");
         }
 
         if (config.contains("chatFormat.handlePublic")) {

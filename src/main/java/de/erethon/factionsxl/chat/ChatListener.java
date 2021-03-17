@@ -87,8 +87,8 @@ public class ChatListener implements Listener {
             }
             else if (channel == ChatChannel.TEAM) {
                 for (Player receiver : Bukkit.getOnlinePlayers()) {
-                    String format = ParsingUtil.replaceChatPlaceholders(fConfig.getChatFormat(channel), fPlayer, fPlayers.getByPlayer(receiver));
                     if (receiver.hasPermission("fxl.teamchat")) {
+                        String format = ParsingUtil.replaceChatPlaceholders(fConfig.getChatFormat(channel), fPlayer, fPlayers.getByPlayer(receiver));
                         MessageUtil.sendMessage(receiver, format + event.getMessage());
                     }
                 }
