@@ -78,7 +78,7 @@ public class OccupationManager {
                             f.sendMessage("&aEure Region &6" + rg.getName() + "&a verliert nun minütlich Einfluss. Verteidigt sie!");
                         }
                         if (rg.isAttacked() && rg.getInfluence() > 0) {
-                            // If the region is occupied by the attacker wp, the defender wp should attack the region
+                            // If the region is occupied by the attacker wp, the defender wp should attack the regionFix a
                             FactionsXL.debug(FDebugLevel.WAR, "Checking influence for " + rg.getName());
                             if (rg.getOccupant() != null && war.getAttacker().getFactions().contains(rg.getOccupant())) {
                                 reduceInfluence(war.getDefender(), war.getAttacker(), rg);
