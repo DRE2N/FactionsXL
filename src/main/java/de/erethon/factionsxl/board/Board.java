@@ -47,6 +47,8 @@ public class Board {
     private List<Region> regions = new CopyOnWriteArrayList<>();
     private final HashMap<Region, Long> cache = new HashMap<>();
     private final HashMap<Chunk, AbstractMap.SimpleEntry<Region, Long>> chunkCache = new HashMap<>();
+    private int cacheHits = 0;
+    private int cacheMiss = 0;
 
     public Board(File dir) {
         for (File file : dir.listFiles()) {
@@ -123,8 +125,10 @@ public class Board {
     public Region getByChunk(Chunk chunk) {
         // Check chunk cache first
         if (chunkCache.containsKey(chunk)) {
+            cacheHits++;
             return chunkCache.get(chunk).getKey();
         }
+        cacheMiss++;
         // Check region cache
         for (Region cachedRegion : cache.keySet()) {
             if (cachedRegion.getWorld().equals(chunk.getWorld())) {
@@ -161,8 +165,10 @@ public class Board {
      */
     public Region getByChunk(Chunk chunk, Region region) {
         if (chunkCache.containsKey(chunk)) {
+            cacheHits++;
             return chunkCache.get(chunk).getKey();
         }
+        cacheMiss++;
         // Check chunks of the region
         if (region != null) {
             for (LazyChunk ownChunk : region.getChunks()) {
@@ -337,6 +343,9 @@ public class Board {
     public class CacheCleanTask extends BukkitRunnable {
         @Override
         public void run() {
+            FactionsXL.debug(FDebugLevel.BOARD, "Cache hits/5 min.: " + cacheHits + " | Cache Miss/5 min.: " + cacheMiss);
+            cacheHits = 0;
+            cacheMiss = 0;
             Set<Region> toRemove = new HashSet<>();
             long time = System.currentTimeMillis();
             for (Entry<Region, Long> entry : cache.entrySet()) {
