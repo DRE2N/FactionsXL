@@ -17,8 +17,12 @@
 
 package de.erethon.factionsxl.integrations;
 
+import de.erethon.factionsxl.FactionsXL;
 import de.erethon.factionsxl.event.FPlayerFactionJoinEvent;
 import de.erethon.factionsxl.event.FPlayerFactionLeaveEvent;
+import de.erethon.factionsxl.faction.Faction;
+import de.erethon.factionsxl.player.FPlayer;
+import de.erethon.factionsxl.player.FPlayerCache;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.data.DataMutateResult;
 import net.luckperms.api.model.group.Group;
@@ -26,17 +30,42 @@ import net.luckperms.api.model.group.GroupManager;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
+import net.luckperms.api.node.types.PermissionNode;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.concurrent.CompletableFuture;
 
 public class LuckPermsIntegration implements Listener {
 
+    FPlayerCache fPlayerCache = FactionsXL.getInstance().getFPlayerCache();
     LuckPerms luckPerms = Bukkit.getServicesManager().getRegistration(LuckPerms.class).getProvider();
     UserManager userManager = luckPerms.getUserManager();
     GroupManager groupManager = luckPerms.getGroupManager();
+
+    @EventHandler
+    public void serverJoinEvent(PlayerJoinEvent event) {
+        FPlayer fPlayer = fPlayerCache.getByUniqueId(event.getPlayer().getUniqueId());
+        if (fPlayer == null) {
+            return;
+        }
+        Faction faction = fPlayer.getFaction();
+        if (faction == null) {
+            return;
+        }
+        String factionGroupID = "faction_" + faction.getId();
+        CompletableFuture<User> userFuture = userManager.loadUser(event.getPlayer().getUniqueId());
+        userFuture.thenAcceptAsync(user -> {
+            if (user.getNodes(NodeType.PERMISSION).contains(PermissionNode.builder("group." + factionGroupID).build())) {
+                return;
+            }
+            DataMutateResult result = user.data().add(Node.builder("group." + factionGroupID).build());
+            userManager.saveUser(user);
+        });
+    }
 
     @EventHandler
     public void joinEvent(FPlayerFactionJoinEvent event) {
