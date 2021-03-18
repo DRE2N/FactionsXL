@@ -58,6 +58,11 @@ public class LuckPermsIntegration implements Listener {
         }
         String factionGroupID = "faction_" + faction.getId();
         CompletableFuture<User> userFuture = userManager.loadUser(event.getPlayer().getUniqueId());
+        Group factionGroup = groupManager.getGroup(factionGroupID);
+        if (factionGroup == null) {
+            groupManager.createAndLoadGroup(factionGroupID);
+            groupManager.getGroup(factionGroupID);
+        }
         userFuture.thenAcceptAsync(user -> {
             if (user.getNodes(NodeType.PERMISSION).contains(PermissionNode.builder("group." + factionGroupID).build())) {
                 return;
