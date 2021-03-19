@@ -56,6 +56,19 @@ public class WarHandler {
                 Bukkit.getPluginManager().callEvent(event);
 
             }
+            // End wars if after one week nothing has happened
+            if (w.getAttacker().getPoints() == 0 && w.getDefender().getPoints() == 0 && w.getStartDate().getTime() <= (System.currentTimeMillis() - (86400000 * 7))) {
+                w.end();
+            }
+            // Win wars that have no attackers/defenders left for whatever reason
+            if (w.getAttacker().getFactions().isEmpty()) {
+                FactionsXL.debug(FDebugLevel.WAR, "Ended war" + w.toString() + " because all attackers left.");
+                defenderGoals(w.getDefender());
+            }
+            if (w.getDefender().getFactions().isEmpty()) {
+                FactionsXL.debug(FDebugLevel.WAR, "Ended war" + w.toString() + " because all defenders left.");
+                forceWarGoal(w.getAttacker());
+            }
         }
     }
     public void calculateWarStatus() {

@@ -24,6 +24,7 @@ import de.erethon.factionsxl.config.FMessage;
 import de.erethon.factionsxl.entity.Relation;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.player.FPermission;
+import de.erethon.factionsxl.util.FDebugLevel;
 import de.erethon.factionsxl.util.ParsingUtil;
 import de.erethon.factionsxl.war.WarCache;
 import org.bukkit.entity.*;
@@ -82,25 +83,29 @@ public class EntityProtectionListener implements Listener {
         Player defender = (Player) eDefender;
         Region region = plugin.getBoard().getByLocation(defender.getLocation());
         if (region != null && region.getType() == RegionType.WARZONE) {
+            FactionsXL.debug(FDebugLevel.PROTECTION, eAttacker.getName() + " vs. " + eDefender.getName() + ": Region " + region.getName() + " is WarZone");
             return;
         }
         Faction aFaction = plugin.getFactionCache().getByMember(attacker);
         Faction dFaction = plugin.getFactionCache().getByMember(defender);
         boolean truce = false;
-        if (wc.getWarTogether(aFaction, dFaction) != null) {
-            truce = wc.getWarTogether(aFaction, dFaction).getTruce();
+        if (aFaction != null && dFaction != null) {
+            truce = wc.getTruce(aFaction, dFaction, region) || wc.getTruce(dFaction, aFaction, region);
+            FactionsXL.debug(FDebugLevel.PROTECTION, eAttacker.getName() + " vs. " + eDefender.getName() + ": Truce: " + truce);
         }
 
         Faction rFaction = region != null ? region.getOwner() : null;
         double shield = config.getTerritoryShield();
-        if (region !=null && region.getOccupant() != null) {
+        if (region != null && region.getOccupant() != null) {
             Faction occupant = region.getOccupant();
             if (occupant == aFaction) {
+                FactionsXL.debug(FDebugLevel.PROTECTION, eAttacker.getName() + " vs. " + eDefender.getName() + ": Occupant is attacker");
                 return;
             }
         }
         if (aFaction != null && aFaction.getRelation(dFaction).isProtected() || truce) {
             ParsingUtil.sendActionBarMessage(attacker, FMessage.PROTECTION_CANNOT_ATTACK_PLAYER.getMessage(), dFaction);
+            FactionsXL.debug(FDebugLevel.PROTECTION, eAttacker.getName() + " vs. " + eDefender.getName() + ": Cancelled, protected relation or truce");
             event.setCancelled(true);
             // Event gets fired several thousand times if the arrow is not removed
             if (event.getDamager() instanceof AbstractArrow) {

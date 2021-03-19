@@ -17,14 +17,14 @@
 package de.erethon.factionsxl.war;
 
 import de.erethon.factionsxl.FactionsXL;
+import de.erethon.factionsxl.board.Region;
 import de.erethon.factionsxl.faction.Faction;
 import de.erethon.factionsxl.faction.LegalEntity;
 import de.erethon.factionsxl.war.demand.WarDemandCreationGUI;
 
 import java.io.File;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Daniel Saukel
@@ -111,6 +111,30 @@ public class WarCache {
             }
         }
         return null;
+    }
+
+    public List<War> getWarsTogether(Faction f1, Faction f2) {
+        List<War> warList = new ArrayList<>();
+        for (War war : wars) {
+            if (war.getAttacker().getFactions().contains(f1) && war.getDefender().getFactions().contains(f2)) {
+                warList.add(war);
+            }
+        }
+        return warList;
+    }
+
+    public boolean getTruce(Faction defender, Faction attacker, Region rg) {
+        List<War> wars = defender.getWarParties().stream().map(WarParty::getWar).collect(Collectors.toList());
+        List<Faction> allies = new ArrayList<>();
+        defender.getWarParties().stream().map(WarParty::getFactions).forEach(allies::addAll);
+        List<Faction> enemies = new ArrayList<>();
+        defender.getWarParties().stream().map(warParty -> warParty.getEnemy().getFactions()).forEach(enemies::addAll);
+        for (War war : wars) {
+            if (war.getTruce() && enemies.contains(attacker) && allies.contains(rg.getOwner())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
