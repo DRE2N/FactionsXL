@@ -47,8 +47,10 @@ public class Board {
     private List<Region> regions = new CopyOnWriteArrayList<>();
     private final HashMap<Region, Long> cache = new HashMap<>();
     private final HashMap<Chunk, AbstractMap.SimpleEntry<Region, Long>> chunkCache = new HashMap<>();
-    private int cacheHits = 0;
-    private int cacheMiss = 0;
+    private int cacheHitsChunk = 0;
+    private int cacheMissChunk = 0;
+    private int cacheHitsRegion = 0;
+    private int cacheMissRegion = 0;
 
     public Board(File dir) {
         for (File file : dir.listFiles()) {
@@ -125,26 +127,30 @@ public class Board {
     public Region getByChunk(Chunk chunk) {
         // Check chunk cache first
         if (chunkCache.containsKey(chunk)) {
-            cacheHits++;
+            cacheHitsChunk++;
             return chunkCache.get(chunk).getKey();
         }
-        cacheMiss++;
+        cacheMissChunk++;
         // Check region cache
         for (Region cachedRegion : cache.keySet()) {
             if (cachedRegion.getWorld().equals(chunk.getWorld())) {
                 for (LazyChunk rChunk : cachedRegion.getChunks()) {
                     if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
+                        cacheHitsRegion++;
                         return cachedRegion;
                     }
                 }
             }
         }
+        cacheMissRegion++;
         // Check entire board
         for (Region region : regions) {
             if (region.getWorld().equals(chunk.getWorld())) {
                 for (LazyChunk rChunk : region.getChunks()) {
                     if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
                         cache.put(region, System.currentTimeMillis()); // Add region to cache
+                        AbstractMap.SimpleEntry<Region, Long> entry = new AbstractMap.SimpleEntry<Region, Long>(region, System.currentTimeMillis());
+                        chunkCache.put(rChunk.asBukkitChunk(region.getWorld()), entry);
                         return region;
                     }
                 }
@@ -165,10 +171,22 @@ public class Board {
      */
     public Region getByChunk(Chunk chunk, Region region) {
         if (chunkCache.containsKey(chunk)) {
-            cacheHits++;
+            cacheHitsChunk++;
             return chunkCache.get(chunk).getKey();
         }
-        cacheMiss++;
+        cacheMissChunk++;
+        // Check region cache
+        for (Region cachedRegion : cache.keySet()) {
+            if (cachedRegion.getWorld().equals(chunk.getWorld())) {
+                for (LazyChunk rChunk : cachedRegion.getChunks()) {
+                    if (rChunk.getX() == chunk.getX() && rChunk.getZ() == chunk.getZ()) {
+                        cacheHitsRegion++;
+                        return cachedRegion;
+                    }
+                }
+            }
+        }
+        cacheMissRegion++;
         // Check chunks of the region
         if (region != null) {
             for (LazyChunk ownChunk : region.getChunks()) {
@@ -343,9 +361,12 @@ public class Board {
     public class CacheCleanTask extends BukkitRunnable {
         @Override
         public void run() {
-            FactionsXL.debug(FDebugLevel.BOARD, "Cache hits/5 min.: " + cacheHits + " | Cache Miss/5 min.: " + cacheMiss);
-            cacheHits = 0;
-            cacheMiss = 0;
+            FactionsXL.debug(FDebugLevel.BOARD, "RegionCache hits/5 min.: " + cacheHitsRegion + " | Cache Miss/5 min.: " + cacheMissRegion);
+            FactionsXL.debug(FDebugLevel.BOARD, "ChunkCache hits/5 min.: " + cacheHitsChunk + " | Cache Miss/5 min.: " + cacheMissChunk);
+            cacheHitsRegion = 0;
+            cacheMissRegion = 0;
+            cacheHitsChunk = 0;
+            cacheMissChunk = 0;
             Set<Region> toRemove = new HashSet<>();
             long time = System.currentTimeMillis();
             for (Entry<Region, Long> entry : cache.entrySet()) {
